@@ -156,6 +156,32 @@ describe('hub carts', () => {
     expect(again.state.bean.jumps).toBe(0);
   });
 
+  it('a rider faces the camera while the cart is still and the way it travels while it moves', () => {
+    const still = newHub({ start: { x: LIGHT_X - 0.9, y: rail.y - 0.6 } });
+    still.enqueue(move(1, 0));
+    still.step();
+    still.enqueue({ type: 'action' });
+    still.step();
+    expect(still.state.bean.riding).toBe('light');
+    expect([still.state.bean.facingX, still.state.bean.facingY]).toEqual([0, -1]);
+
+    // Pushed to 1.9 m/s, then boarded: 0.38 m/s east, so it faces east; it keeps that facing
+    // while slowing through 0.3..0.1 m/s, and turns to the camera below 0.1 m/s.
+    const sim = pushLightEast();
+    run(sim, 40);
+    sim.enqueue(move(0, 0));
+    sim.enqueue({ type: 'action' });
+    sim.step();
+    expect([sim.state.bean.facingX, sim.state.bean.facingY]).toEqual([1, 0]);
+    const speedAfter = (s: number) => Math.round(((cart(sim, 'light').v - s) / CART_ROLLING_DECEL) * 60);
+    run(sim, speedAfter(0.2));
+    expect(cart(sim, 'light').v).toBeLessThan(0.3);
+    expect([sim.state.bean.facingX, sim.state.bean.facingY]).toEqual([1, 0]);
+    run(sim, speedAfter(0.05));
+    expect(cart(sim, 'light').v).toBeLessThan(0.1);
+    expect([sim.state.bean.facingX, sim.state.bean.facingY]).toEqual([0, -1]);
+  });
+
   it('E does nothing far from the cart or next to the 20 kg cart', () => {
     const far = newHub({ start: { x: LIGHT_X, y: rail.y + 1.5 } });
     far.enqueue({ type: 'action' });

@@ -45,6 +45,12 @@ const PUSH_REACH_M = 0.03;
 const PUSH_MIN_ALONG = 0.35;
 /** E gets into the ridable cart from up to this far from its centre (m). */
 export const BOARD_REACH_M = 1.2;
+/**
+ * A rider faces the way the cart travels above this speed (m/s) and turns back to face the
+ * camera below RIDE_FACE_FRONT_SPEED; in between it keeps its facing, so it never flickers.
+ */
+export const RIDE_FACE_TRAVEL_SPEED = 0.3;
+export const RIDE_FACE_FRONT_SPEED = 0.1;
 /** Getting out puts the bean this far south of the rail's centre line (m). */
 const EXIT_OFFSET_M = CART_HALF_DEPTH + HUB_BEAN_RADIUS_M + 0.05;
 /** Collisions kept in the state for logs and checks. */
@@ -464,9 +470,12 @@ export function createHubScenario(options: HubOptions = {}): Scenario<HubState, 
         bean.y = railY;
         bean.vx = ridden.v;
         bean.vy = 0;
-        if (Math.abs(ridden.v) > 0.3) {
+        if (Math.abs(ridden.v) > RIDE_FACE_TRAVEL_SPEED) {
           bean.facingX = Math.sign(ridden.v);
           bean.facingY = 0;
+        } else if (Math.abs(ridden.v) < RIDE_FACE_FRONT_SPEED) {
+          bean.facingX = 0;
+          bean.facingY = -1;
         }
       } else if (pushed && push) {
         // The bean keeps against the end it pushes, moving with the cart.

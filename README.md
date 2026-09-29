@@ -188,6 +188,7 @@ Scripts in `tools/shot/scripts/`:
 | `hub-carts-push.json` | Walk west of the 5 kg cart, push it east (two shots 0.1 s apart while it speeds up, then at the 1.9 m/s cap), let go; it rolls into the 20 kg cart |
 | `hub-carts-heavy.json` | Walk east of the 20 kg cart and push it west: the same 42 N gives F/m a quarter as large, so the net acceleration is 42/20 − 0.26 = 1.84 m/s² against 8.14 m/s² for the 5 kg cart |
 | `hub-carts-ride.json` | Push the 5 kg cart to the cap, E to get in (speed × 5/25), ride, E to get out (speed × 25/5) |
+| `hub-carts-board-still.json` | Walk to the resting 5 kg cart and press E: the rider faces the camera (it faces the way the cart travels while it moves) |
 
 After the three cart scripts, `pnpm shot:check-carts` recomputes from their logs the push
 accelerations (F/m − 0.26 m/s²), the cap, momentum and restitution of the collision, the riding

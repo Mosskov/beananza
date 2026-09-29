@@ -115,6 +115,10 @@ Claude draws the art as SVG; it stays Open. See `docs/DECISIONS.md`.
   Getting in is instant (no hop animation yet). While riding, movement input is ignored, the
   bean follows the cart, and its Planck body is inactive (set from the state every step).
   Getting out puts the bean 0.5 m south of the rail at the cart's x.
+- **A rider's facing** (the user's request): toward the camera while the cart is still, the way
+  it travels while it moves. It turns sideways above 0.3 m/s and back to the camera below
+  0.1 m/s, keeping its facing in between so it never flickers. In the sim, since facing is
+  shared state (M2).
 - **The state keeps the last 16 collisions** (`state.rail.collisions`) with masses, velocities
   before and after, and the solved impact time, for the scripted checks.
 

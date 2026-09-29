@@ -21,6 +21,7 @@
     "shot:compare-states": "pnpm --filter @beananza/shot compare-states",
     "shot:check-looks": "pnpm --filter @beananza/shot check-looks",
     "verify": "pnpm --filter @beananza/shot verify",
+    "shot:sheet": "pnpm --filter @beananza/shot sheet",
     "share": "pnpm --filter @beananza/share share",
     "share:preview": "pnpm --filter @beananza/share preview",
     "share:dry-run": "pnpm share && pnpm --filter @beananza/share cf-check",

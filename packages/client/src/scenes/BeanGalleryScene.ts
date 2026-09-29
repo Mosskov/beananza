@@ -1,13 +1,12 @@
 import Phaser from 'phaser';
 import { prefersReducedMotion } from '../accessibility';
-import { PALETTE, cssColor } from '../config';
+import { PALETTE, UI_FONT as FONT, cssColor } from '../config';
 import { BeanRig, createBeanShadow } from '../rig/BeanRig';
 import type { ClipName } from '../rig/clips';
 import { samplePose, type Pose } from '../rig/player';
 import { viewForFacing } from '../rig/views';
 import type { TestableScene } from './TestableScene';
 
-const FONT = 'system-ui, "Segoe UI", Roboto, sans-serif';
 const S = Math.SQRT1_2;
 
 /** Sim facings (x east, y north) by compass name. */

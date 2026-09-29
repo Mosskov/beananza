@@ -2,6 +2,8 @@ import type { SimStateBase } from '../sim';
 import { SIM_HZ } from '../time';
 import { EARTH_GRAVITY } from '../constants';
 import type { Rail, RailCart, RailCollision } from '../rail';
+import type { BenchAct } from '../interactions/bench';
+import type { CartAct } from '../interactions/cart';
 
 /**
  * The hub's data: layout, state, commands and the numbers every part of the hub shares. The
@@ -43,6 +45,10 @@ export interface Rect {
 /** A solid prop, as its footprint on the ground: a box centred on (x, y). */
 export interface PropFootprint {
   id: string;
+  /** The drawing the client shows for it: a prop in `art/props/` (the sim never reads it). */
+  art: string;
+  /** A tap on its drawing sends `use` with its id, for an interaction module to handle. */
+  usable?: boolean;
   x: number;
   y: number;
   /** Half the east-west size (m). */
@@ -105,12 +111,14 @@ export interface PlazaLayout {
  */
 export const DEFAULT_PLAZA: PlazaLayout = {
   walkable: { minX: -5.8, maxX: 5.8, minY: -3, maxY: 2 },
-  props: [{ id: 'tree', x: 2.2, y: 0.2, halfWidth: 0.25, halfDepth: 0.2 }],
+  props: [{ id: 'tree', art: 'tree', x: 2.2, y: 0.2, halfWidth: 0.25, halfDepth: 0.2 }],
   // D24: 1.6 × 0.45 m, seat 0.30 m high, seats 0.4 m either side of the centre. PLACEHOLDER
   // spot in the plaza (D2).
   benches: [
     {
       id: 'bench',
+      art: 'bench',
+      usable: true,
       x: -3.6,
       y: 1.2,
       halfWidth: 0.8,
@@ -149,32 +157,10 @@ export interface HubJump {
 /**
  * What the bean is doing with the world (D21). One state at a time, plain JSON. `free` walks,
  * runs and jumps under the hub's rules; every other state belongs to one interaction module,
- * which owns its commands, timed transitions, position and facing.
+ * which defines it next to its code and owns its commands, timed transitions, position and
+ * facing. A new interaction adds its act type here and its module to `../interactions/index.ts`.
  */
-export type HubAct =
-  | { kind: 'free' }
-  /** Walking into a cart's end: re-derived every step from the push rule. */
-  | { kind: 'pushing'; cart: string; dir: 1 | -1; run: boolean }
-  /**
-   * Getting into a cart (D23): a crouch until `hopTick`, then a hop from (fromX, fromY) that
-   * lands on the cart's floor wherever the cart is at `endTick`. Timed in whole ticks.
-   */
-  | { kind: 'boarding'; cart: string; startTick: number; hopTick: number; endTick: number; fromX: number; fromY: number; arc: number; facingX: number; facingY: number }
-  /** Standing in a cart, on its floor (z = CART_FLOOR_M). */
-  | { kind: 'riding'; cart: string; since: number }
-  /** Getting out (D23): a hop from the cart's floor to (toX, toY) on the ground. */
-  | { kind: 'leaving'; cart: string; startTick: number; endTick: number; fromX: number; fromY: number; toX: number; toY: number; arc: number }
-  /**
-   * Walking to a seat's stand spot to sit (D24): a tap target, via waypoints around the bench
-   * when the bean starts behind or beside it; any other input cancels it.
-   */
-  | { kind: 'approaching'; bench: string; seat: string; to: { x: number; y: number }; via: { x: number; y: number }[] }
-  /** The hop from the stand spot onto the seat. */
-  | { kind: 'seating'; bench: string; seat: string; startTick: number; endTick: number; fromX: number; fromY: number }
-  /** Sitting since tick `since` (dozes after a while, which the client draws from `since`). */
-  | { kind: 'sitting'; bench: string; seat: string; since: number }
-  /** The hop down to the stand spot; then walks to `then` if a tap asked for it. */
-  | { kind: 'standing'; bench: string; seat: string; startTick: number; endTick: number; then: { x: number; y: number } | null };
+export type HubAct = { kind: 'free' } | CartAct | BenchAct;
 
 export type HubActKind = HubAct['kind'];
 
@@ -277,9 +263,3 @@ export function clampTarget(walkable: Rect, x: number, y: number): { x: number; 
   const area = centreArea(walkable);
   return { x: clamp(x, area.minX, area.maxX), y: clamp(y, area.minY, area.maxY) };
 }
-
-/** Whether the bean walks under the hub's own rules (input, targets, jumps) in this state. */
-export const actWalks = (act: HubAct): boolean => act.kind === 'free' || act.kind === 'pushing' || act.kind === 'approaching';
-
-/** Whether Planck moves the bean in this state (pushing places the bean itself). */
-export const actUsesPlanck = (act: HubAct): boolean => act.kind === 'free' || act.kind === 'approaching';

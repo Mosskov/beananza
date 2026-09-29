@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { CART_FLOOR_M, DEFAULT_PLAZA } from '@beananza/sim';
-import { CART_WHEEL_RADIUS_M, PROP_SVGS, buildPropArtSpec, propKey } from '../src/art/props';
+import { CART_WHEEL_RADIUS_M, PROP_PARTS, PROP_SVGS, buildPropArtSpec, propKey } from '../src/art/props';
 import { RAIL_GAUGE_M } from '../src/scenes/hub-view';
 
 describe('prop art contract (art/props/*.svg)', () => {
@@ -9,6 +9,14 @@ describe('prop art contract (art/props/*.svg)', () => {
   it('has the tree, the cart and the bench with their parts', () => {
     expect(spec.docs.tree?.parts.map((p) => p.id)).toEqual(['shadow', 'trunk', 'canopy']);
     expect(spec.docs.cart?.parts.map((p) => p.id)).toEqual(['shadow', 'back', 'rocks', 'front', 'wheel-west', 'wheel-east']);
+  });
+
+  it('has a drawing for every prop and bench in the plaza', () => {
+    const arts = [...DEFAULT_PLAZA.props, ...DEFAULT_PLAZA.benches].map((p) => p.art);
+    for (const art of arts) expect(Object.keys(PROP_PARTS)).toContain(art);
+    // The hub draws a prop as all its parts in this order, back to front.
+    expect(PROP_PARTS.tree).toEqual(spec.docs.tree?.parts.map((p) => p.id));
+    expect(PROP_PARTS.bench).toEqual(spec.docs.bench?.parts.map((p) => p.id));
   });
 
   it('rolls the wheels about their hubs, and the wheel radius matches the drawing', () => {

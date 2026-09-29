@@ -5,6 +5,7 @@ export * from './sim';
 export * from './scenarios/drop';
 export * from './scenarios/hub';
 export * from './rail';
+export * from './interactions';
 export * from './interactions/cart';
 export * from './interactions/hop';
 export * from './interactions/types';

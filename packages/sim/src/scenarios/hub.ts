@@ -3,9 +3,8 @@ import type { Scenario } from '../sim';
 import { FIXED_DT, ticksToSeconds } from '../time';
 import { EARTH_GRAVITY } from '../constants';
 import { CART_HALF_LENGTH, stepRail } from '../rail';
-import { benchInteraction } from '../interactions/bench';
-import { cartInteraction } from '../interactions/cart';
-import type { HubInteraction, HubStep } from '../interactions/types';
+import { ACT_RULES, INTERACTIONS } from '../interactions';
+import type { HubStep } from '../interactions/types';
 import {
   CART_HALF_DEPTH,
   DEFAULT_PLAZA,
@@ -14,8 +13,6 @@ import {
   HUB_RUN_SPEED,
   HUB_STUCK_STEPS,
   HUB_WALK_SPEED,
-  actUsesPlanck,
-  actWalks,
   clampTarget,
   type HubBean,
   type HubCommand,
@@ -45,10 +42,7 @@ export * from './hub-world';
  * the world and calls the modules in a fixed order.
  */
 
-/** The interaction modules, in the order they are offered commands and run. */
-const INTERACTIONS: readonly HubInteraction[] = [cartInteraction, benchInteraction];
-
-const ownerOf = (kind: HubBean['act']['kind']) => INTERACTIONS.find((m) => m.acts.includes(kind));
+const ownerOf = (kind: HubBean['act']['kind']) => INTERACTIONS.find((m) => kind in m.acts);
 
 /** A step counts as blocked if it made less than this share of the intended progress. */
 const STUCK_PROGRESS = 0.25;
@@ -164,7 +158,7 @@ export function createHubScenario(options: HubOptions = {}): Scenario<HubState, 
     }),
     step(state, commands) {
       const bean = state.bean;
-      const step: HubStep = { state, time: ticksToSeconds(state.tick) };
+      const step: HubStep = { state, time: ticksToSeconds(state.tick), rules: ACT_RULES };
       for (const c of commands) {
         // Commands will one day arrive over the network: drop any with non-finite numbers.
         if ((c.type === 'move' || c.type === 'moveTo') && !(Number.isFinite(c.x) && Number.isFinite(c.y))) continue;
@@ -210,14 +204,14 @@ export function createHubScenario(options: HubOptions = {}): Scenario<HubState, 
         }
       }
       // An interaction that holds the bean (riding, a hop) takes it off its feet.
-      if (!actWalks(bean.act)) {
+      if (!ACT_RULES[bean.act.kind].walks) {
         vx = 0;
         vy = 0;
         bean.target = null;
       }
       for (const m of INTERACTIONS) m.drive?.(step, { vx, vy });
       const act = bean.act;
-      const walks = actWalks(act);
+      const walks = ACT_RULES[act.kind].walks;
 
       // Carts first, in the exact 1D rail sim, with the bean's push if it walks into an end.
       const railLayout = state.layout.rail;
@@ -243,7 +237,7 @@ export function createHubScenario(options: HubOptions = {}): Scenario<HubState, 
 
       // Ground motion and collisions (Planck), from the state, only while the bean walks
       // freely. Every other act (pushing, riding, hops) places the bean itself.
-      const usesPlanck = actUsesPlanck(act);
+      const usesPlanck = ACT_RULES[act.kind].usesPlanck;
       body.setActive(usesPlanck);
       body.setTransform({ x: bean.x, y: bean.y }, 0);
       body.setLinearVelocity({ x: vx, y: vy });
@@ -289,7 +283,7 @@ export function createHubScenario(options: HubOptions = {}): Scenario<HubState, 
         }
       }
 
-      if (actWalks(bean.act)) stepHeight(bean, state.gravity, state.tick);
+      if (ACT_RULES[bean.act.kind].walks) stepHeight(bean, state.gravity, state.tick);
       for (const m of INTERACTIONS) m.settle?.(step);
     },
   };

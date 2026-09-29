@@ -16,7 +16,12 @@ export const PALETTE = {
   grass: 0xa9c98c,
   water: 0x86bccb,
   slate: 0x6f7f96,
+  /** PLACEHOLDER: the hub's hedge band, not in the art/README.md palette yet. */
+  hedge: 0x7fa86a,
 } as const;
+
+/** Font for readouts, labels and the controls hint. PLACEHOLDER until the UI has a style. */
+export const UI_FONT = 'system-ui, "Segoe UI", Roboto, sans-serif';
 
 export function cssColor(color: number): string {
   return `#${color.toString(16).padStart(6, '0')}`;

@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 import { PIXELS_PER_METER } from '@beananza/shared';
 import { Sim, createDropScenario, type DropCommand, type DropState } from '@beananza/sim';
-import { GAME_HEIGHT, GAME_WIDTH, PALETTE, cssColor } from '../config';
+import { GAME_HEIGHT, GAME_WIDTH, PALETTE, UI_FONT as FONT, cssColor } from '../config';
 import { SimScene } from './SimScene';
 
 /** Side view: world metres to scene pixels. +Y up in the sim, +Y down on screen. */
@@ -23,7 +23,6 @@ const BALL_LOOK: Record<string, { radiusM: number; color: number; label: string 
   heavy: { radiusM: BALL_RADIUS_M, color: PALETTE.inkSecondary, label: '10 kg' },
 };
 
-const FONT = 'system-ui, "Segoe UI", Roboto, sans-serif';
 
 /** Proof scene: a 1 kg and a 10 kg ball dropped together from 10 m land together. */
 export class DropScene extends SimScene<DropState, DropCommand> {

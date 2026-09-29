@@ -1,14 +1,12 @@
 import {
   HUB_BEAN_RADIUS_M,
-  actWalks,
   clampTarget,
   type BenchSpec,
-  type HubAct,
   type HubState,
   type SeatSpec,
 } from '../scenarios/hub-world';
 import { hopHeight, hopProgress, lerp, ticksFor } from './hop';
-import type { HubInteraction, HubStep } from './types';
+import type { ActRules, HubInteraction, HubStep } from './types';
 
 /**
  * The bench (D24, DESIGN.md §7): tap it, or press E near it, and the bean walks to a free
@@ -30,7 +28,29 @@ const STAND_GAP_M = 0.05;
 /** Reaching the stand spot within this distance (m) counts (Planck's contact skin, as for taps). */
 const ARRIVE_M = 0.021;
 
-type BenchAct = Extract<HubAct, { kind: 'approaching' | 'seating' | 'sitting' | 'standing' }>;
+/** What the bean does with a bench (D21, D24). */
+export type BenchAct =
+  /**
+   * Walking to a seat's stand spot to sit (D24): a tap target, via waypoints around the bench
+   * when the bean starts behind or beside it; any other input cancels it.
+   */
+  | { kind: 'approaching'; bench: string; seat: string; to: { x: number; y: number }; via: { x: number; y: number }[] }
+  /** The hop from the stand spot onto the seat. */
+  | { kind: 'seating'; bench: string; seat: string; startTick: number; endTick: number; fromX: number; fromY: number }
+  /** Sitting since tick `since` (dozes after a while, which the client draws from `since`). */
+  | { kind: 'sitting'; bench: string; seat: string; since: number }
+  /** The hop down to the stand spot; then walks to `then` if a tap asked for it. */
+  | { kind: 'standing'; bench: string; seat: string; startTick: number; endTick: number; then: { x: number; y: number } | null };
+
+export type BenchActKind = BenchAct['kind'];
+
+/** Walking over is ordinary walking; the hops and sitting hold the bean. */
+export const BENCH_ACTS: { readonly [K in BenchActKind]: ActRules } = {
+  approaching: { walks: true, usesPlanck: true },
+  seating: { walks: false, usesPlanck: false },
+  sitting: { walks: false, usesPlanck: false },
+  standing: { walks: false, usesPlanck: false },
+};
 
 /** Where a bean stands to get on this seat: in front (south) of the bench, clear of it. */
 export function standSpot(bench: BenchSpec, seat: SeatSpec): { x: number; y: number } {
@@ -101,9 +121,9 @@ function standUp(state: HubState, act: Extract<BenchAct, { kind: 'sitting' }>, t
 
 export const benchInteraction: HubInteraction = {
   name: 'bench',
-  acts: ['approaching', 'seating', 'sitting', 'standing'],
+  acts: BENCH_ACTS,
 
-  command({ state }: HubStep, command) {
+  command({ state, rules }: HubStep, command) {
     const bean = state.bean;
     const act = bean.act;
     const benchUse = command.type === 'use' && state.layout.benches.some((b) => b.id === command.id);
@@ -122,7 +142,7 @@ export const benchInteraction: HubInteraction = {
       }
       return false; // `move`: the hub keeps the held input, and `drive` stands the bean up.
     }
-    if (!actWalks(act) || !bean.grounded) return false;
+    if (!rules[act.kind].walks || !bean.grounded) return false;
     if (benchUse && command.type === 'use') {
       const seat = nearestSeat(state, command.id);
       if (seat) approach(state, seat.bench, seat.seat);

@@ -2,8 +2,8 @@ import Phaser from 'phaser';
 import { PIXELS_PER_METER } from '@beananza/shared';
 import { CART_HALF_DEPTH, CART_HALF_LENGTH, FIXED_DT, HUB_BEAN_RADIUS_M, Sim, createHubScenario, seatSpot, standSpot, type HubCommand, type HubInput, type HubState } from '@beananza/sim';
 import { prefersReducedMotion } from '../accessibility';
-import { propAnchor, propPart } from '../art/props';
-import { GAME_HEIGHT, GAME_WIDTH, PALETTE, cssColor } from '../config';
+import { PROP_PARTS, propAnchor, propPart } from '../art/props';
+import { GAME_HEIGHT, GAME_WIDTH, PALETTE, UI_FONT, cssColor } from '../config';
 import { BeanRig, createBeanShadow } from '../rig/BeanRig';
 import { beanArt } from '../rig/bean-art';
 import { chooseClip, samplePose } from '../rig/player';
@@ -29,9 +29,33 @@ const CHARACTER_TIE_BREAK = 0.5;
 const CLASSMATE_TIE_BREAK = 0.4;
 const UI_DEPTH = 1e6;
 
-const FONT = 'system-ui, "Segoe UI", Roboto, sans-serif';
 /** Gap between a bean's head and the readout of the cart it is using (art units). */
 const READOUT_GAP_UNITS = 12;
+
+/** Controls hint, bottom right (allowed by the no-text rule). PLACEHOLDER style. */
+const HINT_STYLE = { fontFamily: UI_FONT, fontSize: '18px', color: cssColor(PALETTE.inkSecondary) };
+/** A classmate's greeting bubble. PLACEHOLDER style. */
+const BUBBLE_STYLE = {
+  fontFamily: UI_FONT,
+  fontSize: '20px',
+  fontStyle: 'bold',
+  color: cssColor(PALETTE.ink),
+  backgroundColor: cssColor(PALETTE.panel),
+  padding: { x: 10, y: 4 },
+};
+
+/**
+ * PLACEHOLDER ground (m, around the plaza's origin): grass over the whole backdrop, a hedge band
+ * north of the plaza, and the plaza's stone floor with a rounded edge (px).
+ */
+const BACKDROP = { minX: -12, minY: -8, width: 24, height: 16 };
+const HEDGE = { gapM: 1, depthM: 2.2 };
+const PLAZA_CORNER_PX = 18;
+const PLAZA_EDGE_PX = 4;
+
+/** The shadow shrinks as the bean rises, to this share of its size at SHADOW_FADE_M up. */
+const SHADOW_MIN_SCALE = 0.55;
+const SHADOW_FADE_M = 1.5;
 
 interface BeanView {
   rig: BeanRig;
@@ -72,7 +96,8 @@ export class HubScene extends SimScene<HubState, HubCommand> {
   private rigShown: RigShown | null = null;
   private carts = new Map<string, CartView>();
   private prevCarts = new Map<string, number>();
-  private benchIds = new Set<string>();
+  /** Props a tap uses (sends `use`) instead of walking there. */
+  private usable = new Set<string>();
   /** Seated classmates (Priya), drawn on the seats the sim keeps for them. */
   private classmates: { who: Classmate; rig: BeanRig; bubble: Phaser.GameObjects.Text; greeting: number | null; clip: string }[] = [];
   /** The rider's mask shape (world coordinates), used while the bean is in a cart. */
@@ -89,18 +114,15 @@ export class HubScene extends SimScene<HubState, HubCommand> {
   protected createView(): void {
     const { layout } = this.sim.state;
     this.drawGround();
-    for (const prop of layout.props) {
-      const root = this.drawTree();
+    // Props that never turn: every part of their drawing, origin at the middle of the footprint.
+    for (const prop of [...layout.props, ...layout.benches]) {
+      const parts = PROP_PARTS[prop.art];
+      if (!parts) throw new Error(`Prop ${prop.id}: no drawing "${prop.art}" in art/props/.`);
+      const root = this.add.container(0, 0, parts.map((part) => propPart(this, prop.art, part)));
       const at = toScreen(prop.x, prop.y);
       root.setPosition(at.x, at.y).setDepth(depthKey(prop.y));
       this.props.set(prop.id, root);
-    }
-    for (const bench of layout.benches) {
-      const root = this.add.container(0, 0, ['shadow', 'back', 'seat'].map((part) => propPart(this, 'bench', part)));
-      const at = toScreen(bench.x, bench.y);
-      root.setPosition(at.x, at.y).setDepth(depthKey(bench.y));
-      this.props.set(bench.id, root);
-      this.benchIds.add(bench.id);
+      if (prop.usable) this.usable.add(prop.id);
     }
     if (layout.rail) {
       drawRail(this, layout.rail, GROUND_DEPTH + 0.5);
@@ -122,11 +144,7 @@ export class HubScene extends SimScene<HubState, HubCommand> {
 
     // Controls hint only (allowed by the no-text rule). PLACEHOLDER UI font and style.
     this.add
-      .text(GAME_WIDTH - 20, GAME_HEIGHT - 16, 'Move: arrows or WASD   Run: Shift   Jump: Space   Action: E', {
-        fontFamily: FONT,
-        fontSize: '18px',
-        color: cssColor(PALETTE.inkSecondary),
-      })
+      .text(GAME_WIDTH - 20, GAME_HEIGHT - 16, 'Move: arrows or WASD   Run: Shift   Jump: Space   Action: E', HINT_STYLE)
       .setOrigin(1, 1)
       .setScrollFactor(0)
       .setDepth(UI_DEPTH);
@@ -138,18 +156,13 @@ export class HubScene extends SimScene<HubState, HubCommand> {
   private drawGround(): void {
     const w = this.sim.state.layout.walkable;
     const g = this.add.graphics().setDepth(GROUND_DEPTH);
-    // PLACEHOLDER art: grass everywhere, a hedge band to the north, a stone plaza floor.
-    g.fillStyle(PALETTE.grass, 1).fillRect(m(-12), m(-8), m(24), m(16));
+    const b = BACKDROP;
+    g.fillStyle(PALETTE.grass, 1).fillRect(m(b.minX), m(b.minY), m(b.width), m(b.height));
     const nw = toScreen(w.minX, w.maxY);
     const se = toScreen(w.maxX, w.minY);
-    g.fillStyle(0x7fa86a, 1).fillRect(m(-12), nw.y - m(3.2), m(24), m(2.2));
-    g.fillStyle(PALETTE.stone, 1).fillRoundedRect(nw.x, nw.y, se.x - nw.x, se.y - nw.y, 18);
-    g.lineStyle(4, PALETTE.cardShadow, 1).strokeRoundedRect(nw.x, nw.y, se.x - nw.x, se.y - nw.y, 18);
-  }
-
-  /** The tree from art/props/tree.svg; its origin is the middle of its footprint. */
-  private drawTree(): Phaser.GameObjects.Container {
-    return this.add.container(0, 0, ['shadow', 'trunk', 'canopy'].map((part) => propPart(this, 'tree', part)));
+    g.fillStyle(PALETTE.hedge, 1).fillRect(m(b.minX), nw.y - m(HEDGE.gapM + HEDGE.depthM), m(b.width), m(HEDGE.depthM));
+    g.fillStyle(PALETTE.stone, 1).fillRoundedRect(nw.x, nw.y, se.x - nw.x, se.y - nw.y, PLAZA_CORNER_PX);
+    g.lineStyle(PLAZA_EDGE_PX, PALETTE.cardShadow, 1).strokeRoundedRect(nw.x, nw.y, se.x - nw.x, se.y - nw.y, PLAZA_CORNER_PX);
   }
 
   private setUpInput(): void {
@@ -172,8 +185,9 @@ export class HubScene extends SimScene<HubState, HubCommand> {
 
     this.input.on(Phaser.Input.Events.POINTER_DOWN, (pointer: Phaser.Input.Pointer) => {
       if (pointer.button !== 0) return; // Primary button or touch only.
-      // A tap on the bench's drawing uses it (walk over and sit); anywhere else walks there.
-      for (const id of this.benchIds) {
+      // A tap on a usable prop's drawing uses it (the bench: walk over and sit); anywhere else
+      // walks there.
+      for (const id of this.usable) {
         if (this.props.get(id)?.getBounds().contains(pointer.worldX, pointer.worldY)) {
           this.sim.enqueue({ type: 'use', id });
           return;
@@ -245,8 +259,8 @@ export class HubScene extends SimScene<HubState, HubCommand> {
     rig.root.renderFilters = cartView !== undefined;
     const ground = toScreen(x, y);
     // The shadow stays on the ground and shrinks as the bean rises.
-    const lift = Math.max(0, 1 - drawnZ / 1.5);
-    shadow.setPosition(ground.x, ground.y).setScale(scale * (0.55 + 0.45 * lift)).setVisible(look.shadow);
+    const lift = Math.max(0, 1 - drawnZ / SHADOW_FADE_M);
+    shadow.setPosition(ground.x, ground.y).setScale(scale * (SHADOW_MIN_SCALE + (1 - SHADOW_MIN_SCALE) * lift)).setVisible(look.shadow);
 
     const choice = viewForFacing(b.facingX, b.facingY);
     const { clip, t } = chooseClip(b, time, this.sim.state.gravity, look.clip);
@@ -311,14 +325,7 @@ export class HubScene extends SimScene<HubState, HubCommand> {
       // Just behind a bean on the same row (the player draws in front of a classmate on a tie).
       rig.root.setPosition(at.x + anchor.x, at.y + anchor.y).setScale(scale).setDepth(depthKey(bench.y) + CLASSMATE_TIE_BREAK);
       const bubble = this.add
-        .text(rig.root.x, rig.root.y + (rig.drawnTop() - READOUT_GAP_UNITS) * scale, 'Hi!', {
-          fontFamily: FONT,
-          fontSize: '20px',
-          fontStyle: 'bold',
-          color: cssColor(PALETTE.ink),
-          backgroundColor: cssColor(PALETTE.panel),
-          padding: { x: 10, y: 4 },
-        })
+        .text(rig.root.x, rig.root.y + (rig.drawnTop() - READOUT_GAP_UNITS) * scale, 'Hi!', BUBBLE_STYLE)
         .setOrigin(0.5, 1)
         .setDepth(UI_DEPTH - 2)
         .setVisible(false);

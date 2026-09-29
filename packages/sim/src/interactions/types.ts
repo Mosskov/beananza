@@ -1,10 +1,26 @@
 import type { HubActKind, HubCommand, HubState } from '../scenarios/hub-world';
 
+/** How the hub treats the bean in one act kind (D21). */
+export interface ActRules {
+  /**
+   * The hub's own rules apply: held input, tap targets and jumps. Only from such an act can
+   * the bean start another interaction.
+   */
+  walks: boolean;
+  /** Planck moves the bean; otherwise the module that owns the act places it. */
+  usesPlanck: boolean;
+}
+
+/** The rules for every act kind; a kind without rules does not compile. */
+export type ActRuleTable = { readonly [K in HubActKind]: ActRules };
+
 /** One hub step, as the interaction modules see it. */
 export interface HubStep {
   state: HubState;
   /** Sim time at the start of the step (s). */
   time: number;
+  /** How the hub treats each act kind, e.g. `rules[act.kind].walks`. */
+  rules: ActRuleTable;
 }
 
 /** A ground velocity (m/s). */
@@ -26,8 +42,8 @@ export interface Facing {
  */
 export interface HubInteraction {
   readonly name: string;
-  /** The act kinds this module owns. */
-  readonly acts: readonly HubActKind[];
+  /** The act kinds this module owns, and how the hub treats each. */
+  readonly acts: Readonly<Partial<Record<HubActKind, ActRules>>>;
   /** Offered every command before the hub's own handling. Returns true when it handled it. */
   command(step: HubStep, command: HubCommand): boolean;
   /**

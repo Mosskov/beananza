@@ -19,6 +19,7 @@ type Json = Record<string, unknown>;
  * - M1 session 3 (D21): `bean.riding` and `bean.pushing` became one interaction state `bean.act`.
  * - M1 session 3 (D23): `rail.riders` logs getting in and out (empty in older logs).
  * - M1 session 3 (D24): `layout.benches`, the plaza's bench.
+ * - After M1 session 3: props and benches name their drawing (`art`); the bench is `usable`.
  */
 const RENAMES: { since: string; apply: (state: Json, fresh: Json) => void }[] = [
   {
@@ -46,6 +47,24 @@ const RENAMES: { since: string; apply: (state: Json, fresh: Json) => void }[] = 
     apply(state, fresh) {
       const layout = state.layout as Json | undefined;
       if (layout && !('benches' in layout)) layout.benches = (fresh.layout as Json | undefined)?.benches;
+    },
+  },
+  {
+    // Drawing data only: copied from the fresh log for props with the same id.
+    since: 'after M1 session 3: layout props and benches gained art and usable',
+    apply(state, fresh) {
+      const layout = state.layout as Json | undefined;
+      const freshLayout = fresh.layout as Json | undefined;
+      for (const key of ['props', 'benches']) {
+        const old = layout?.[key] as Json[] | undefined;
+        const now = freshLayout?.[key] as Json[] | undefined;
+        for (const p of old ?? []) {
+          const match = now?.find((q) => q.id === p.id);
+          if (!match || 'art' in p) continue;
+          p.art = match.art;
+          if ('usable' in match) p.usable = match.usable;
+        }
+      }
     },
   },
 ];

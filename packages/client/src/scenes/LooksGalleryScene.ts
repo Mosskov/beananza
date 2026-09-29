@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 import { COLOUR_IDS, DEFAULT_LOOK, HEADWEAR_IDS, PATTERN_IDS, lookToString, type BeanLook } from '@beananza/shared';
 import { prefersReducedMotion } from '../accessibility';
-import { PALETTE, cssColor } from '../config';
+import { PALETTE, UI_FONT as FONT, cssColor } from '../config';
 import { BeanRig, createBeanShadow } from '../rig/BeanRig';
 import { beanArt } from '../rig/bean-art';
 import { lookParts } from '../rig/looks';
@@ -9,7 +9,6 @@ import { samplePose } from '../rig/player';
 import { viewForFacing } from '../rig/views';
 import type { TestableScene } from './TestableScene';
 
-const FONT = 'system-ui, "Segoe UI", Roboto, sans-serif';
 const S = Math.SQRT1_2;
 const DIRECTIONS: [string, number, number][] = [
   ['S', 0, -1],

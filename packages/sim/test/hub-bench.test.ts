@@ -247,7 +247,7 @@ describe('the bench (D24)', () => {
 
     // A box on the west stand spot: the bean cannot reach it, gives up and does not sit.
     const spot = standSpot(bench, west);
-    const layout: PlazaLayout = { ...DEFAULT_PLAZA, props: [...DEFAULT_PLAZA.props, { id: 'crate', x: spot.x, y: spot.y, halfWidth: 0.2, halfDepth: 0.2 }] };
+    const layout: PlazaLayout = { ...DEFAULT_PLAZA, props: [...DEFAULT_PLAZA.props, { id: 'crate', art: 'tree', x: spot.x, y: spot.y, halfWidth: 0.2, halfDepth: 0.2 }] };
     const stuck = newHub({ layout, start: { x: -4.4, y: -1 } });
     stuck.enqueue({ type: 'use', id: 'bench' });
     stuck.step();

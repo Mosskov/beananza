@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 import { PIXELS_PER_METER } from '@beananza/shared';
 import type { RailLayout } from '@beananza/sim';
 import { CART_WHEEL_RADIUS_M, propAnchor, propPart } from '../art/props';
-import { PALETTE, cssColor } from '../config';
+import { PALETTE, UI_FONT as FONT, cssColor } from '../config';
 import { RAIL_GAUGE_M, depthKey, toScreen } from './hub-view';
 
 const m = (meters: number) => meters * PIXELS_PER_METER;
@@ -14,7 +14,6 @@ export const CART_BACK_DEPTH = 0;
 export const CART_RIDER_DEPTH = 0.2;
 const CART_FRONT_DEPTH = 0.3;
 
-const FONT = 'system-ui, "Segoe UI", Roboto, sans-serif';
 
 /** Speed readout (D17: a measurement with its unit). Magnitude, two decimals. */
 export function speedReadout(v: number): string {

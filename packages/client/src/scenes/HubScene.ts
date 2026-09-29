@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { PIXELS_PER_METER } from '@beananza/shared';
-import { CART_HALF_DEPTH, CART_HALF_LENGTH, FIXED_DT, HUB_BEAN_RADIUS_M, Sim, createHubScenario, seatSpot, standSpot, type HubCommand, type HubInput, type HubState } from '@beananza/sim';
+import { CART_HALF_DEPTH, CART_HALF_LENGTH, DEFAULT_LAYOUT, FIXED_DT, HUB_BEAN_RADIUS_M, HUB_LAYOUTS, Sim, createHubScenario, seatSpot, standSpot, type HubCommand, type HubInput, type HubState } from '@beananza/sim';
 import { prefersReducedMotion } from '../accessibility';
 import { PROP_PARTS, propAnchor, propPart } from '../art/props';
 import { GAME_HEIGHT, GAME_WIDTH, PALETTE, UI_FONT, cssColor } from '../config';
@@ -107,8 +107,15 @@ export class HubScene extends SimScene<HubState, HubCommand> {
     super({ key: 'hub' });
   }
 
+  /** The plaza, or a test yard (`?layout=`). */
+  private get layoutName(): string {
+    return this.layout ?? DEFAULT_LAYOUT;
+  }
+
   protected createSim(): Sim<HubState, HubCommand> {
-    return new Sim(createHubScenario(), 1);
+    const layout = HUB_LAYOUTS[this.layoutName];
+    if (!layout) throw new Error(`No hub layout "${this.layoutName}".`);
+    return new Sim(createHubScenario({ layout }), 1);
   }
 
   protected createView(): void {
@@ -379,6 +386,7 @@ export class HubScene extends SimScene<HubState, HubCommand> {
     const beanDepth = beanRoot.depth;
     return {
       ...base,
+      layout: this.layoutName,
       view: {
         bean: { screen: onScreen(beanRoot), scale: beanRoot.scaleX, depth: beanDepth, rig: this.rigShown },
         reducedMotion: this.reducedMotion,

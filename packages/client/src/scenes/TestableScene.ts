@@ -20,4 +20,6 @@ export interface SceneStartData {
   paused?: boolean;
   /** The player's bean look (`?look=`, D25). Drawing only: it never reaches the sim. */
   look?: BeanLook;
+  /** A named layout (`?layout=`), for scenes that have them (the hub). Already checked. */
+  layout?: string;
 }

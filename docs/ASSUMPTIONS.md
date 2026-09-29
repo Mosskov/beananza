@@ -20,6 +20,11 @@ No behaviour change: 58 sim states identical to `docs/status/m1-s3`, and the vie
   the ground, hedge, shadow and text styles in `HubScene.ts` are named.
 - **tools/shot never reuses a server:** a running `pnpm dev` may serve another worktree. It starts
   its own on a free port (or `--port`); `check-looks` does the same.
+- **Test yards:** `?layout=<name>` opens the hub on a named layout (`HUB_LAYOUTS`): `plaza`, or
+  a yard with the plaza's ground, start and camera and one thing on it (`bench`, `carts`), so the
+  depth scale and screen positions match the plaza. Scripts take `"layout"`; `pnpm shot --layout`
+  writes to `layout-<name>/`. An unknown layout is a boot error, so a typo cannot show the plaza.
+  `hub-yard-bench` and `hub-yard-carts` give the same bean and cart states as the plaza scripts.
 - **Not done:** per-session STATUS files. The share site shows the first `## ` section of
   `STATUS.md` as the newest report, and the conflict it would avoid (two sessions adding a
   section at the top) is small.

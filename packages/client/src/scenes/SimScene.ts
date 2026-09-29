@@ -13,10 +13,13 @@ export abstract class SimScene<S extends SimStateBase, C> extends Phaser.Scene i
   private paused = false;
   /** The player's bean look (drawing only; the sim never sees it). */
   protected look: BeanLook = DEFAULT_LOOK;
+  /** The named layout asked for (`?layout=`), or null for the scene's default. */
+  protected layout: string | null = null;
 
   init(data: SceneStartData): void {
     this.paused = data.paused === true;
     this.look = data.look ?? DEFAULT_LOOK;
+    this.layout = data.layout ?? null;
     this.stepper.reset();
   }
 

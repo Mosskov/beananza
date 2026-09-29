@@ -15,12 +15,19 @@ describe('parseScript', () => {
       ],
     });
     expect(script.scene).toBe('hub');
+    expect(script.layout).toBeUndefined();
     expect(script.steps).toHaveLength(6);
     expect(describeStep(script.steps[4]!)).toBe('tap [640,360]');
   });
 
+  it('takes a hub layout (a test yard)', () => {
+    expect(parseScript({ scene: 'hub', layout: 'bench', steps: [{ shot: 'a' }] }).layout).toBe('bench');
+  });
+
   it.each([
     ['not an object', []],
+    ['empty layout', { scene: 'hub', layout: '', steps: [{ shot: 'a' }] }],
+    ['layout not a string', { scene: 'hub', layout: 1, steps: [{ shot: 'a' }] }],
     ['no scene', { steps: [{ shot: 'a' }] }],
     ['no steps', { scene: 'hub', steps: [] }],
     ['two actions in one step', { scene: 'hub', steps: [{ shot: 'a', wait: 1 }] }],

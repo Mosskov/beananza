@@ -1,0 +1,16 @@
+{
+  "scene": "hub",
+  "layout": "carts",
+  "steps": [
+    { "tap": [310, 520] },
+    { "wait": 1.0 },
+    { "shot": "west-of-light-cart" },
+    { "keyDown": "ArrowRight" },
+    { "wait": 0.6 },
+    { "shot": "at-cap" },
+    { "wait": 0.4 },
+    { "keyUp": "ArrowRight" },
+    { "wait": 2.0 },
+    { "shot": "after-collision" }
+  ]
+}

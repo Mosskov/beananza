@@ -19,6 +19,8 @@ export type ScriptStep =
 export interface ShotScript {
   /** Scene to open (its `?scene=` name). */
   scene: string;
+  /** Hub layout to open (`?layout=`): the plaza or a test yard. Default: the plaza. */
+  layout?: string;
   steps: ScriptStep[];
 }
 
@@ -32,8 +34,9 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 /** Validate parsed JSON as a script. Throws with the step index on the first problem. */
 export function parseScript(json: unknown): ShotScript {
   if (!isRecord(json)) throw new Error('script must be a JSON object');
-  const { scene, steps } = json;
+  const { scene, layout, steps } = json;
   if (typeof scene !== 'string' || scene === '') throw new Error('script needs a "scene" name');
+  if (layout !== undefined && (typeof layout !== 'string' || layout === '')) throw new Error('"layout" must be a layout name');
   if (!Array.isArray(steps) || steps.length === 0) throw new Error('script needs a non-empty "steps" array');
   const names = new Set<string>();
   const out = steps.map((raw, i): ScriptStep => {
@@ -72,7 +75,7 @@ export function parseScript(json: unknown): ShotScript {
     throw new Error(`${where}: unknown action "${action}"`);
   });
   if (names.size === 0) throw new Error('script takes no shot; add at least one { "shot": "<name>" } step');
-  return { scene, steps: out };
+  return { scene, ...(layout !== undefined ? { layout: layout as string } : {}), steps: out };
 }
 
 /**

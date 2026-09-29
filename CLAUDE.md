@@ -76,7 +76,7 @@ art/
 ## Commands
 Details in `README.md`.
 - `pnpm install`, then once `pnpm shot:install` (Playwright Chromium)
-- `pnpm dev`: game at http://localhost:5180/?scene=<name> (`hub` is the default; also `bean`, `looks`, `drop`, `empty`; `&paused=1` starts paused; `&look=blue,spots,bow,glasses` sets the bean's look)
+- `pnpm dev`: game at http://localhost:5180/?scene=<name> (`hub` is the default; also `bean`, `looks`, `drop`, `empty`; `&paused=1` starts paused; `&look=blue,spots,bow,glasses` sets the bean's look; `&layout=bench` opens a test yard instead of the plaza)
 - `pnpm check`: typecheck, lint, tests and build (`pnpm test`, `pnpm typecheck`, `pnpm lint`, `pnpm build`)
 - `pnpm shot --all` or `pnpm shot --scene drop --t 1.0`: PNG plus JSON log in `artifacts/shots/`.
   Checks on the logs: `pnpm shot:check-carts`, `pnpm shot:check-looks`, `pnpm shot:compare-states <old evidence folder>`.

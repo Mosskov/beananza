@@ -14,6 +14,8 @@ export const TEST_API_KEY = '__game';
 export const URL_PARAM_SCENE = 'scene';
 /** `?paused=1` starts the scene's sim paused at t = 0 so a tool can step it exactly. */
 export const URL_PARAM_PAUSED = 'paused';
+/** `?layout=<name>` opens the hub on a named layout: the plaza or a test yard. */
+export const URL_PARAM_LAYOUT = 'layout';
 
 export interface GameTestApi {
   /** Name of the running scene (the `?scene=` value it was registered under). */

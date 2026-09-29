@@ -50,6 +50,11 @@ Pick a scene with `?scene=<name>`:
 (`sprout`, `bear-ears`, `bow`) and `glasses`, comma-separated in any order, for example
 http://localhost:5180/?look=blue,spots,bow,glasses. Unknown ids are logged as a warning. The
 look is drawing only: the sim never sees it. There is no in-game wardrobe yet.
+
+`&layout=<name>` opens the hub on another layout: `plaza` (the default) or a **test yard**, the
+plaza's ground with one thing on it: `bench` (the bench and Priya) or `carts` (the rail and both
+carts), for example http://localhost:5180/?scene=hub&layout=bench. Layouts are in
+`packages/sim/src/scenarios/hub-layouts.ts`. An unknown name stops the boot with an error.
 An unknown scene name logs a console error listing the registered scenes. The bean art is
 checked against the art contract and rasterized before any scene starts; broken art is a boot
 error.
@@ -160,7 +165,9 @@ pnpm shot --help                                 # all options
 pnpm shot --script tools/shot/scripts/drop-reset.json
 ```
 
-A script is a JSON file naming a scene and a list of steps, each with exactly one action:
+A script is a JSON file naming a scene and a list of steps, each with exactly one action. An
+optional `"layout"` opens the hub on a test yard (`"layout": "bench"`); `pnpm shot --scene hub
+--layout <name>` does the same for scene shots, written to `artifacts/shots/layout-<name>/`.
 
 ```json
 {
@@ -206,6 +213,8 @@ Scripts in `tools/shot/scripts/`:
 | Script | Checks |
 |---|---|
 | `drop-reset.json` | The drop at t = 1.0 s; R and a tap each restart it |
+| `hub-yard-bench.json` | The start of `hub-bench.json` in the bench yard: the same states as in the plaza |
+| `hub-yard-carts.json` | A push of the 5 kg cart into the 20 kg one in the carts yard: the same states as `hub-carts-push.json` at the same times |
 | `hub-walk.json` | Hold → for 1.0 s (2.4 m), Shift + A for 1.0 s (4.2 m back), ↑ + → for 0.5 s |
 | `hub-jump.json` | Space: apex at 0.4 s, landed at 1.0 s; then a jump while holding D (air control) |
 | `hub-depth.json` | Taps to walk north of the tree (drawn behind it), then south (drawn in front), then a tap straight through the tree (target dropped after 0.35 s stuck) |
@@ -324,6 +333,9 @@ art/, reference/   design references only (never ported as code)
 3. Add its rows to `packages/client/src/scenes/presentation/<name>.ts` and spread them into
    `hub-presentation.ts`. The compiler lists anything missing.
 4. A prop it uses names its drawing (`art`) in the layout; `usable: true` sends taps on it as `use`.
+5. Build it in its own test yard: one line in `HUB_LAYOUTS` (`hub-layouts.ts`), with scripts that
+   set `"layout"`. The plaza and its evidence stay untouched; putting the finished thing into the
+   plaza is its own step (D2).
 
 ## Adding a scene
 

@@ -12,6 +12,7 @@ import {
   BOOT_ERROR_KEY,
   READY_FLAG,
   TEST_API_KEY,
+  URL_PARAM_LAYOUT,
   URL_PARAM_LOOK,
   URL_PARAM_PAUSED,
   URL_PARAM_SCENE,
@@ -41,6 +42,8 @@ interface Options {
   reducedMotion: boolean;
   /** The bean's look (`?look=`), or null for the default. */
   look: string | null;
+  /** Hub layout for scene shots (`?layout=`), or null for the default. Scripts name their own. */
+  layout: string | null;
   timeoutMs: number;
 }
 
@@ -148,6 +151,8 @@ function printHelp(): void {
                    <out>/reduced-motion/ so it never overwrites the normal shots.
   --look <ids>     The bean's look, e.g. blue,spots,bow,glasses (?look=, D25). Output goes
                    to <out>/look-<ids>/ so it never overwrites the normal shots.
+  --layout <name>  Hub layout for --scene shots: plaza or a test yard (?layout=). Output
+                   goes to <out>/layout-<name>/. Scripts name theirs in the script.
 
 Writes <out>/<scene>[_t<time>].png and .json; a script writes
 <out>/<script name>/<shot name>.png and .json, plus run.json. Exits non-zero if any shot has a console
@@ -172,6 +177,7 @@ function parseOptions(): Options | null {
       'software-gl': { type: 'boolean', default: false },
       'reduced-motion': { type: 'boolean', default: false },
       look: { type: 'string' },
+      layout: { type: 'string' },
       help: { type: 'boolean', short: 'h', default: false },
     },
     allowPositionals: false,
@@ -190,6 +196,8 @@ function parseOptions(): Options | null {
   if (scripts.length > 0 && (values.scene || values.all || values.t)) {
     throw new Error('--script cannot be combined with --scene, --all or --t (the script names its scene)');
   }
+  if (scripts.length > 0 && values.layout) throw new Error('--layout is for --scene shots; a script names its own "layout"');
+  if (values.layout !== undefined && !/^[a-z0-9][a-z0-9_-]*$/.test(values.layout)) throw new Error(`--layout needs a layout name, got "${values.layout}"`);
   return {
     scenes: values.scene ?? [],
     all: values.all,
@@ -197,8 +205,15 @@ function parseOptions(): Options | null {
     // from tools/shot, so the working directory says nothing useful).
     scripts: scripts.map((f) => resolve(REPO, f)),
     times: times && times.length > 0 ? times : [undefined],
-    outDir: resolve(REPO, values.out, ...(values.look ? [`look-${lookFolder(values.look)}`] : []), ...(values['reduced-motion'] ? ['reduced-motion'] : [])),
+    outDir: resolve(
+      REPO,
+      values.out,
+      ...(values.layout ? [`layout-${values.layout}`] : []),
+      ...(values.look ? [`look-${lookFolder(values.look)}`] : []),
+      ...(values['reduced-motion'] ? ['reduced-motion'] : []),
+    ),
     look: values.look ?? null,
+    layout: values.layout ?? null,
     port: num('port', values.port),
     baseUrl: values.url,
     fpsMs: num('fps-ms', values['fps-ms']),
@@ -342,6 +357,7 @@ async function shoot(
   const url = new URL(baseUrl);
   url.searchParams.set(URL_PARAM_SCENE, scene);
   if (t !== undefined) url.searchParams.set(URL_PARAM_PAUSED, '1');
+  if (opts.layout) url.searchParams.set(URL_PARAM_LAYOUT, opts.layout);
   if (opts.look) url.searchParams.set(URL_PARAM_LOOK, opts.look);
 
   const { context, page, entries } = await openPage(browser, opts);
@@ -438,6 +454,7 @@ async function runScript(
   const url = new URL(baseUrl);
   url.searchParams.set(URL_PARAM_SCENE, script.scene);
   url.searchParams.set(URL_PARAM_PAUSED, '1');
+  if (script.layout) url.searchParams.set(URL_PARAM_LAYOUT, script.layout);
   if (opts.look) url.searchParams.set(URL_PARAM_LOOK, opts.look);
   const { context, page, entries } = await openPage(browser, opts);
   const git = gitInfo();
@@ -448,7 +465,7 @@ async function runScript(
   let glRenderer: string | null;
   const simTime = () => callGame<number | null>(page, 'simTime()');
 
-  console.log(`script ${relScript} (scene ${script.scene})`);
+  console.log(`script ${relScript} (scene ${script.scene}${script.layout ? `, layout ${script.layout}` : ''})`);
   try {
     await page.goto(url.toString(), { waitUntil: 'load' });
     await waitForReady(page, opts.timeoutMs);

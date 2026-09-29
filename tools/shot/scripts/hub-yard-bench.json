@@ -1,0 +1,13 @@
+{
+  "scene": "hub",
+  "layout": "bench",
+  "steps": [
+    { "tap": [280, 170] },
+    { "wait": 0.4 },
+    { "shot": "walking-over" },
+    { "wait": 0.6 },
+    { "shot": "hop-on" },
+    { "wait": 0.6 },
+    { "shot": "greeted" }
+  ]
+}

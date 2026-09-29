@@ -1,41 +1,76 @@
 // Cosmetics never touch the sim (D25): run every hub script in the default look and in other
 // looks, and require the sim state of every shot to be identical.
-//   pnpm shot:check-looks [--port <n>]
+//   pnpm shot:check-looks [--port <n>] [--reuse] [--jobs <n>]
 // Each look runs through the real game (`?look=`), so this also catches the client turning a
-// look into different commands (for example a tap hitting a bigger drawing).
-import { spawnSync } from 'node:child_process';
-import { readdirSync } from 'node:fs';
-import { dirname, join, resolve } from 'node:path';
+// look into different commands (for example a tap hitting a bigger drawing). One server and one
+// browser serve every look.
+import { basename, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { parseArgs } from 'node:util';
 import { compareStates } from './compare-states';
+import { scriptOutputName } from './script';
+import { allScripts, DEFAULT_RUN, lookFolder, openSession, REPO, runScripts, type Session } from './session';
 
-const REPO = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
-const SHOTS = join(REPO, 'artifacts/shots');
+export const SHOTS = join(REPO, 'artifacts/shots');
 /** Every headwear, the pattern and the face, in three colours (one of them light). */
-const LOOKS = ['blue,spots,bow,glasses', 'cream,sprout', 'violet,spots,bear-ears,glasses'];
+export const LOOKS = ['blue,spots,bow,glasses', 'cream,sprout', 'violet,spots,bear-ears,glasses'];
 
-const portIndex = process.argv.indexOf('--port');
-const port = portIndex > 0 ? (process.argv[portIndex + 1] ?? '5180') : '5180';
-const scripts = readdirSync(join(REPO, 'tools/shot/scripts'))
-  .filter((f) => f.startsWith('hub') && f.endsWith('.json'))
-  .map((f) => f.replace(/\.json$/, ''));
+/** The hub scripts, as paths and output names. */
+export const hubScripts = () => allScripts('hub').map((path) => ({ path, outName: scriptOutputName(basename(path)) }));
 
-function shoot(look: string | null): void {
-  const args = ['shot', '--port', port, ...scripts.flatMap((s) => ['--script', `tools/shot/scripts/${s}.json`]), ...(look ? ['--look', look] : [])];
-  // One command string: pnpm is a .cmd shim on Windows, so it needs the shell.
-  const run = spawnSync(`pnpm ${args.join(' ')}`, { cwd: REPO, stdio: 'inherit', shell: true });
-  if (run.status !== 0) throw new Error(`pnpm ${args.join(' ')} failed`);
+/** Run `scripts` in one look (null for the default) into artifacts/shots[/look-<ids>]. Returns the failures. */
+export async function runLook(
+  session: Session,
+  look: string | null,
+  scripts: readonly { path: string; outName: string }[],
+  jobs: number,
+  print: (line: string) => void = console.log,
+): Promise<number> {
+  const outDir = look ? join(SHOTS, `look-${lookFolder(look)}`) : SHOTS;
+  const results = await runScripts(session, scripts, { ...DEFAULT_RUN, outDir, look }, jobs, print);
+  return results.reduce((n, r) => n + r.failures, 0);
 }
 
-shoot(null);
-let failures = 0;
-for (const look of LOOKS) {
-  shoot(look);
-  const folder = `look-${look.split(',').join('-')}`;
-  const { compared, failures: f, lines } = compareStates(SHOTS, join(SHOTS, folder), scripts);
-  for (const line of lines) if (!line.startsWith('same')) console.log(line);
-  console.log(`${f === 0 ? 'ok  ' : 'FAIL'} ${look}: ${compared} sim states compared with the default look, ${f} differ`);
-  failures += f;
+/** Compare every look's sim states with the default look's. */
+export function compareLooks(scriptNames: readonly string[]): { compared: number; failures: number; lines: string[] } {
+  const out = { compared: 0, failures: 0, lines: [] as string[] };
+  for (const look of LOOKS) {
+    const { compared, failures, lines } = compareStates(SHOTS, join(SHOTS, `look-${lookFolder(look)}`), scriptNames);
+    for (const line of lines) if (!line.startsWith('same')) out.lines.push(line);
+    out.lines.push(`${failures === 0 ? 'ok  ' : 'FAIL'} ${look}: ${compared} sim states compared with the default look, ${failures} differ`);
+    out.compared += compared;
+    out.failures += failures;
+  }
+  return out;
 }
-console.log(failures === 0 ? 'all looks give identical sim states' : `${failures} difference(s): a cosmetic reached the sim`);
-process.exitCode = failures === 0 ? 0 : 1;
+
+async function main(): Promise<number> {
+  const { values } = parseArgs({
+    options: { port: { type: 'string' }, reuse: { type: 'boolean', default: false }, jobs: { type: 'string', default: '4' } },
+  });
+  const scripts = hubScripts();
+  const session = await openSession({ port: values.port === undefined ? undefined : Number(values.port), reuse: values.reuse });
+  let runFailures = 0;
+  try {
+    for (const look of [null, ...LOOKS]) runFailures += await runLook(session, look, scripts, Number(values.jobs));
+  } finally {
+    await session.close();
+  }
+  const { failures, lines } = compareLooks(scripts.map((s) => s.outName));
+  for (const line of lines) console.log(line);
+  console.log(failures === 0 ? 'all looks give identical sim states' : `${failures} difference(s): a cosmetic reached the sim`);
+  if (runFailures) console.log(`${runFailures} shot(s) failed while running the looks`);
+  return failures + runFailures === 0 ? 0 : 1;
+}
+
+if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  main().then(
+    (code) => {
+      process.exitCode = code;
+    },
+    (err: unknown) => {
+      console.error(err instanceof Error ? err.message : err);
+      process.exitCode = 2;
+    },
+  );
+}

@@ -73,14 +73,14 @@ async function takeShots(): Promise<void> {
           code === 0 ? done() : fail(new Error(`${cmd} failed (exit ${code})`)),
         );
       });
-    await shot('--scene hub --scene bean');
+    await shot('--scene hub --scene looks');
     await shot('--script tools/shot/scripts/hub-carts-push.json');
   } finally {
     await new Promise<void>((done) => server.httpServer.close(() => done()));
   }
   mkdirSync(join(OUT, 'shots'), { recursive: true });
   copyFileSync(join(WORK, 'hub.png'), join(OUT, 'shots/hub.png'));
-  copyFileSync(join(WORK, 'bean.png'), join(OUT, 'shots/bean.png'));
+  copyFileSync(join(WORK, 'looks.png'), join(OUT, 'shots/looks.png'));
   copyFileSync(join(WORK, 'hub-carts-push/pushing-b.png'), join(OUT, 'shots/carts.png'));
 }
 
@@ -116,7 +116,7 @@ function writePage(): void {
     shots: [
       { src: 'shots/hub.png', alt: 'The hub plaza: a bean, a tree and two carts on a rail, each with a speed readout.', caption: 'The hub plaza' },
       { src: 'shots/carts.png', alt: 'The bean leaning into a cart it is pushing, with the cart speed shown in metres per second.', caption: 'Pushing a cart' },
-      { src: 'shots/bean.png', alt: 'The bean drawn in all eight directions and in walk, run and jump poses.', caption: 'One bean, eight directions' },
+      { src: 'shots/looks.png', alt: 'Beans in different colours, with spots, a sprout, bear ears, a bow and glasses, in several directions.', caption: 'Colours, spots and hats' },
     ],
     build: { commit: git(['rev-parse', '--short', 'HEAD']), dirty: git(['status', '--porcelain']).length > 0, date: new Date().toISOString().slice(0, 10) },
   });

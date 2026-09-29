@@ -19,6 +19,7 @@ export interface PageInput {
 /** Scenes a visitor can open in the embedded game, by `?scene=` name. */
 export const PLAY_SCENES: readonly { scene: string; label: string }[] = [
   { scene: 'hub', label: 'Hub plaza' },
+  { scene: 'looks', label: 'Colours and hats' },
   { scene: 'bean', label: 'Bean in every direction' },
   { scene: 'drop', label: 'Drop test' },
 ];

@@ -265,7 +265,7 @@ pnpm share:password   # set or change the site password (asks for it)
   STATUS.md report). It is rendered from the docs on every run, so it never drifts from them.
   If a doc loses a heading the page uses, the build fails and names it.
 - **Game** (`play/`): a production build with relative paths, loaded only when a visitor
-  presses Play. `play/?scene=bean` and `play/?scene=drop` work too.
+  presses Play. `play/?scene=looks`, `play/?scene=bean` and `play/?scene=drop` work too.
 - **Screenshots** (`shots/`): taken with tools/shot from that same build.
 - **No third-party requests:** the fonts (Fredoka, Nunito, Caveat) are self-hosted from
   `@fontsource`. The build fails if the page would contain a private claude.ai link.

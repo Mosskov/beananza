@@ -14,7 +14,7 @@ import { CART_SCRIPTS, checkCarts } from './check-carts';
 import { compareLooks, LOOKS, runLook, SHOTS } from './check-looks';
 import { compareStates } from './compare-states';
 import { scriptOutputName } from './script';
-import { allScripts, DEFAULT_RUN, describeShot, listScenes, openSession, REPO, shootScene } from './session';
+import { allScripts, DEFAULT_RUN, describeShot, errorMessage, listScenes, openSession, REPO, shootScene, type Session } from './session';
 
 const OUT = join(REPO, 'artifacts/verify');
 
@@ -120,17 +120,33 @@ async function main(): Promise<number> {
   const checkStart = Date.now();
   const check = values['no-check'] ? null : runCheck(join(OUT, 'check.log'));
 
-  const session = await openSession({ port: values.port === undefined ? undefined : Number(values.port), reuse: values.reuse });
+  // A crash (for example the browser closing under load) becomes a FAIL row for the step it hit,
+  // and the summary still prints; the log checks are then skipped, as their inputs are partial.
+  let phase = 'server';
+  let crashed = false;
+  const awaitCheck = async () => {
+    if (rows.some((r) => r.step === 'check')) return;
+    if (check) {
+      const { code, tests } = await check;
+      rows.unshift({ step: 'check', ok: code === 0, seconds: secondsSince(checkStart), detail: `${tests}; output in ${relative(REPO, join(OUT, 'check.log')).replaceAll('\\', '/')}` });
+    } else {
+      rows.unshift({ step: 'check', ok: null, seconds: null, detail: '--no-check' });
+    }
+  };
+  let session: Session | undefined;
   try {
+    session = await openSession({ port: values.port === undefined ? undefined : Number(values.port), reuse: values.reuse });
     log(`server ${session.baseUrl} (${session.mode}), ${session.browserName}`);
 
     // 2. Every chosen script, in the default look.
+    phase = 'scripts';
     let t = Date.now();
     const scriptFailures = await runLook(session, null, scripts, jobs, log);
     const shotCount = logLines.filter((l) => /^(ok {2}|FAIL) /.test(l)).length;
     rows.push({ step: 'scripts', ok: scriptFailures === 0, seconds: secondsSince(t), detail: `${scripts.length} script(s), ${shotCount} shots` });
 
     // 3. The hub scripts in the other looks (D25).
+    phase = 'looks';
     t = Date.now();
     if (hub.length) {
       let lookFailures = 0;
@@ -141,14 +157,10 @@ async function main(): Promise<number> {
     }
 
     // 4. pnpm check must finish before the scenes, so their fps samples run on a quiet machine.
-    if (check) {
-      const { code, tests } = await check;
-      rows.unshift({ step: 'check', ok: code === 0, seconds: secondsSince(checkStart), detail: `${tests}; output in ${relative(REPO, join(OUT, 'check.log')).replaceAll('\\', '/')}` });
-    } else {
-      rows.unshift({ step: 'check', ok: null, seconds: null, detail: '--no-check' });
-    }
+    await awaitCheck();
 
     // 5. Every scene live, plus the baseline's timed shots (e.g. drop at t = 1.0 and 1.5 s).
+    phase = 'scenes';
     if (partial) {
       rows.push({ step: 'scenes', ok: null, seconds: null, detail: 'skipped with --scripts' });
     } else {
@@ -166,34 +178,46 @@ async function main(): Promise<number> {
       }
       rows.push({ step: 'scenes', ok: failures === 0, seconds: secondsSince(t), detail: `${scenes.length} live + ${timed.length} timed; fps ${fps.join(', ')}` });
     }
+  } catch (err) {
+    crashed = true;
+    rows.push({ step: phase, ok: false, seconds: null, detail: `crashed: ${errorMessage(err)}. Rerun it; if it happens again, it is not a one-off.` });
   } finally {
-    await session.close();
+    await session?.close().catch(() => undefined);
   }
+  await awaitCheck();
 
   // 6. The checks on the logs.
-  const cartsRan = CART_SCRIPTS.every((s) => names.includes(s));
-  if (cartsRan) {
-    const carts = checkCarts(SHOTS);
-    carts.lines.forEach(log);
-    const checks = carts.lines.filter((l) => /^(ok {2}|FAIL) /.test(l)).length;
-    rows.push({ step: 'check-carts', ok: carts.failures === 0, seconds: null, detail: `${checks} checks, ${carts.failures} failed` });
+  if (crashed) {
+    rows.push({ step: 'log checks', ok: null, seconds: null, detail: 'skipped: a step crashed, so the logs are partial' });
   } else {
-    rows.push({ step: 'check-carts', ok: null, seconds: null, detail: `needs ${CART_SCRIPTS.join(', ')}` });
+    logChecks();
   }
-  if (hub.length) {
-    const looks = compareLooks(hub.map((s) => s.outName));
-    looks.lines.forEach(log);
-    rows.push({ step: 'looks-compare', ok: looks.failures === 0, seconds: null, detail: `${looks.compared} sim states against the default look, ${looks.failures} differ` });
-  } else {
-    rows.push({ step: 'looks-compare', ok: null, seconds: null, detail: 'no hub script chosen' });
-  }
-  if (baseline) {
-    const cmp = compareStates(baseline, SHOTS, partial ? names : undefined);
-    cmp.lines.forEach(log);
-    const rel = relative(REPO, baseline).replaceAll('\\', '/');
-    rows.push({ step: 'compare-states', ok: cmp.failures === 0, seconds: null, detail: `${cmp.compared} sim states against ${rel}, ${cmp.failures} differ or missing` });
-  } else {
-    rows.push({ step: 'compare-states', ok: null, seconds: null, detail: 'no docs/status/ folder' });
+
+  function logChecks(): void {
+    const cartsRan = CART_SCRIPTS.every((s) => names.includes(s));
+    if (cartsRan) {
+      const carts = checkCarts(SHOTS);
+      carts.lines.forEach(log);
+      const checks = carts.lines.filter((l) => /^(ok {2}|FAIL) /.test(l)).length;
+      rows.push({ step: 'check-carts', ok: carts.failures === 0, seconds: null, detail: `${checks} checks, ${carts.failures} failed` });
+    } else {
+      rows.push({ step: 'check-carts', ok: null, seconds: null, detail: `needs ${CART_SCRIPTS.join(', ')}` });
+    }
+    if (hub.length) {
+      const looks = compareLooks(hub.map((s) => s.outName));
+      looks.lines.forEach(log);
+      rows.push({ step: 'looks-compare', ok: looks.failures === 0, seconds: null, detail: `${looks.compared} sim states against the default look, ${looks.failures} differ` });
+    } else {
+      rows.push({ step: 'looks-compare', ok: null, seconds: null, detail: 'no hub script chosen' });
+    }
+    if (baseline) {
+      const cmp = compareStates(baseline, SHOTS, partial ? names : undefined);
+      cmp.lines.forEach(log);
+      const rel = relative(REPO, baseline).replaceAll('\\', '/');
+      rows.push({ step: 'compare-states', ok: cmp.failures === 0, seconds: null, detail: `${cmp.compared} sim states against ${rel}, ${cmp.failures} differ or missing` });
+    } else {
+      rows.push({ step: 'compare-states', ok: null, seconds: null, detail: 'no docs/status/ folder' });
+    }
   }
 
   const failed = rows.some((r) => r.ok === false);
@@ -205,7 +229,7 @@ async function main(): Promise<number> {
   const failures = logLines.filter((l) => /^(FAIL|DIFF|MISSING)|^ {5}(error|pageerror|requestfailed)/.test(l));
   for (const line of failures.slice(0, 40)) console.log(line);
   if (failures.length > 40) console.log(`… and ${failures.length - 40} more in ${relative(REPO, logPath)}`);
-  if (rows.some((r) => r.step === 'check' && r.ok === false)) console.log(`pnpm check failed; see ${relative(REPO, join(OUT, 'check.log'))}`);
+  if (rows.some((r) => r.step === 'check' && r.ok === false)) console.log(`pnpm check failed; see ${relative(REPO, join(OUT, 'check.log')).replaceAll('\\', '/')}`);
   console.log(head);
   for (const line of table) console.log(line);
   console.log(`full log: ${relative(REPO, logPath).replaceAll('\\', '/')}; shots in artifacts/shots/`);

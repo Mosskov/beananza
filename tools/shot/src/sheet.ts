@@ -107,6 +107,8 @@ async function sheetPage(browser: Browser): Promise<Page> {
 export interface SheetItem {
   label: string;
   png: Buffer;
+  /** This image's own crop, instead of the sheet's. */
+  crop?: Rect;
 }
 
 export interface SheetOptions {
@@ -118,7 +120,7 @@ export interface SheetOptions {
 
 /** Tile PNGs into one labelled PNG. */
 export async function composeSheet(browser: Browser, items: readonly SheetItem[], opts: SheetOptions): Promise<Buffer> {
-  const crops = items.map((it) => clipCrop(opts.crop, pngSize(it.png)));
+  const crops = items.map((it) => clipCrop(it.crop ?? opts.crop, pngSize(it.png)));
   const layout = layoutSheet(crops, opts.cols, opts.scale, opts.title !== null);
   const page = await sheetPage(browser);
   try {

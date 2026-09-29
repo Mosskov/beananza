@@ -68,6 +68,18 @@ export const REQUIRED_PARTS: Readonly<Record<BeanView, readonly string[]>> = {
   side: ['shadow', 'foot-near', 'foot-far', 'arm-near', 'arm-far-push', 'body', 'belly', 'scarf', 'scarf-tail', 'eyes', 'mouth'],
 };
 
+/**
+ * Anchors every view must have (D22): `headwear` at the top of the body; in the side view,
+ * `lean`, the point whose forward tip the pushing stand-off adds.
+ */
+export const REQUIRED_ANCHORS: Readonly<Record<BeanView, readonly string[]>> = {
+  front: ['headwear'],
+  'front-34': ['headwear'],
+  side: ['headwear', 'lean'],
+  'back-34': ['headwear'],
+  back: ['headwear'],
+};
+
 /** Hidden unless something turns them on: earned goggles (catapult), the far arm (pushing). */
 export const HIDDEN_BY_DEFAULT: ReadonlySet<string> = new Set(['headwear-goggles', 'arm-far-push']);
 

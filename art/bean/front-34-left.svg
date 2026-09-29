@@ -2,9 +2,9 @@
   <!-- Bean buddy, FRONT 3/4 view turned to its left (moving down-left): only the parts that are not
        symmetric, drawn as seen on screen (not mirrored). Every other part is front-34.svg mirrored.
        Eye highlights stay up and to the right (the light side); the scarf tail stays on the bean's left. -->
-  <g id="eyes">
+  <g id="eyes" data-pivot="-10 -80">
     <ellipse cx="4" cy="-80" rx="6" ry="8" fill="#2B211C"/><ellipse cx="-24" cy="-80" rx="5" ry="7.5" fill="#2B211C"/>
     <circle cx="6" cy="-83" r="2.2" fill="#FFFFFF"/><circle cx="-22" cy="-83" r="2" fill="#FFFFFF"/>
   </g>
-  <g id="scarf-tail" data-after="scarf"><path d="M24 -44 L28 -20 L38 -22 L34 -46 Z" fill="#E3A93B"/></g>
+  <g id="scarf-tail" data-pivot="24 -44" data-after="scarf"><path d="M24 -44 L28 -20 L38 -22 L34 -46 Z" fill="#E3A93B"/></g>
 </svg>

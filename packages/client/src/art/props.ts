@@ -3,7 +3,7 @@ import type Phaser from 'phaser';
 // like the bean. Vite inlines the text at build time.
 import cart from '../../../../art/props/cart.svg?raw';
 import tree from '../../../../art/props/tree.svg?raw';
-import { parseSvgParts, partPivot, type Point, type SvgDoc } from '../rig/svg-parts';
+import { insideViewBox, parseSvgParts, partPivot, type Point, type SvgDoc } from '../rig/svg-parts';
 import { addTextures, partImage, rasterizeParts, type PartTexture } from './raster';
 
 export const PROP_SVGS: Readonly<Record<string, string>> = { tree, cart };
@@ -12,6 +12,16 @@ export const PROP_SVGS: Readonly<Record<string, string>> = { tree, cart };
 export const PROP_PARTS: Readonly<Record<string, readonly string[]>> = {
   tree: ['shadow', 'trunk', 'canopy'],
   cart: ['shadow', 'back', 'rocks', 'front', 'wheel-west', 'wheel-east'],
+};
+
+/**
+ * Anchors each prop must have (D22). The cart: `floor` (where a rider stands) and the corners
+ * of its front (`rim-west`, `rim-east`, `base-west`, `base-east`): below the rim, a rider only
+ * shows inside them.
+ */
+export const PROP_ANCHORS: Readonly<Record<string, readonly string[]>> = {
+  tree: [],
+  cart: ['floor', 'rim-west', 'rim-east', 'base-west', 'base-east'],
 };
 
 export interface PropArtSpec {
@@ -41,6 +51,10 @@ export function buildPropArtSpec(sources: Readonly<Record<string, string>>): Pro
       docs[prop] = doc;
       const ids = doc.parts.map((p) => p.id);
       for (const id of required) if (!ids.includes(id)) problems.push(`${prop}: missing part "${id}"`);
+      for (const name of PROP_ANCHORS[prop] ?? []) if (!doc.anchors[name]) problems.push(`${prop}: missing anchor "${name}"`);
+      for (const [name, p] of Object.entries(doc.anchors)) {
+        if (!insideViewBox(p, doc.viewBox)) problems.push(`${prop}: anchor "${name}" is outside the viewBox`);
+      }
       for (const part of doc.parts) pivots.set(propKey(prop, part.id), partPivot(part));
     } catch (e) {
       problems.push(`${prop}: ${(e as Error).message}`);
@@ -62,6 +76,14 @@ export async function loadPropArt(): Promise<void> {
   if (loaded) return;
   const spec = buildPropArtSpec(PROP_SVGS);
   loaded = { spec, textures: await rasterizeParts(spec.docs, propKey) };
+}
+
+/** A prop's anchor (art units, in its frame: origin on the ground under it). */
+export function propAnchor(prop: string, name: string): Point {
+  if (!loaded) throw new Error('Prop art is not loaded yet (loadPropArt runs before the game starts).');
+  const p = loaded.spec.docs[prop]?.anchors[name];
+  if (!p) throw new Error(`No anchor ${name} on prop ${prop}.`);
+  return p;
 }
 
 /**

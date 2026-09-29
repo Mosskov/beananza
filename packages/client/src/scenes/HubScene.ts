@@ -1,14 +1,15 @@
 import Phaser from 'phaser';
 import { PIXELS_PER_METER } from '@beananza/shared';
-import { CART_HALF_DEPTH, CART_HALF_LENGTH, FIXED_DT, HUB_BEAN_RADIUS_M, Sim, createHubScenario, type HubCommand, type HubInput, type HubState } from '@beananza/sim';
+import { CART_FLOOR_M, CART_HALF_DEPTH, CART_HALF_LENGTH, FIXED_DT, HUB_BEAN_RADIUS_M, Sim, createHubScenario, type HubCommand, type HubInput, type HubState } from '@beananza/sim';
 import { prefersReducedMotion } from '../accessibility';
 import { propPart } from '../art/props';
 import { GAME_HEIGHT, GAME_WIDTH, PALETTE, cssColor } from '../config';
 import { BeanRig, createBeanShadow } from '../rig/BeanRig';
+import { beanArt } from '../rig/bean-art';
 import { chooseClip, samplePose } from '../rig/player';
 import { viewForFacing } from '../rig/views';
 import { SimScene } from './SimScene';
-import { CART_FLOOR_M, CART_RIDER_DEPTH, CartView, drawRail, speedReadout } from './hub-carts';
+import { CART_RIDER_DEPTH, CartView, drawRail, speedReadout } from './hub-carts';
 import { TOGGLED_PARTS, presentAct } from './hub-presentation';
 import { cartStandOff, characterScreen, depthKey, depthScale, groundFromScreen, toScreen } from './hub-view';
 
@@ -26,11 +27,6 @@ const CHARACTER_TIE_BREAK = 0.5;
 const UI_DEPTH = 1e6;
 
 const FONT = 'system-ui, "Segoe UI", Roboto, sans-serif';
-/**
- * Height of the side view's belly above the feet (art units): leaning while pushing tips it
- * forward by this times sin(lean), which the stand-off from the cart adds.
- */
-const SIDE_BELLY_HEIGHT_UNITS = 40;
 
 interface BeanView {
   rig: BeanRig;
@@ -215,7 +211,9 @@ export class HubScene extends SimScene<HubState, HubCommand> {
     if (onRail) {
       const span = rig.bodySpan();
       const pushDir = act.kind === 'pushing' ? act.dir : 0;
-      const lean = pushDir !== 0 ? Math.sin((pose.body.rotation * Math.PI) / 180) * SIDE_BELLY_HEIGHT_UNITS : 0;
+      // Leaning while pushing tips the side view's `lean` anchor forward by its height · sin(lean).
+      const leanHeight = -(beanArt().spec.anchors.side.lean?.y ?? 0);
+      const lean = pushDir !== 0 ? Math.sin((pose.body.rotation * Math.PI) / 180) * leanHeight : 0;
       const cartXs = (this.sim.state.rail?.carts ?? []).map((c) => lerp(this.prevCarts.get(c.id) ?? c.x, c.x));
       const unit = scale / PIXELS_PER_METER; // art units to metres at this depth
       const off = cartStandOff(

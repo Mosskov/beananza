@@ -3,19 +3,12 @@ import { PIXELS_PER_METER } from '@beananza/shared';
 import type { RailLayout } from '@beananza/sim';
 import { CART_WHEEL_RADIUS_M, propPart } from '../art/props';
 import { PALETTE, cssColor } from '../config';
-import { depthKey, toScreen } from './hub-view';
+import { RAIL_GAUGE_M, depthKey, toScreen } from './hub-view';
 
 const m = (meters: number) => meters * PIXELS_PER_METER;
 
 // The carts are drawn once in art/props/cart.svg (they run on a straight rail and never turn,
 // D12). The rail itself is still PLACEHOLDER art, drawn in code below.
-/**
- * Distance between the two rails (m), drawn at ±half of it from the rail's centre line. A cart's
- * drawing stands on the near (south) rail, where its visible wheels run.
- */
-export const RAIL_GAUGE_M = 0.2;
-/** Height of the cart floor a rider stands on (m); the front of the cart hides the bean's feet. */
-export const CART_FLOOR_M = 0.1;
 /** Draw order inside a cart's row: back of the cart, a rider, then the front. */
 export const CART_BACK_DEPTH = 0;
 export const CART_RIDER_DEPTH = 0.2;

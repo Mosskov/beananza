@@ -27,6 +27,11 @@ export const HUB_BEAN_RADIUS_M = 0.25;
 export const HUB_BEAN_MASS_KG = 20;
 /** Half a cart's north-south size (m): its footprint on the ground is 0.8 × 0.4 m. */
 export const CART_HALF_DEPTH = 0.2;
+/**
+ * Height of the cart floor a rider stands on (m), above the rail's centre line. The cart
+ * drawing's `floor` anchor must agree (a test checks it).
+ */
+export const CART_FLOOR_M = 0.1;
 
 export interface Rect {
   minX: number;

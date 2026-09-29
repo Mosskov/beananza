@@ -19,17 +19,25 @@ exploration) and are not loaded yet.
   and then it needs one in every mirrored view that has it. `data-after="<part id>"` places
   it in the draw order (for example the scarf tail in front of the body when facing left).
 - The game loads these files as they are, by part id (D3). Parts must be flat top-level
-  `<g id>` groups (no nesting). Pivots are derived by rule until the files carry pivot markers:
-  arms and the scarf tail rotate about the first point of their path, feet about their ellipse
-  centre, eyes about the mean eye centre, everything else about (0, 0). The checks live in
-  `packages/client/src/rig/bean-contract.ts` and `packages/client/test/bean-art.test.ts`.
+  `<g id>` groups (no nesting). The checks live in `packages/client/src/rig/bean-contract.ts`
+  and `packages/client/test/bean-art.test.ts`.
+- **Pivots (D22):** a part that rotates or scales about its own point carries
+  `data-pivot="x y"` on its `<g>`: arms at the shoulder, feet and eyes at their centre, the
+  scarf tail at the knot (and prop wheels at the hub). The contract requires it on `arm-…`,
+  `foot-…`, `wheel-…`, `scarf-tail` and `eyes`; every other part pivots at (0, 0).
+- **Anchors (D22):** named points the game places things at, in one reserved group per file
+  that is never drawn: `<g id="anchors" display="none"><circle id="anchor-<name>" cx="…" cy="…" r="0"/></g>`.
+  Every view has `anchor-headwear` (the top of the body, checked within 1 unit); the side view
+  also has `anchor-lean` (the point whose forward tip the pushing stand-off adds). The `-left`
+  files have no anchors: mirrored views mirror their base view's. Anchors must lie inside the
+  viewBox.
 - `forms.svg`: the four body forms (Bean, Mochi, Gumdrop, Pill) with each form's eye-line y.
   All forms are cosmetic and share one collider.
 
 ## Props (`props/`)
 Props that never turn are drawn once, as seen in the hub's ¾ view (D12), by the same rules as the
 bean: 100 units = 1 m, origin (0, 0) on the ground (under the middle of the prop's footprint),
-flat top-level `<g id>` parts, soft shadows. Colours come from the palette below where it has them;
+flat top-level `<g id>` parts, soft shadows, and `data-pivot` and anchors as for the bean. Colours come from the palette below where it has them;
 the tree's greens (`#5F9150`, `#6A9C5A`, `#86B874`) are new. The game loads them by part id
 (`packages/client/src/art/props.ts`; checks in `packages/client/test/prop-art.test.ts`).
 - `tree.svg`: `shadow`, `trunk`, `canopy`. The sim's footprint is 0.5 × 0.4 m.

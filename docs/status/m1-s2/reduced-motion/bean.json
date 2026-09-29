@@ -1,0 +1,553 @@
+{
+  "ok": true,
+  "error": null,
+  "note": null,
+  "scene": "bean",
+  "url": "http://localhost:5180/?scene=bean",
+  "requestedSimTime": null,
+  "simTime": null,
+  "screenshot": "artifacts/shots/reduced-motion/bean.png",
+  "git": {
+    "commit": "ac4eafe",
+    "dirty": false
+  },
+  "timestamp": "2026-09-29T18:15:45.453Z",
+  "viewport": {
+    "width": 1280,
+    "height": 720
+  },
+  "browser": "chromium 153.0.8010.12",
+  "glRenderer": "ANGLE (NVIDIA, NVIDIA GeForce RTX 5070 Ti (0x00002C05) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+  "reducedMotion": true,
+  "server": "reused",
+  "console": {
+    "errors": 0,
+    "warnings": 0,
+    "entries": []
+  },
+  "fps": {
+    "sampleMs": 2005.8,
+    "frames": 341,
+    "avgFps": 170.01,
+    "avgFrameMs": 5.88,
+    "maxFrameMs": 6.1,
+    "phaserActualFps": 106.44
+  },
+  "sceneState": {
+    "reducedMotion": true,
+    "cells": [
+      {
+        "label": "S front",
+        "facing": "S",
+        "view": "front",
+        "mirrored": false,
+        "clip": "idle",
+        "t": 0,
+        "time": 0,
+        "body": {
+          "x": 0,
+          "y": 0,
+          "rotation": 0,
+          "scaleX": 1,
+          "scaleY": 1
+        }
+      },
+      {
+        "label": "SE front-34",
+        "facing": "SE",
+        "view": "front-34",
+        "mirrored": false,
+        "clip": "idle",
+        "t": 0,
+        "time": 0,
+        "body": {
+          "x": 0,
+          "y": 0,
+          "rotation": 0,
+          "scaleX": 1,
+          "scaleY": 1
+        }
+      },
+      {
+        "label": "E side",
+        "facing": "E",
+        "view": "side",
+        "mirrored": false,
+        "clip": "idle",
+        "t": 0,
+        "time": 0,
+        "body": {
+          "x": 0,
+          "y": 0,
+          "rotation": 0,
+          "scaleX": 1,
+          "scaleY": 1
+        }
+      },
+      {
+        "label": "NE back-34",
+        "facing": "NE",
+        "view": "back-34",
+        "mirrored": false,
+        "clip": "idle",
+        "t": 0,
+        "time": 0,
+        "body": {
+          "x": 0,
+          "y": 0,
+          "rotation": 0,
+          "scaleX": 1,
+          "scaleY": 1
+        }
+      },
+      {
+        "label": "N back",
+        "facing": "N",
+        "view": "back",
+        "mirrored": false,
+        "clip": "idle",
+        "t": 0,
+        "time": 0,
+        "body": {
+          "x": 0,
+          "y": 0,
+          "rotation": 0,
+          "scaleX": 1,
+          "scaleY": 1
+        }
+      },
+      {
+        "label": "NW back-34 mirrored",
+        "facing": "NW",
+        "view": "back-34",
+        "mirrored": true,
+        "clip": "idle",
+        "t": 0,
+        "time": 0,
+        "body": {
+          "x": 0,
+          "y": 0,
+          "rotation": 0,
+          "scaleX": 1,
+          "scaleY": 1
+        }
+      },
+      {
+        "label": "W side mirrored",
+        "facing": "W",
+        "view": "side",
+        "mirrored": true,
+        "clip": "idle",
+        "t": 0,
+        "time": 0,
+        "body": {
+          "x": 0,
+          "y": 0,
+          "rotation": 0,
+          "scaleX": 1,
+          "scaleY": 1
+        }
+      },
+      {
+        "label": "SW front-34 mirrored",
+        "facing": "SW",
+        "view": "front-34",
+        "mirrored": true,
+        "clip": "idle",
+        "t": 0,
+        "time": 0,
+        "body": {
+          "x": 0,
+          "y": 0,
+          "rotation": 0,
+          "scaleX": 1,
+          "scaleY": 1
+        }
+      },
+      {
+        "label": "walk E t=0.00",
+        "facing": "E",
+        "view": "side",
+        "mirrored": false,
+        "clip": "walk",
+        "t": 0,
+        "time": 0,
+        "body": {
+          "x": 0,
+          "y": 0,
+          "rotation": 0,
+          "scaleX": 1,
+          "scaleY": 1
+        }
+      },
+      {
+        "label": "walk E t=0.14",
+        "facing": "E",
+        "view": "side",
+        "mirrored": false,
+        "clip": "walk",
+        "t": 0.14,
+        "time": 0,
+        "body": {
+          "x": 0,
+          "y": 0,
+          "rotation": 0,
+          "scaleX": 1,
+          "scaleY": 1
+        }
+      },
+      {
+        "label": "walk E t=0.28",
+        "facing": "E",
+        "view": "side",
+        "mirrored": false,
+        "clip": "walk",
+        "t": 0.28,
+        "time": 0,
+        "body": {
+          "x": 0,
+          "y": 0,
+          "rotation": 0,
+          "scaleX": 1,
+          "scaleY": 1
+        }
+      },
+      {
+        "label": "walk E t=0.42",
+        "facing": "E",
+        "view": "side",
+        "mirrored": false,
+        "clip": "walk",
+        "t": 0.42,
+        "time": 0,
+        "body": {
+          "x": 0,
+          "y": 0,
+          "rotation": 0,
+          "scaleX": 1,
+          "scaleY": 1
+        }
+      },
+      {
+        "label": "walk S t=0.00",
+        "facing": "S",
+        "view": "front",
+        "mirrored": false,
+        "clip": "walk",
+        "t": 0,
+        "time": 0,
+        "body": {
+          "x": 0,
+          "y": 0,
+          "rotation": 0,
+          "scaleX": 1,
+          "scaleY": 1
+        }
+      },
+      {
+        "label": "walk S t=0.14",
+        "facing": "S",
+        "view": "front",
+        "mirrored": false,
+        "clip": "walk",
+        "t": 0.14,
+        "time": 0,
+        "body": {
+          "x": 0,
+          "y": 0,
+          "rotation": 0,
+          "scaleX": 1,
+          "scaleY": 1
+        }
+      },
+      {
+        "label": "walk S t=0.28",
+        "facing": "S",
+        "view": "front",
+        "mirrored": false,
+        "clip": "walk",
+        "t": 0.28,
+        "time": 0,
+        "body": {
+          "x": 0,
+          "y": 0,
+          "rotation": 0,
+          "scaleX": 1,
+          "scaleY": 1
+        }
+      },
+      {
+        "label": "walk S t=0.42",
+        "facing": "S",
+        "view": "front",
+        "mirrored": false,
+        "clip": "walk",
+        "t": 0.42,
+        "time": 0,
+        "body": {
+          "x": 0,
+          "y": 0,
+          "rotation": 0,
+          "scaleX": 1,
+          "scaleY": 1
+        }
+      },
+      {
+        "label": "run E t=0.000",
+        "facing": "E",
+        "view": "side",
+        "mirrored": false,
+        "clip": "run",
+        "t": 0,
+        "time": 0,
+        "body": {
+          "x": 0,
+          "y": 0,
+          "rotation": 8,
+          "scaleX": 1,
+          "scaleY": 1
+        }
+      },
+      {
+        "label": "run E t=0.085",
+        "facing": "E",
+        "view": "side",
+        "mirrored": false,
+        "clip": "run",
+        "t": 0.085,
+        "time": 0,
+        "body": {
+          "x": 0,
+          "y": 0,
+          "rotation": 8,
+          "scaleX": 1,
+          "scaleY": 1
+        }
+      },
+      {
+        "label": "run E t=0.170",
+        "facing": "E",
+        "view": "side",
+        "mirrored": false,
+        "clip": "run",
+        "t": 0.17,
+        "time": 0,
+        "body": {
+          "x": 0,
+          "y": 0,
+          "rotation": 8,
+          "scaleX": 1,
+          "scaleY": 1
+        }
+      },
+      {
+        "label": "run E t=0.255",
+        "facing": "E",
+        "view": "side",
+        "mirrored": false,
+        "clip": "run",
+        "t": 0.255,
+        "time": 0,
+        "body": {
+          "x": 0,
+          "y": 0,
+          "rotation": 8,
+          "scaleX": 1,
+          "scaleY": 1
+        }
+      },
+      {
+        "label": "run SE t=0.000",
+        "facing": "SE",
+        "view": "front-34",
+        "mirrored": false,
+        "clip": "run",
+        "t": 0,
+        "time": 0,
+        "body": {
+          "x": 0,
+          "y": 0,
+          "rotation": 0,
+          "scaleX": 1,
+          "scaleY": 1
+        }
+      },
+      {
+        "label": "run SE t=0.085",
+        "facing": "SE",
+        "view": "front-34",
+        "mirrored": false,
+        "clip": "run",
+        "t": 0.085,
+        "time": 0,
+        "body": {
+          "x": 0,
+          "y": 0,
+          "rotation": 0,
+          "scaleX": 1,
+          "scaleY": 1
+        }
+      },
+      {
+        "label": "run SE t=0.170",
+        "facing": "SE",
+        "view": "front-34",
+        "mirrored": false,
+        "clip": "run",
+        "t": 0.17,
+        "time": 0,
+        "body": {
+          "x": 0,
+          "y": 0,
+          "rotation": 0,
+          "scaleX": 1,
+          "scaleY": 1
+        }
+      },
+      {
+        "label": "run SE t=0.255",
+        "facing": "SE",
+        "view": "front-34",
+        "mirrored": false,
+        "clip": "run",
+        "t": 0.255,
+        "time": 0,
+        "body": {
+          "x": 0,
+          "y": 0,
+          "rotation": 0,
+          "scaleX": 1,
+          "scaleY": 1
+        }
+      },
+      {
+        "label": "jump: crouch",
+        "facing": "S",
+        "view": "front",
+        "mirrored": false,
+        "clip": "jump",
+        "t": 0,
+        "time": 0,
+        "body": {
+          "x": 0,
+          "y": 0,
+          "rotation": 0,
+          "scaleX": 1,
+          "scaleY": 1
+        }
+      },
+      {
+        "label": "jump: launch",
+        "facing": "S",
+        "view": "front",
+        "mirrored": false,
+        "clip": "jump",
+        "t": 0.14,
+        "time": 0,
+        "body": {
+          "x": 0,
+          "y": 0,
+          "rotation": 0,
+          "scaleX": 1,
+          "scaleY": 1
+        }
+      },
+      {
+        "label": "jump: air",
+        "facing": "E",
+        "view": "side",
+        "mirrored": false,
+        "clip": "jump",
+        "t": 0.4,
+        "time": 0,
+        "body": {
+          "x": 0,
+          "y": 0,
+          "rotation": 0,
+          "scaleX": 1,
+          "scaleY": 1
+        }
+      },
+      {
+        "label": "fall",
+        "facing": "E",
+        "view": "side",
+        "mirrored": false,
+        "clip": "fall",
+        "t": 0.25,
+        "time": 0,
+        "body": {
+          "x": 0,
+          "y": 0,
+          "rotation": 0,
+          "scaleX": 1,
+          "scaleY": 1
+        }
+      },
+      {
+        "label": "land t=0",
+        "facing": "S",
+        "view": "front",
+        "mirrored": false,
+        "clip": "land",
+        "t": 0,
+        "time": 0,
+        "body": {
+          "x": 0,
+          "y": 0,
+          "rotation": 0,
+          "scaleX": 1,
+          "scaleY": 1
+        }
+      },
+      {
+        "label": "land t=0.07",
+        "facing": "S",
+        "view": "front",
+        "mirrored": false,
+        "clip": "land",
+        "t": 0.07,
+        "time": 0,
+        "body": {
+          "x": 0,
+          "y": 0,
+          "rotation": 0,
+          "scaleX": 1,
+          "scaleY": 1
+        }
+      },
+      {
+        "label": "idle breathe t=1.5",
+        "facing": "S",
+        "view": "front",
+        "mirrored": false,
+        "clip": "idle",
+        "t": 1.5,
+        "time": 0,
+        "body": {
+          "x": 0,
+          "y": 0,
+          "rotation": 0,
+          "scaleX": 1,
+          "scaleY": 1
+        }
+      },
+      {
+        "label": "blink t=3.76",
+        "facing": "SW",
+        "view": "front-34",
+        "mirrored": true,
+        "clip": "idle",
+        "t": 0,
+        "time": 3.76,
+        "body": {
+          "x": 0,
+          "y": 0,
+          "rotation": 0,
+          "scaleX": 1,
+          "scaleY": 1
+        }
+      }
+    ]
+  }
+}

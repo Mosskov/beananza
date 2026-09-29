@@ -1,0 +1,87 @@
+{
+  "ok": true,
+  "error": null,
+  "script": "tools/shot/scripts/drop-reset.json",
+  "scene": "drop",
+  "shot": "after-tap",
+  "step": 7,
+  "url": "http://localhost:5180/?scene=drop&paused=1",
+  "simTime": 0.25,
+  "screenshot": "artifacts/shots/drop-reset/after-tap.png",
+  "git": {
+    "commit": "ac4eafe",
+    "dirty": false
+  },
+  "timestamp": "2026-09-29T18:15:36.359Z",
+  "viewport": {
+    "width": 1280,
+    "height": 720
+  },
+  "browser": "chromium 153.0.8010.12",
+  "glRenderer": "ANGLE (NVIDIA, NVIDIA GeForce RTX 5070 Ti (0x00002C05) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+  "reducedMotion": false,
+  "server": "reused",
+  "inputs": [
+    {
+      "step": 0,
+      "action": "wait 1",
+      "simTime": 0
+    },
+    {
+      "step": 2,
+      "action": "press \"KeyR\"",
+      "simTime": 1
+    },
+    {
+      "step": 3,
+      "action": "wait 0.5",
+      "simTime": 1
+    },
+    {
+      "step": 5,
+      "action": "tap [640,360]",
+      "simTime": 0.5
+    },
+    {
+      "step": 6,
+      "action": "wait 0.25",
+      "simTime": 0.5
+    }
+  ],
+  "console": {
+    "errors": 0,
+    "warnings": 0,
+    "entries": []
+  },
+  "sceneState": {
+    "tick": 15,
+    "simTime": 0.25,
+    "paused": true,
+    "state": {
+      "gravity": 9.81,
+      "releaseHeight": 10,
+      "balls": [
+        {
+          "id": "light",
+          "massKg": 1,
+          "x": -1.5,
+          "y": 9.693437499999987,
+          "vy": -2.4525,
+          "landedAt": null
+        },
+        {
+          "id": "heavy",
+          "massKg": 10,
+          "x": 1.5,
+          "y": 9.693437499999987,
+          "vy": -2.4525,
+          "landedAt": null
+        }
+      ],
+      "tick": 15,
+      "rng": {
+        "s": 1
+      }
+    }
+  }
+}

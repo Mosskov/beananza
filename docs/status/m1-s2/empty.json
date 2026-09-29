@@ -1,0 +1,37 @@
+{
+  "ok": true,
+  "error": null,
+  "note": null,
+  "scene": "empty",
+  "url": "http://localhost:5180/?scene=empty",
+  "requestedSimTime": null,
+  "simTime": null,
+  "screenshot": "artifacts/shots/empty.png",
+  "git": {
+    "commit": "ac4eafe",
+    "dirty": false
+  },
+  "timestamp": "2026-09-29T18:15:12.242Z",
+  "viewport": {
+    "width": 1280,
+    "height": 720
+  },
+  "browser": "chromium 153.0.8010.12",
+  "glRenderer": "ANGLE (NVIDIA, NVIDIA GeForce RTX 5070 Ti (0x00002C05) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+  "reducedMotion": false,
+  "server": "reused",
+  "console": {
+    "errors": 0,
+    "warnings": 0,
+    "entries": []
+  },
+  "fps": {
+    "sampleMs": 2005.7,
+    "frames": 341,
+    "avgFps": 170.02,
+    "avgFrameMs": 5.88,
+    "maxFrameMs": 6.1,
+    "phaserActualFps": 108.38
+  },
+  "sceneState": {}
+}

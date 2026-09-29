@@ -76,5 +76,13 @@ export function isGroundPart(partId: string): boolean {
   return partId.startsWith('foot-');
 }
 
+/**
+ * How far a part reaches west and east of the feet on screen (art units), from its drawn
+ * x-range [x0, x1] in the view's own frame. Mirroring flips the range to [−x1, −x0].
+ */
+export function screenReach(x0: number, x1: number, mirrored: boolean): { west: number; east: number } {
+  return mirrored ? { west: x1, east: -x0 } : { west: -x0, east: x1 };
+}
+
 /** The ground shadow is drawn by the scene on the ground layer, not by the rig. */
 export const SHADOW_PART = 'shadow';

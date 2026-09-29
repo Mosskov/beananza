@@ -4,7 +4,7 @@ import { SHADOW_TEXTURE, addBeanTextures, beanArt } from './bean-art';
 import { viewKey, type RigView } from './bean-contract';
 import type { Pose } from './player';
 import type { Point } from './svg-parts';
-import { SLOTS, SLOT_PARTS, isGroundPart, type Slot, type ViewChoice } from './views';
+import { SLOTS, SLOT_PARTS, isGroundPart, screenReach, type Slot, type ViewChoice } from './views';
 
 interface PartImage {
   image: Phaser.GameObjects.Image;
@@ -107,9 +107,7 @@ export class BeanRig {
     const { view, mirrored } = this.choice;
     const tex = beanArt().textures.get(`bean:${view}:body`);
     if (!tex) return { west: 0, east: 0 };
-    const x0 = tex.bounds.x;
-    const x1 = tex.bounds.x + tex.bounds.w;
-    return mirrored ? { west: -x1, east: -x0 } : { west: -x0, east: x1 };
+    return screenReach(tex.bounds.x, tex.bounds.x + tex.bounds.w, mirrored);
   }
 
   /** Show or hide a part in every view, e.g. goggles or the pushing arm. */

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { screenAngleDeg, viewForFacing, type ViewChoice } from '../src/rig/views';
+import { screenAngleDeg, screenReach, viewForFacing, type ViewChoice } from '../src/rig/views';
 
 /** A sim facing (x east, y north) pointing at a screen angle (degrees, y down). */
 function facingAt(deg: number): [number, number] {
@@ -57,6 +57,11 @@ describe('facing to view (DESIGN.md §6)', () => {
     expect(at(-157.5)).toEqual(v('back-34', true));
     expect(at(-67.5)).toEqual(v('back'));
     expect(at(-112.5)).toEqual(v('back'));
+  });
+
+  it('mirrors how far a body reaches each way (the side body spans −40..44 facing east)', () => {
+    expect(screenReach(-40, 44, false)).toEqual({ west: 40, east: 44 });
+    expect(screenReach(-40, 44, true)).toEqual({ west: 44, east: 40 });
   });
 
   it('shows the front for a zero facing', () => {

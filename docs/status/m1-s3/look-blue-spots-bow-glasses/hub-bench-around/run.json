@@ -1,0 +1,68 @@
+{
+  "ok": true,
+  "error": null,
+  "script": "tools/shot/scripts/hub-bench-around.json",
+  "scene": "hub",
+  "url": "http://localhost:5181/?scene=hub&paused=1&look=blue%2Cspots%2Cbow%2Cglasses",
+  "git": {
+    "commit": "cc37453",
+    "dirty": false
+  },
+  "inputs": [
+    {
+      "step": 0,
+      "action": "keyDown \"ArrowUp\"",
+      "simTime": 0
+    },
+    {
+      "step": 1,
+      "action": "wait 1.2",
+      "simTime": 0
+    },
+    {
+      "step": 2,
+      "action": "keyUp \"ArrowUp\"",
+      "simTime": 1.2
+    },
+    {
+      "step": 3,
+      "action": "keyDown \"ArrowLeft\"",
+      "simTime": 1.2
+    },
+    {
+      "step": 4,
+      "action": "wait 0.5",
+      "simTime": 1.2
+    },
+    {
+      "step": 5,
+      "action": "keyUp \"ArrowLeft\"",
+      "simTime": 1.7
+    },
+    {
+      "step": 7,
+      "action": "tap [280,170]",
+      "simTime": 1.7
+    },
+    {
+      "step": 8,
+      "action": "wait 0.5",
+      "simTime": 1.7
+    },
+    {
+      "step": 10,
+      "action": "wait 1",
+      "simTime": 2.2
+    },
+    {
+      "step": 12,
+      "action": "wait 1",
+      "simTime": 3.2
+    }
+  ],
+  "console": {
+    "errors": 0,
+    "warnings": 0,
+    "entries": []
+  }
+}

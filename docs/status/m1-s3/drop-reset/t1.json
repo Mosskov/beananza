@@ -1,0 +1,68 @@
+{
+  "ok": true,
+  "error": null,
+  "script": "tools/shot/scripts/drop-reset.json",
+  "scene": "drop",
+  "shot": "t1",
+  "step": 1,
+  "url": "http://localhost:5181/?scene=drop&paused=1",
+  "simTime": 1,
+  "screenshot": "artifacts/shots/drop-reset/t1.png",
+  "git": {
+    "commit": "cc37453",
+    "dirty": false
+  },
+  "timestamp": "2026-09-29T20:03:42.896Z",
+  "viewport": {
+    "width": 1280,
+    "height": 720
+  },
+  "browser": "chromium 153.0.8010.12",
+  "glRenderer": "ANGLE (NVIDIA, NVIDIA GeForce RTX 5070 Ti (0x00002C05) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+  "reducedMotion": false,
+  "look": null,
+  "server": "started",
+  "inputs": [
+    {
+      "step": 0,
+      "action": "wait 1",
+      "simTime": 0
+    }
+  ],
+  "console": {
+    "errors": 0,
+    "warnings": 0,
+    "entries": []
+  },
+  "sceneState": {
+    "tick": 60,
+    "simTime": 1,
+    "paused": true,
+    "state": {
+      "gravity": 9.81,
+      "releaseHeight": 10,
+      "balls": [
+        {
+          "id": "light",
+          "massKg": 1,
+          "x": -1.5,
+          "y": 5.094999999999969,
+          "vy": -9.81000000000001,
+          "landedAt": null
+        },
+        {
+          "id": "heavy",
+          "massKg": 10,
+          "x": 1.5,
+          "y": 5.094999999999969,
+          "vy": -9.81000000000001,
+          "landedAt": null
+        }
+      ],
+      "tick": 60,
+      "rng": {
+        "s": 1
+      }
+    }
+  }
+}

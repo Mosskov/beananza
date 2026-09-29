@@ -1,0 +1,337 @@
+{
+  "ok": true,
+  "error": null,
+  "script": "tools/shot/scripts/hub-carts-ride.json",
+  "scene": "hub",
+  "shot": "rolling-on",
+  "step": 23,
+  "url": "http://localhost:5181/?scene=hub&paused=1&look=violet%2Cspots%2Cbear-ears%2Cglasses",
+  "simTime": 3.5166666666666666,
+  "screenshot": "artifacts/shots/look-violet-spots-bear-ears-glasses/hub-carts-ride/rolling-on.png",
+  "git": {
+    "commit": "cc37453",
+    "dirty": false
+  },
+  "timestamp": "2026-09-29T20:05:47.745Z",
+  "viewport": {
+    "width": 1280,
+    "height": 720
+  },
+  "browser": "chromium 153.0.8010.12",
+  "glRenderer": "ANGLE (NVIDIA, NVIDIA GeForce RTX 5070 Ti (0x00002C05) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+  "reducedMotion": false,
+  "look": "violet,spots,bear-ears,glasses",
+  "server": "started",
+  "inputs": [
+    {
+      "step": 0,
+      "action": "tap [310,520]",
+      "simTime": 0
+    },
+    {
+      "step": 1,
+      "action": "wait 1",
+      "simTime": 0
+    },
+    {
+      "step": 2,
+      "action": "keyDown \"ArrowRight\"",
+      "simTime": 1
+    },
+    {
+      "step": 3,
+      "action": "wait 0.6",
+      "simTime": 1
+    },
+    {
+      "step": 5,
+      "action": "press \"KeyE\"",
+      "simTime": 1.6
+    },
+    {
+      "step": 6,
+      "action": "wait 0.0667",
+      "simTime": 1.6
+    },
+    {
+      "step": 8,
+      "action": "wait 0.2",
+      "simTime": 1.6666666666666667
+    },
+    {
+      "step": 10,
+      "action": "wait 0.15",
+      "simTime": 1.8666666666666667
+    },
+    {
+      "step": 12,
+      "action": "wait 0.1",
+      "simTime": 2.0166666666666666
+    },
+    {
+      "step": 14,
+      "action": "keyUp \"ArrowRight\"",
+      "simTime": 2.1166666666666667
+    },
+    {
+      "step": 15,
+      "action": "wait 0.5",
+      "simTime": 2.1166666666666667
+    },
+    {
+      "step": 17,
+      "action": "press \"KeyE\"",
+      "simTime": 2.6166666666666667
+    },
+    {
+      "step": 18,
+      "action": "wait 0.1",
+      "simTime": 2.6166666666666667
+    },
+    {
+      "step": 20,
+      "action": "wait 0.3",
+      "simTime": 2.716666666666667
+    },
+    {
+      "step": 22,
+      "action": "wait 0.5",
+      "simTime": 3.0166666666666666
+    }
+  ],
+  "console": {
+    "errors": 0,
+    "warnings": 0,
+    "entries": []
+  },
+  "sceneState": {
+    "tick": 211,
+    "simTime": 3.5166666666666666,
+    "paused": true,
+    "state": {
+      "layout": {
+        "walkable": {
+          "minX": -5.8,
+          "maxX": 5.8,
+          "minY": -3,
+          "maxY": 2
+        },
+        "props": [
+          {
+            "id": "tree",
+            "x": 2.2,
+            "y": 0.2,
+            "halfWidth": 0.25,
+            "halfDepth": 0.2
+          }
+        ],
+        "benches": [
+          {
+            "id": "bench",
+            "x": -3.6,
+            "y": 1.2,
+            "halfWidth": 0.8,
+            "halfDepth": 0.225,
+            "seatHeight": 0.3,
+            "seatDy": -0.15,
+            "seats": [
+              {
+                "id": "west",
+                "dx": -0.4
+              },
+              {
+                "id": "east",
+                "dx": 0.4,
+                "taken": true
+              }
+            ]
+          }
+        ],
+        "start": {
+          "x": -2.5,
+          "y": -0.8
+        },
+        "rail": {
+          "y": -2.1,
+          "minX": -3.68,
+          "maxX": 3.68,
+          "carts": [
+            {
+              "id": "light",
+              "mass": 5,
+              "x": -2.1,
+              "ridable": true
+            },
+            {
+              "id": "heavy",
+              "mass": 20,
+              "x": 1.6,
+              "ridable": false
+            }
+          ]
+        }
+      },
+      "gravity": 9.81,
+      "input": {
+        "x": 0,
+        "y": 0,
+        "run": false
+      },
+      "bean": {
+        "x": -0.5023805828555826,
+        "y": -2.6,
+        "z": 0,
+        "vx": 0,
+        "vy": 0,
+        "vz": 0,
+        "grounded": true,
+        "facingX": 0,
+        "facingY": -1,
+        "target": null,
+        "stuckSteps": 0,
+        "jumps": 0,
+        "lastJump": null,
+        "act": {
+          "kind": "free"
+        }
+      },
+      "rail": {
+        "carts": [
+          {
+            "id": "light",
+            "mass": 5,
+            "riderMass": 0,
+            "x": 0.3964194171444167,
+            "v": 0.8816666666666668
+          },
+          {
+            "id": "heavy",
+            "mass": 20,
+            "riderMass": 0,
+            "x": 1.6,
+            "v": 0
+          }
+        ],
+        "collisions": [],
+        "riders": [
+          {
+            "kind": "in",
+            "cart": "light",
+            "time": 2.1166666666666667,
+            "massBefore": 5,
+            "vBefore": 1.7656666666666676,
+            "massAfter": 25,
+            "vAfter": 0.3531333333333335
+          },
+          {
+            "kind": "out",
+            "cart": "light",
+            "time": 2.6166666666666667,
+            "massBefore": 25,
+            "vBefore": 0.22313333333333302,
+            "massAfter": 5,
+            "vAfter": 1.115666666666665
+          }
+        ]
+      },
+      "tick": 211,
+      "rng": {
+        "s": 1
+      }
+    },
+    "view": {
+      "bean": {
+        "screen": {
+          "x": 589.8,
+          "y": 570
+        },
+        "scale": 0.8959999999999999,
+        "depth": 260.5,
+        "rig": {
+          "act": "free",
+          "placement": "ground",
+          "masked": false,
+          "drawnZ": 0,
+          "feet": {
+            "a": {
+              "x": 0,
+              "y": 0
+            },
+            "b": {
+              "x": 0,
+              "y": 0
+            }
+          },
+          "view": "front",
+          "mirrored": false,
+          "clip": "idle",
+          "clipT": 3.5167,
+          "body": {
+            "y": 0,
+            "rotation": 0,
+            "scaleX": 1.0096,
+            "scaleY": 0.9904
+          }
+        }
+      },
+      "reducedMotion": false,
+      "carts": [
+        {
+          "id": "light",
+          "mass": 5,
+          "v": 0.8816666666666668,
+          "readout": "0.88 m/s",
+          "expectedReadout": "0.88 m/s",
+          "screen": {
+            "x": 679.6,
+            "y": 530
+          }
+        },
+        {
+          "id": "heavy",
+          "mass": 20,
+          "v": 0,
+          "readout": "0.00 m/s",
+          "expectedReadout": "0.00 m/s",
+          "screen": {
+            "x": 800,
+            "y": 530
+          }
+        }
+      ],
+      "classmates": [
+        {
+          "name": "Priya",
+          "clip": "sit",
+          "greeting": null,
+          "bubble": null,
+          "screen": {
+            "x": 320,
+            "y": 175
+          },
+          "depth": -119.6
+        }
+      ],
+      "props": [
+        {
+          "id": "tree",
+          "screen": {
+            "x": 860,
+            "y": 290
+          },
+          "depth": -20,
+          "bean": "in front"
+        },
+        {
+          "id": "bench",
+          "screen": {
+            "x": 280,
+            "y": 190
+          },
+          "depth": -120,
+          "bean": "in front"
+        }
+      ]
+    }
+  }
+}

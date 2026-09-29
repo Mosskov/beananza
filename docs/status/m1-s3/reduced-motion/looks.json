@@ -1,0 +1,1054 @@
+{
+  "ok": true,
+  "error": null,
+  "note": null,
+  "scene": "looks",
+  "url": "http://localhost:5181/?scene=looks",
+  "requestedSimTime": null,
+  "simTime": null,
+  "screenshot": "artifacts/shots/reduced-motion/looks.png",
+  "git": {
+    "commit": "cc37453",
+    "dirty": false
+  },
+  "timestamp": "2026-09-29T20:04:40.134Z",
+  "viewport": {
+    "width": 1280,
+    "height": 720
+  },
+  "browser": "chromium 153.0.8010.12",
+  "glRenderer": "ANGLE (NVIDIA, NVIDIA GeForce RTX 5070 Ti (0x00002C05) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+  "reducedMotion": true,
+  "look": null,
+  "server": "started",
+  "console": {
+    "errors": 0,
+    "warnings": 0,
+    "entries": []
+  },
+  "fps": {
+    "sampleMs": 2000,
+    "frames": 339,
+    "avgFps": 169.5,
+    "avgFrameMs": 5.9,
+    "maxFrameMs": 11.8,
+    "phaserActualFps": 104.69
+  },
+  "sceneState": {
+    "reducedMotion": true,
+    "cells": [
+      {
+        "label": "spots S",
+        "look": "orange,spots,none,round",
+        "view": "front",
+        "mirrored": false,
+        "parts": [
+          "foot-left@front",
+          "foot-right@front",
+          "arm-left@front",
+          "arm-right@front",
+          "body@front",
+          "pattern@pattern:spots:front",
+          "belly@front",
+          "scarf@front",
+          "scarf-tail@front",
+          "eyes@front",
+          "cheeks@front",
+          "mouth@front",
+          "headwear-goggles@front",
+          "eyes-sleep@front",
+          "doze-z@front"
+        ]
+      },
+      {
+        "label": "spots SE",
+        "look": "orange,spots,none,round",
+        "view": "front-34",
+        "mirrored": false,
+        "parts": [
+          "foot-near@front-34",
+          "foot-far@front-34",
+          "arm-far@front-34",
+          "body@front-34",
+          "pattern@pattern:spots:front-34",
+          "belly@front-34",
+          "scarf@front-34",
+          "scarf-tail@front-34",
+          "eyes@front-34",
+          "cheeks@front-34",
+          "mouth@front-34",
+          "headwear-goggles@front-34",
+          "arm-near@front-34"
+        ]
+      },
+      {
+        "label": "spots E",
+        "look": "orange,spots,none,round",
+        "view": "side",
+        "mirrored": false,
+        "parts": [
+          "foot-far@side",
+          "arm-far-push@side",
+          "scarf-tail@side",
+          "body@side",
+          "pattern@pattern:spots:side",
+          "belly@side",
+          "scarf@side",
+          "eyes@side",
+          "cheeks@side",
+          "mouth@side",
+          "headwear-goggles@side",
+          "arm-near@side",
+          "foot-near@side"
+        ]
+      },
+      {
+        "label": "spots NE",
+        "look": "orange,spots,none,round",
+        "view": "back-34",
+        "mirrored": false,
+        "parts": [
+          "foot-near@back-34",
+          "foot-far@back-34",
+          "arm-far@back-34",
+          "body@back-34",
+          "pattern@pattern:spots:back-34",
+          "headwear-goggles@back-34",
+          "scarf@back-34",
+          "scarf-tail@back-34",
+          "arm-near@back-34"
+        ]
+      },
+      {
+        "label": "spots N",
+        "look": "orange,spots,none,round",
+        "view": "back",
+        "mirrored": false,
+        "parts": [
+          "foot-left@back",
+          "foot-right@back",
+          "arm-left@back",
+          "arm-right@back",
+          "body@back",
+          "pattern@pattern:spots:back",
+          "headwear-goggles@back",
+          "scarf@back",
+          "scarf-tail@back"
+        ]
+      },
+      {
+        "label": "spots NW",
+        "look": "orange,spots,none,round",
+        "view": "back-34",
+        "mirrored": true,
+        "parts": [
+          "foot-near@back-34",
+          "foot-far@back-34",
+          "arm-far@back-34",
+          "body@back-34",
+          "pattern@pattern:spots:back-34",
+          "headwear-goggles@back-34",
+          "scarf@back-34",
+          "scarf-tail@back-34-left (as seen)",
+          "arm-near@back-34"
+        ]
+      },
+      {
+        "label": "spots W",
+        "look": "orange,spots,none,round",
+        "view": "side",
+        "mirrored": true,
+        "parts": [
+          "foot-far@side",
+          "arm-far-push@side",
+          "body@side",
+          "pattern@pattern:spots:side",
+          "belly@side",
+          "scarf@side",
+          "scarf-tail@side-left (as seen)",
+          "eyes@side-left (as seen)",
+          "cheeks@side",
+          "mouth@side",
+          "headwear-goggles@side",
+          "arm-near@side",
+          "foot-near@side"
+        ]
+      },
+      {
+        "label": "spots SW",
+        "look": "orange,spots,none,round",
+        "view": "front-34",
+        "mirrored": true,
+        "parts": [
+          "foot-near@front-34",
+          "foot-far@front-34",
+          "arm-far@front-34",
+          "body@front-34",
+          "pattern@pattern:spots:front-34",
+          "belly@front-34",
+          "scarf@front-34",
+          "scarf-tail@front-34-left (as seen)",
+          "eyes@front-34-left (as seen)",
+          "cheeks@front-34",
+          "mouth@front-34",
+          "headwear-goggles@front-34",
+          "arm-near@front-34"
+        ]
+      },
+      {
+        "label": "sprout S",
+        "look": "green,plain,sprout,round",
+        "view": "front",
+        "mirrored": false,
+        "parts": [
+          "foot-left@front",
+          "foot-right@front",
+          "arm-left@front",
+          "arm-right@front",
+          "body@front",
+          "belly@front",
+          "scarf@front",
+          "scarf-tail@front",
+          "eyes@front",
+          "cheeks@front",
+          "mouth@front",
+          "headwear-goggles@front",
+          "headwear@headwear:sprout:front",
+          "eyes-sleep@front",
+          "doze-z@front"
+        ]
+      },
+      {
+        "label": "sprout SE",
+        "look": "green,plain,sprout,round",
+        "view": "front-34",
+        "mirrored": false,
+        "parts": [
+          "foot-near@front-34",
+          "foot-far@front-34",
+          "arm-far@front-34",
+          "body@front-34",
+          "belly@front-34",
+          "scarf@front-34",
+          "scarf-tail@front-34",
+          "eyes@front-34",
+          "cheeks@front-34",
+          "mouth@front-34",
+          "headwear-goggles@front-34",
+          "headwear@headwear:sprout:front-34",
+          "arm-near@front-34"
+        ]
+      },
+      {
+        "label": "sprout E",
+        "look": "green,plain,sprout,round",
+        "view": "side",
+        "mirrored": false,
+        "parts": [
+          "foot-far@side",
+          "arm-far-push@side",
+          "scarf-tail@side",
+          "body@side",
+          "belly@side",
+          "scarf@side",
+          "eyes@side",
+          "cheeks@side",
+          "mouth@side",
+          "headwear-goggles@side",
+          "headwear@headwear:sprout:side",
+          "arm-near@side",
+          "foot-near@side"
+        ]
+      },
+      {
+        "label": "sprout NE",
+        "look": "green,plain,sprout,round",
+        "view": "back-34",
+        "mirrored": false,
+        "parts": [
+          "foot-near@back-34",
+          "foot-far@back-34",
+          "arm-far@back-34",
+          "body@back-34",
+          "headwear-goggles@back-34",
+          "headwear@headwear:sprout:back-34",
+          "scarf@back-34",
+          "scarf-tail@back-34",
+          "arm-near@back-34"
+        ]
+      },
+      {
+        "label": "sprout N",
+        "look": "green,plain,sprout,round",
+        "view": "back",
+        "mirrored": false,
+        "parts": [
+          "foot-left@back",
+          "foot-right@back",
+          "arm-left@back",
+          "arm-right@back",
+          "body@back",
+          "headwear-goggles@back",
+          "headwear@headwear:sprout:back",
+          "scarf@back",
+          "scarf-tail@back"
+        ]
+      },
+      {
+        "label": "sprout NW",
+        "look": "green,plain,sprout,round",
+        "view": "back-34",
+        "mirrored": true,
+        "parts": [
+          "foot-near@back-34",
+          "foot-far@back-34",
+          "arm-far@back-34",
+          "body@back-34",
+          "headwear-goggles@back-34",
+          "headwear@headwear:sprout:back-34",
+          "scarf@back-34",
+          "scarf-tail@back-34-left (as seen)",
+          "arm-near@back-34"
+        ]
+      },
+      {
+        "label": "sprout W",
+        "look": "green,plain,sprout,round",
+        "view": "side",
+        "mirrored": true,
+        "parts": [
+          "foot-far@side",
+          "arm-far-push@side",
+          "body@side",
+          "belly@side",
+          "scarf@side",
+          "scarf-tail@side-left (as seen)",
+          "eyes@side-left (as seen)",
+          "cheeks@side",
+          "mouth@side",
+          "headwear-goggles@side",
+          "headwear@headwear:sprout:side",
+          "arm-near@side",
+          "foot-near@side"
+        ]
+      },
+      {
+        "label": "sprout SW",
+        "look": "green,plain,sprout,round",
+        "view": "front-34",
+        "mirrored": true,
+        "parts": [
+          "foot-near@front-34",
+          "foot-far@front-34",
+          "arm-far@front-34",
+          "body@front-34",
+          "belly@front-34",
+          "scarf@front-34",
+          "scarf-tail@front-34-left (as seen)",
+          "eyes@front-34-left (as seen)",
+          "cheeks@front-34",
+          "mouth@front-34",
+          "headwear-goggles@front-34",
+          "headwear@headwear:sprout:front-34",
+          "arm-near@front-34"
+        ]
+      },
+      {
+        "label": "bear ears S",
+        "look": "teal,plain,bear-ears,round",
+        "view": "front",
+        "mirrored": false,
+        "parts": [
+          "foot-left@front",
+          "foot-right@front",
+          "arm-left@front",
+          "arm-right@front",
+          "headwear@headwear:bear-ears:front",
+          "body@front",
+          "belly@front",
+          "scarf@front",
+          "scarf-tail@front",
+          "eyes@front",
+          "cheeks@front",
+          "mouth@front",
+          "headwear-goggles@front",
+          "eyes-sleep@front",
+          "doze-z@front"
+        ]
+      },
+      {
+        "label": "bear ears SE",
+        "look": "teal,plain,bear-ears,round",
+        "view": "front-34",
+        "mirrored": false,
+        "parts": [
+          "foot-near@front-34",
+          "foot-far@front-34",
+          "arm-far@front-34",
+          "headwear@headwear:bear-ears:front-34",
+          "body@front-34",
+          "belly@front-34",
+          "scarf@front-34",
+          "scarf-tail@front-34",
+          "eyes@front-34",
+          "cheeks@front-34",
+          "mouth@front-34",
+          "headwear-goggles@front-34",
+          "arm-near@front-34"
+        ]
+      },
+      {
+        "label": "bear ears E",
+        "look": "teal,plain,bear-ears,round",
+        "view": "side",
+        "mirrored": false,
+        "parts": [
+          "foot-far@side",
+          "arm-far-push@side",
+          "scarf-tail@side",
+          "headwear@headwear:bear-ears:side",
+          "body@side",
+          "belly@side",
+          "scarf@side",
+          "eyes@side",
+          "cheeks@side",
+          "mouth@side",
+          "headwear-goggles@side",
+          "arm-near@side",
+          "foot-near@side"
+        ]
+      },
+      {
+        "label": "bear ears NE",
+        "look": "teal,plain,bear-ears,round",
+        "view": "back-34",
+        "mirrored": false,
+        "parts": [
+          "foot-near@back-34",
+          "foot-far@back-34",
+          "arm-far@back-34",
+          "headwear@headwear:bear-ears:back-34",
+          "body@back-34",
+          "headwear-goggles@back-34",
+          "scarf@back-34",
+          "scarf-tail@back-34",
+          "arm-near@back-34"
+        ]
+      },
+      {
+        "label": "bear ears N",
+        "look": "teal,plain,bear-ears,round",
+        "view": "back",
+        "mirrored": false,
+        "parts": [
+          "foot-left@back",
+          "foot-right@back",
+          "arm-left@back",
+          "arm-right@back",
+          "headwear@headwear:bear-ears:back",
+          "body@back",
+          "headwear-goggles@back",
+          "scarf@back",
+          "scarf-tail@back"
+        ]
+      },
+      {
+        "label": "bear ears NW",
+        "look": "teal,plain,bear-ears,round",
+        "view": "back-34",
+        "mirrored": true,
+        "parts": [
+          "foot-near@back-34",
+          "foot-far@back-34",
+          "arm-far@back-34",
+          "headwear@headwear:bear-ears:back-34",
+          "body@back-34",
+          "headwear-goggles@back-34",
+          "scarf@back-34",
+          "scarf-tail@back-34-left (as seen)",
+          "arm-near@back-34"
+        ]
+      },
+      {
+        "label": "bear ears W",
+        "look": "teal,plain,bear-ears,round",
+        "view": "side",
+        "mirrored": true,
+        "parts": [
+          "foot-far@side",
+          "arm-far-push@side",
+          "headwear@headwear:bear-ears:side",
+          "body@side",
+          "belly@side",
+          "scarf@side",
+          "scarf-tail@side-left (as seen)",
+          "eyes@side-left (as seen)",
+          "cheeks@side",
+          "mouth@side",
+          "headwear-goggles@side",
+          "arm-near@side",
+          "foot-near@side"
+        ]
+      },
+      {
+        "label": "bear ears SW",
+        "look": "teal,plain,bear-ears,round",
+        "view": "front-34",
+        "mirrored": true,
+        "parts": [
+          "foot-near@front-34",
+          "foot-far@front-34",
+          "arm-far@front-34",
+          "headwear@headwear:bear-ears:front-34",
+          "body@front-34",
+          "belly@front-34",
+          "scarf@front-34",
+          "scarf-tail@front-34-left (as seen)",
+          "eyes@front-34-left (as seen)",
+          "cheeks@front-34",
+          "mouth@front-34",
+          "headwear-goggles@front-34",
+          "arm-near@front-34"
+        ]
+      },
+      {
+        "label": "bow S",
+        "look": "yellow,plain,bow,round",
+        "view": "front",
+        "mirrored": false,
+        "parts": [
+          "foot-left@front",
+          "foot-right@front",
+          "arm-left@front",
+          "arm-right@front",
+          "body@front",
+          "belly@front",
+          "scarf@front",
+          "scarf-tail@front",
+          "eyes@front",
+          "cheeks@front",
+          "mouth@front",
+          "headwear-goggles@front",
+          "headwear@headwear:bow:front",
+          "eyes-sleep@front",
+          "doze-z@front"
+        ]
+      },
+      {
+        "label": "bow SE",
+        "look": "yellow,plain,bow,round",
+        "view": "front-34",
+        "mirrored": false,
+        "parts": [
+          "foot-near@front-34",
+          "foot-far@front-34",
+          "arm-far@front-34",
+          "body@front-34",
+          "belly@front-34",
+          "scarf@front-34",
+          "scarf-tail@front-34",
+          "eyes@front-34",
+          "cheeks@front-34",
+          "mouth@front-34",
+          "headwear-goggles@front-34",
+          "headwear@headwear:bow:front-34",
+          "arm-near@front-34"
+        ]
+      },
+      {
+        "label": "bow E",
+        "look": "yellow,plain,bow,round",
+        "view": "side",
+        "mirrored": false,
+        "parts": [
+          "foot-far@side",
+          "arm-far-push@side",
+          "scarf-tail@side",
+          "headwear@headwear:bow:side",
+          "body@side",
+          "belly@side",
+          "scarf@side",
+          "eyes@side",
+          "cheeks@side",
+          "mouth@side",
+          "headwear-goggles@side",
+          "arm-near@side",
+          "foot-near@side"
+        ]
+      },
+      {
+        "label": "bow NE",
+        "look": "yellow,plain,bow,round",
+        "view": "back-34",
+        "mirrored": false,
+        "parts": [
+          "foot-near@back-34",
+          "foot-far@back-34",
+          "arm-far@back-34",
+          "body@back-34",
+          "headwear-goggles@back-34",
+          "headwear@headwear:bow:back-34",
+          "scarf@back-34",
+          "scarf-tail@back-34",
+          "arm-near@back-34"
+        ]
+      },
+      {
+        "label": "bow N",
+        "look": "yellow,plain,bow,round",
+        "view": "back",
+        "mirrored": false,
+        "parts": [
+          "foot-left@back",
+          "foot-right@back",
+          "arm-left@back",
+          "arm-right@back",
+          "body@back",
+          "headwear-goggles@back",
+          "headwear@headwear:bow:back",
+          "scarf@back",
+          "scarf-tail@back"
+        ]
+      },
+      {
+        "label": "bow NW",
+        "look": "yellow,plain,bow,round",
+        "view": "back-34",
+        "mirrored": true,
+        "parts": [
+          "foot-near@back-34",
+          "foot-far@back-34",
+          "arm-far@back-34",
+          "body@back-34",
+          "headwear-goggles@back-34",
+          "headwear@headwear:bow:back-34-left (as seen)",
+          "scarf@back-34",
+          "scarf-tail@back-34-left (as seen)",
+          "arm-near@back-34"
+        ]
+      },
+      {
+        "label": "bow W",
+        "look": "yellow,plain,bow,round",
+        "view": "side",
+        "mirrored": true,
+        "parts": [
+          "foot-far@side",
+          "arm-far-push@side",
+          "body@side",
+          "belly@side",
+          "scarf@side",
+          "scarf-tail@side-left (as seen)",
+          "eyes@side-left (as seen)",
+          "cheeks@side",
+          "mouth@side",
+          "headwear-goggles@side",
+          "headwear@headwear:bow:side-left (as seen)",
+          "arm-near@side",
+          "foot-near@side"
+        ]
+      },
+      {
+        "label": "bow SW",
+        "look": "yellow,plain,bow,round",
+        "view": "front-34",
+        "mirrored": true,
+        "parts": [
+          "foot-near@front-34",
+          "foot-far@front-34",
+          "arm-far@front-34",
+          "body@front-34",
+          "belly@front-34",
+          "scarf@front-34",
+          "scarf-tail@front-34-left (as seen)",
+          "eyes@front-34-left (as seen)",
+          "cheeks@front-34",
+          "mouth@front-34",
+          "headwear-goggles@front-34",
+          "headwear@headwear:bow:front-34-left (as seen)",
+          "arm-near@front-34"
+        ]
+      },
+      {
+        "label": "glasses S",
+        "look": "slate,plain,none,glasses",
+        "view": "front",
+        "mirrored": false,
+        "parts": [
+          "foot-left@front",
+          "foot-right@front",
+          "arm-left@front",
+          "arm-right@front",
+          "body@front",
+          "belly@front",
+          "scarf@front",
+          "scarf-tail@front",
+          "eyes@front",
+          "face@face:glasses:front",
+          "cheeks@front",
+          "mouth@front",
+          "headwear-goggles@front",
+          "eyes-sleep@front",
+          "doze-z@front"
+        ]
+      },
+      {
+        "label": "glasses SE",
+        "look": "slate,plain,none,glasses",
+        "view": "front-34",
+        "mirrored": false,
+        "parts": [
+          "foot-near@front-34",
+          "foot-far@front-34",
+          "arm-far@front-34",
+          "body@front-34",
+          "belly@front-34",
+          "scarf@front-34",
+          "scarf-tail@front-34",
+          "eyes@front-34",
+          "face@face:glasses:front-34",
+          "cheeks@front-34",
+          "mouth@front-34",
+          "headwear-goggles@front-34",
+          "arm-near@front-34"
+        ]
+      },
+      {
+        "label": "glasses E",
+        "look": "slate,plain,none,glasses",
+        "view": "side",
+        "mirrored": false,
+        "parts": [
+          "foot-far@side",
+          "arm-far-push@side",
+          "scarf-tail@side",
+          "body@side",
+          "belly@side",
+          "scarf@side",
+          "eyes@side",
+          "face@face:glasses:side",
+          "cheeks@side",
+          "mouth@side",
+          "headwear-goggles@side",
+          "arm-near@side",
+          "foot-near@side"
+        ]
+      },
+      {
+        "label": "glasses NE",
+        "look": "slate,plain,none,glasses",
+        "view": "back-34",
+        "mirrored": false,
+        "parts": [
+          "foot-near@back-34",
+          "foot-far@back-34",
+          "arm-far@back-34",
+          "body@back-34",
+          "headwear-goggles@back-34",
+          "scarf@back-34",
+          "scarf-tail@back-34",
+          "arm-near@back-34"
+        ]
+      },
+      {
+        "label": "glasses N",
+        "look": "slate,plain,none,glasses",
+        "view": "back",
+        "mirrored": false,
+        "parts": [
+          "foot-left@back",
+          "foot-right@back",
+          "arm-left@back",
+          "arm-right@back",
+          "body@back",
+          "headwear-goggles@back",
+          "scarf@back",
+          "scarf-tail@back"
+        ]
+      },
+      {
+        "label": "glasses NW",
+        "look": "slate,plain,none,glasses",
+        "view": "back-34",
+        "mirrored": true,
+        "parts": [
+          "foot-near@back-34",
+          "foot-far@back-34",
+          "arm-far@back-34",
+          "body@back-34",
+          "headwear-goggles@back-34",
+          "scarf@back-34",
+          "scarf-tail@back-34-left (as seen)",
+          "arm-near@back-34"
+        ]
+      },
+      {
+        "label": "glasses W",
+        "look": "slate,plain,none,glasses",
+        "view": "side",
+        "mirrored": true,
+        "parts": [
+          "foot-far@side",
+          "arm-far-push@side",
+          "body@side",
+          "belly@side",
+          "scarf@side",
+          "scarf-tail@side-left (as seen)",
+          "eyes@side-left (as seen)",
+          "face@face:glasses:side",
+          "cheeks@side",
+          "mouth@side",
+          "headwear-goggles@side",
+          "arm-near@side",
+          "foot-near@side"
+        ]
+      },
+      {
+        "label": "glasses SW",
+        "look": "slate,plain,none,glasses",
+        "view": "front-34",
+        "mirrored": true,
+        "parts": [
+          "foot-near@front-34",
+          "foot-far@front-34",
+          "arm-far@front-34",
+          "body@front-34",
+          "belly@front-34",
+          "scarf@front-34",
+          "scarf-tail@front-34-left (as seen)",
+          "eyes@front-34-left (as seen)",
+          "face@face:glasses:front-34",
+          "cheeks@front-34",
+          "mouth@front-34",
+          "headwear-goggles@front-34",
+          "arm-near@front-34"
+        ]
+      },
+      {
+        "label": "orange",
+        "look": "orange,plain,none,round",
+        "view": "front",
+        "mirrored": false,
+        "parts": [
+          "foot-left@front",
+          "foot-right@front",
+          "arm-left@front",
+          "arm-right@front",
+          "body@front",
+          "belly@front",
+          "scarf@front",
+          "scarf-tail@front",
+          "eyes@front",
+          "cheeks@front",
+          "mouth@front",
+          "headwear-goggles@front",
+          "eyes-sleep@front",
+          "doze-z@front"
+        ]
+      },
+      {
+        "label": "blue",
+        "look": "blue,spots,sprout,round",
+        "view": "front-34",
+        "mirrored": false,
+        "parts": [
+          "foot-near@front-34",
+          "foot-far@front-34",
+          "arm-far@front-34",
+          "body@front-34",
+          "pattern@pattern:spots:front-34",
+          "belly@front-34",
+          "scarf@front-34",
+          "scarf-tail@front-34",
+          "eyes@front-34",
+          "cheeks@front-34",
+          "mouth@front-34",
+          "headwear-goggles@front-34",
+          "headwear@headwear:sprout:front-34",
+          "arm-near@front-34"
+        ]
+      },
+      {
+        "label": "green",
+        "look": "green,plain,bear-ears,glasses",
+        "view": "front",
+        "mirrored": false,
+        "parts": [
+          "foot-left@front",
+          "foot-right@front",
+          "arm-left@front",
+          "arm-right@front",
+          "headwear@headwear:bear-ears:front",
+          "body@front",
+          "belly@front",
+          "scarf@front",
+          "scarf-tail@front",
+          "eyes@front",
+          "face@face:glasses:front",
+          "cheeks@front",
+          "mouth@front",
+          "headwear-goggles@front",
+          "eyes-sleep@front",
+          "doze-z@front"
+        ]
+      },
+      {
+        "label": "pink",
+        "look": "pink,spots,bow,round",
+        "view": "front-34",
+        "mirrored": false,
+        "parts": [
+          "foot-near@front-34",
+          "foot-far@front-34",
+          "arm-far@front-34",
+          "body@front-34",
+          "pattern@pattern:spots:front-34",
+          "belly@front-34",
+          "scarf@front-34",
+          "scarf-tail@front-34",
+          "eyes@front-34",
+          "cheeks@front-34",
+          "mouth@front-34",
+          "headwear-goggles@front-34",
+          "headwear@headwear:bow:front-34",
+          "arm-near@front-34"
+        ]
+      },
+      {
+        "label": "yellow",
+        "look": "yellow,plain,none,round",
+        "view": "front",
+        "mirrored": false,
+        "parts": [
+          "foot-left@front",
+          "foot-right@front",
+          "arm-left@front",
+          "arm-right@front",
+          "body@front",
+          "belly@front",
+          "scarf@front",
+          "scarf-tail@front",
+          "eyes@front",
+          "cheeks@front",
+          "mouth@front",
+          "headwear-goggles@front",
+          "eyes-sleep@front",
+          "doze-z@front"
+        ]
+      },
+      {
+        "label": "violet",
+        "look": "violet,spots,sprout,glasses",
+        "view": "front-34",
+        "mirrored": false,
+        "parts": [
+          "foot-near@front-34",
+          "foot-far@front-34",
+          "arm-far@front-34",
+          "body@front-34",
+          "pattern@pattern:spots:front-34",
+          "belly@front-34",
+          "scarf@front-34",
+          "scarf-tail@front-34",
+          "eyes@front-34",
+          "face@face:glasses:front-34",
+          "cheeks@front-34",
+          "mouth@front-34",
+          "headwear-goggles@front-34",
+          "headwear@headwear:sprout:front-34",
+          "arm-near@front-34"
+        ]
+      },
+      {
+        "label": "teal",
+        "look": "teal,plain,bear-ears,round",
+        "view": "front",
+        "mirrored": false,
+        "parts": [
+          "foot-left@front",
+          "foot-right@front",
+          "arm-left@front",
+          "arm-right@front",
+          "headwear@headwear:bear-ears:front",
+          "body@front",
+          "belly@front",
+          "scarf@front",
+          "scarf-tail@front",
+          "eyes@front",
+          "cheeks@front",
+          "mouth@front",
+          "headwear-goggles@front",
+          "eyes-sleep@front",
+          "doze-z@front"
+        ]
+      },
+      {
+        "label": "coral",
+        "look": "coral,spots,bow,round",
+        "view": "front-34",
+        "mirrored": false,
+        "parts": [
+          "foot-near@front-34",
+          "foot-far@front-34",
+          "arm-far@front-34",
+          "body@front-34",
+          "pattern@pattern:spots:front-34",
+          "belly@front-34",
+          "scarf@front-34",
+          "scarf-tail@front-34",
+          "eyes@front-34",
+          "cheeks@front-34",
+          "mouth@front-34",
+          "headwear-goggles@front-34",
+          "headwear@headwear:bow:front-34",
+          "arm-near@front-34"
+        ]
+      },
+      {
+        "label": "cream",
+        "look": "cream,plain,none,glasses",
+        "view": "front",
+        "mirrored": false,
+        "parts": [
+          "foot-left@front",
+          "foot-right@front",
+          "arm-left@front",
+          "arm-right@front",
+          "body@front",
+          "belly@front",
+          "scarf@front",
+          "scarf-tail@front",
+          "eyes@front",
+          "face@face:glasses:front",
+          "cheeks@front",
+          "mouth@front",
+          "headwear-goggles@front",
+          "eyes-sleep@front",
+          "doze-z@front"
+        ]
+      },
+      {
+        "label": "slate",
+        "look": "slate,spots,sprout,round",
+        "view": "front-34",
+        "mirrored": false,
+        "parts": [
+          "foot-near@front-34",
+          "foot-far@front-34",
+          "arm-far@front-34",
+          "body@front-34",
+          "pattern@pattern:spots:front-34",
+          "belly@front-34",
+          "scarf@front-34",
+          "scarf-tail@front-34",
+          "eyes@front-34",
+          "cheeks@front-34",
+          "mouth@front-34",
+          "headwear-goggles@front-34",
+          "headwear@headwear:sprout:front-34",
+          "arm-near@front-34"
+        ]
+      }
+    ]
+  }
+}

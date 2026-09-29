@@ -24,7 +24,6 @@ const REPO = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
 /** A look's output folder name: its ids joined by hyphens (`blue-spots-bow-glasses`). */
 const lookFolder = (look: string) => look.split(',').map((id) => id.trim().toLowerCase()).filter(Boolean).join('-');
 const CLIENT = join(REPO, 'packages/client');
-const APP_MARKER = '<meta name="application-name" content="beananza"';
 
 interface Options {
   scenes: string[];
@@ -86,7 +85,7 @@ interface ShotLog {
   sceneState: unknown;
 }
 
-type ServerMode = 'started' | 'reused' | 'external';
+type ServerMode = 'started' | 'external';
 
 /** One input step of a script as it was run. */
 interface ScriptInputLog {
@@ -135,8 +134,8 @@ function printHelp(): void {
                    Without --t the scene runs live and is shot after the fps sample.
                    Scenes without a sim ignore --t (noted in the log).
   --out <dir>      Output directory (default: artifacts/shots).
-  --port <n>       Dev server port to reuse or start (default: 5180). If another app
-                   holds it, a server is started on a free port instead.
+  --port <n>       Port for the tool's own dev server (default: a free port). The tool
+                   never reuses a running server: it may serve another checkout.
   --url <url>      Use this server instead (e.g. a preview build); nothing is started.
   --fps-ms <ms>    How long to sample frame times (default: 2000).
   --width <px>     Viewport width (default: 1280).
@@ -163,7 +162,7 @@ function parseOptions(): Options | null {
       script: { type: 'string', multiple: true },
       t: { type: 'string', multiple: true },
       out: { type: 'string', default: 'artifacts/shots' },
-      port: { type: 'string', default: '5180' },
+      port: { type: 'string', default: '0' },
       url: { type: 'string' },
       'fps-ms': { type: 'string', default: '2000' },
       width: { type: 'string', default: '1280' },
@@ -222,23 +221,17 @@ function gitInfo(): { commit: string | null; dirty: boolean | null } {
   }
 }
 
-/** Reuse a running dev server of this app, or start one in this process. */
+/**
+ * Start this checkout's own dev server in this process, or use `--url`. A running `pnpm dev` is
+ * never reused: in another worktree it serves other code, and a long-running one has gone stale
+ * before (it stopped seeing new source files).
+ */
 async function ensureServer(opts: Options): Promise<{ baseUrl: string; mode: ServerMode; server?: ViteDevServer }> {
   if (opts.baseUrl) return { baseUrl: opts.baseUrl, mode: 'external' };
-  const probeUrl = `http://localhost:${opts.port}/`;
-  let portTaken = false;
-  try {
-    const res = await fetch(probeUrl, { signal: AbortSignal.timeout(2000) });
-    if ((await res.text()).includes(APP_MARKER)) return { baseUrl: probeUrl, mode: 'reused' };
-    portTaken = true;
-    console.log(`shot: port ${opts.port} is serving another app; starting a server on a free port.`);
-  } catch {
-    // Nothing listening: start our own on that port.
-  }
   const server = await createServer({
     root: CLIENT,
     configFile: join(CLIENT, 'vite.config.ts'),
-    server: portTaken ? { port: 0, strictPort: false } : { port: opts.port, strictPort: true },
+    server: { port: opts.port, strictPort: opts.port !== 0 },
     logLevel: 'warn',
   });
   await server.listen();

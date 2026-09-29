@@ -1,6 +1,6 @@
 // Cosmetics never touch the sim (D25): run every hub script in the default look and in other
 // looks, and require the sim state of every shot to be identical.
-//   pnpm shot:check-looks [--port <n>]
+//   pnpm shot:check-looks [--port <n>]   (default: a free port for each run)
 // Each look runs through the real game (`?look=`), so this also catches the client turning a
 // look into different commands (for example a tap hitting a bigger drawing).
 import { spawnSync } from 'node:child_process';
@@ -15,7 +15,7 @@ const SHOTS = join(REPO, 'artifacts/shots');
 const LOOKS = ['blue,spots,bow,glasses', 'cream,sprout', 'violet,spots,bear-ears,glasses'];
 
 const portIndex = process.argv.indexOf('--port');
-const port = portIndex > 0 ? (process.argv[portIndex + 1] ?? '5180') : '5180';
+const port = portIndex > 0 ? (process.argv[portIndex + 1] ?? '0') : '0';
 const scripts = readdirSync(join(REPO, 'tools/shot/scripts'))
   .filter((f) => f.startsWith('hub') && f.endsWith('.json'))
   .map((f) => f.replace(/\.json$/, ''));

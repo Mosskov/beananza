@@ -3,6 +3,27 @@
 Routine choices made while building, logged so they can be reviewed and reversed. None of them
 changes a decision in `docs/DECISIONS.md`. Newest milestone first.
 
+## Hub refactor for parallel work (branch `refactor/hub-parallel`), 2026-09-29
+
+No behaviour change: 58 sim states identical to `docs/status/m1-s3`, and the view blocks and all
+56 script screenshots byte-identical to a baseline shot before the change. No decision changes.
+- **Each interaction owns its acts.** `CartAct` and `BenchAct` moved into their modules with a
+  rules table per act kind (`walks`, `usesPlanck`), replacing the hand lists `actWalks` and
+  `actUsesPlanck`. The module list and the merged `ACT_RULES` live in `interactions/index.ts`;
+  modules read the rules from `HubStep.rules`, so nothing imports in a circle.
+- **Presentation rows per interaction** in `client/src/scenes/presentation/`; `hub-presentation.ts`
+  merges them into one table that must cover every act kind.
+- **Props name their drawing.** `PropFootprint.art` (the `art/props/` id) and `usable` (taps send
+  `use`). The hub draws every prop and bench the same way, from all its parts in `PROP_PARTS`
+  order; it used to draw every prop as a tree. `compare-states` maps older logs (a rename entry).
+- **Client constants:** `UI_FONT` (was copied in five scenes) and `PALETTE.hedge` in `config.ts`;
+  the ground, hedge, shadow and text styles in `HubScene.ts` are named.
+- **tools/shot never reuses a server:** a running `pnpm dev` may serve another worktree. It starts
+  its own on a free port (or `--port`); `check-looks` does the same.
+- **Not done:** per-session STATUS files. The share site shows the first `## ` section of
+  `STATUS.md` as the newest report, and the conflict it would avoid (two sessions adding a
+  section at the top) is small.
+
 ## Share site (`tools/share`), 2026-09-29
 
 Sharing the project with coworkers: a site built locally from the docs and deployed on

@@ -97,9 +97,9 @@ bench, Priya and customization, plus two review rounds. The rest was avoidable f
 3. **`pnpm shot:sheet`:** a repo tool that crops and tiles shots into one image (with labels), so
    a session or reviewer can look at many frames at once.
 4. **One git worktree per concurrent session** (`git worktree add`, short paths), so sessions
-   never share a branch or working tree.
+   never share a branch or working tree. *Done: in CLAUDE.md (branch `refactor/hub-parallel`).*
 5. **tools/shot always starts its own server** on a dedicated port, instead of reusing whatever
-   runs on 5180.
+   runs on 5180. *Done: on a free port, or `--port` (branch `refactor/hub-parallel`).*
 6. **Session prompts say to use the Write and Edit tools for code with backslashes.** The
    fourth-session prompt already does.
 

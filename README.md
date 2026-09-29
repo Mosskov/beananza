@@ -133,9 +133,9 @@ pnpm shot --scene drop --t 1.0 --t 1.5           # drop scene at exactly t = 1.0
 pnpm shot --help                                 # all options
 ```
 
-- **Server:** reuses a running `pnpm dev` on port 5180, or starts Vite in-process (and stops it
-  afterwards). If another app holds the port, it starts on a free port instead. `--url <url>`
-  points it at any server, such as `pnpm preview`.
+- **Server:** always starts its own Vite in-process on a free port (or `--port <n>`), and stops
+  it afterwards. It never reuses a running `pnpm dev`, which may serve another worktree's code.
+  `--url <url>` points it at any server, such as `pnpm preview`.
 - **Readiness:** waits for `window.__ready`, which the game sets once the scene has rendered.
 - **Time:** with `--t`, the page loads with `?paused=1`, and the tool calls
   `window.__game.advanceTo(t)`, which steps the sim in whole fixed steps (t = 1.0 is exactly
@@ -314,6 +314,16 @@ tools/
 docs/       design, decisions, implementation notes, assumptions, status
 art/, reference/   design references only (never ported as code)
 ```
+
+## Adding a hub interaction
+
+1. Create `packages/sim/src/interactions/<name>.ts`: its act type (`<Name>Act`), its rules per act
+   kind (`walks`, `usesPlanck`) and its `HubInteraction` module, with tests.
+2. Add the act type to `HubAct` in `packages/sim/src/scenarios/hub-world.ts`, and the module and
+   its rules to `packages/sim/src/interactions/index.ts`.
+3. Add its rows to `packages/client/src/scenes/presentation/<name>.ts` and spread them into
+   `hub-presentation.ts`. The compiler lists anything missing.
+4. A prop it uses names its drawing (`art`) in the layout; `usable: true` sends taps on it as `use`.
 
 ## Adding a scene
 

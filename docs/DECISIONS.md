@@ -1,6 +1,8 @@
 # Decisions
 
 Only change a status after the user confirms. Newest changes at the top of each entry's notes.
+For tuning numbers in new notes, name the constant and its file (e.g. `BOARD_HOP_S` in
+`packages/sim/src/interactions/cart.ts`) rather than copying values that can drift from the code.
 
 | ID | Topic | Options | Current leaning | Status |
 |---|---|---|---|---|

@@ -83,5 +83,9 @@ Details in `README.md`.
   Look at the screenshot and the log before claiming a scene works or looks right.
 - New scenes register in `packages/client/src/scenes/registry.ts` under their `?scene=` name.
 - Routine choices go in `docs/ASSUMPTIONS.md`; current state in `docs/STATUS.md`.
+- Concurrent sessions: each works in its own git worktree on its own branch
+  (`git worktree add -b <branch> E:/bz-<topic> main`, then `pnpm install`), never by switching
+  branches in a shared tree. `pnpm shot` always starts its own server, so it tests its own tree.
+- New hub interactions follow "Adding a hub interaction" in `README.md`.
 
 @docs/DECISIONS.md

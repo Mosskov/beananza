@@ -14,11 +14,13 @@ const VIEW_TOP_M = 11.2;
 /** Horizontal centre of the framed content (ruler on the left, balls to its right). */
 const VIEW_CENTER_X_M = -0.6;
 
-// PLACEHOLDER art: plain circles until real props exist. Radii are visual only; the sim
-// treats each ball as a point mass at its lowest point.
+// PLACEHOLDER art: plain circles until real props exist. The sim treats each ball as a point
+// mass at its lowest point. Both are drawn the same size (think wood and iron) so that level
+// bottoms also mean level centres; mass shows in the color and the label.
+const BALL_RADIUS_M = 0.35;
 const BALL_LOOK: Record<string, { radiusM: number; color: number; label: string }> = {
-  light: { radiusM: 0.25, color: 0xe07a55, label: '1 kg' },
-  heavy: { radiusM: 0.45, color: PALETTE.inkSecondary, label: '10 kg' },
+  light: { radiusM: BALL_RADIUS_M, color: 0xe07a55, label: '1 kg' },
+  heavy: { radiusM: BALL_RADIUS_M, color: PALETTE.inkSecondary, label: '10 kg' },
 };
 
 const FONT = 'system-ui, "Segoe UI", Roboto, sans-serif';

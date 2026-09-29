@@ -51,7 +51,9 @@ changes a decision in `docs/DECISIONS.md`. Newest milestone first.
   scenario that consumes randomness every step.
 - **Gravity 9.81 m/s²** (the prompt's value), not 9.80665.
 - **Drop balls are point masses** at their lowest point, so the fall distance is exactly 10 m
-  whatever size they are drawn. No air resistance, no bounce. Radii are visual only.
+  whatever size they are drawn. No air resistance, no bounce. The client draws both balls the
+  same size (placeholder), so equal heights read the same at the bottom and the centre; the
+  mass difference is shown by color and label.
 - **The boundary test also covers `packages/shared`**, since the sim imports it. It forbids
   `console`, `Date`, `performance` and timers in the sim as well as DOM, network and Node APIs.
 

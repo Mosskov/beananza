@@ -51,7 +51,7 @@ Production build: `pnpm build` (output in `packages/client/dist`), then `pnpm pr
 pnpm test              # Vitest: sim timing, determinism, drop physics, sim boundary
 pnpm typecheck         # tsc in every package
 pnpm lint              # ESLint
-pnpm build             # typecheck + Vite production build of the client
+pnpm build             # typecheck the client, then Vite production build
 pnpm check             # all of the above
 ```
 
@@ -85,6 +85,7 @@ pnpm shot --help                                 # all options
   console errors and warnings, page errors, failed requests, average fps and frame time over a
   2 s sample, the WebGL renderer, the scene name, the sim time, the scene's sim state, and the
   git commit (with a dirty flag).
+- **Scenes without a sim** (like `empty`) ignore `--t`: they are shot live and the log says so.
 - **Exit code:** non-zero if any shot has a console error, page error or failed request, or never
   becomes ready. Warnings are logged but do not fail the run.
 - **GPU:** by default it uses Chromium's new headless mode, which renders WebGL on the GPU when

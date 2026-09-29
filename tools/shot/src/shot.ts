@@ -53,6 +53,8 @@ interface FpsSample {
 interface ShotLog {
   ok: boolean;
   error: string | null;
+  /** Non-fatal remarks, e.g. --t given for a scene without a sim. */
+  note: string | null;
   scene: string;
   url: string;
   requestedSimTime: number | null;
@@ -79,6 +81,7 @@ function printHelp(): void {
   --all            Shoot every registered scene.
   --t <seconds>    Pause the sim at t = 0, step it to this time, then shoot (repeatable).
                    Without --t the scene runs live and is shot after the fps sample.
+                   Scenes without a sim ignore --t (noted in the log).
   --out <dir>      Output directory (default: artifacts/shots).
   --port <n>       Dev server port to reuse or start (default: 5180). If another app
                    holds it, a server is started on a free port instead.
@@ -264,6 +267,7 @@ async function shoot(
   const log: ShotLog = {
     ok: false,
     error: null,
+    note: null,
     scene,
     url: url.toString(),
     requestedSimTime: t ?? null,
@@ -283,7 +287,13 @@ async function shoot(
   try {
     await page.goto(url.toString(), { waitUntil: 'load' });
     await waitForReady(page, opts.timeoutMs);
-    if (t !== undefined) await callGame(page, `advanceTo(${t})`);
+    if (t !== undefined) {
+      if ((await callGame<number | null>(page, 'simTime()')) === null) {
+        log.note = 'scene has no sim; --t ignored and the scene was shot live';
+      } else {
+        await callGame(page, `advanceTo(${t})`);
+      }
+    }
     log.fps = await measureFps(page, opts.fpsMs);
     log.simTime = await callGame<number | null>(page, 'simTime()');
     log.sceneState = await callGame(page, 'debugState()');
@@ -308,12 +318,20 @@ async function shoot(
   return log;
 }
 
-async function listScenes(browser: Browser, baseUrl: string, timeoutMs: number): Promise<string[]> {
+/** Load the page without ?scene= and ask the game for its default and registered scenes. */
+async function listScenes(
+  browser: Browser,
+  baseUrl: string,
+  timeoutMs: number,
+): Promise<{ defaultScene: string; all: string[] }> {
   const page = await browser.newPage();
   try {
     await page.goto(baseUrl, { waitUntil: 'load' });
     await waitForReady(page, timeoutMs);
-    return await callGame<string[]>(page, 'sceneNames.slice()');
+    return {
+      defaultScene: await callGame<string>(page, 'sceneName'),
+      all: await callGame<string[]>(page, 'sceneNames.slice()'),
+    };
   } finally {
     await page.close();
   }
@@ -335,8 +353,10 @@ async function main(): Promise<number> {
       ...(opts.softwareGl ? {} : { channel: 'chromium' }),
     });
     let scenes = opts.scenes;
-    if (opts.all) scenes = await listScenes(browser, baseUrl, opts.timeoutMs);
-    if (scenes.length === 0) scenes = ['empty'];
+    if (opts.all || scenes.length === 0) {
+      const listed = await listScenes(browser, baseUrl, opts.timeoutMs);
+      scenes = opts.all ? listed.all : [listed.defaultScene];
+    }
     console.log(`shot: ${baseUrl} (${mode} server), ${browser.version()}`);
 
     for (const scene of scenes) {
@@ -352,6 +372,7 @@ async function main(): Promise<number> {
             `(${log.console.errors} errors, ${log.console.warnings} warnings, ${fps}${time})`,
         );
         if (log.error) console.log(`     error: ${log.error}`);
+        if (log.note) console.log(`     note: ${log.note}`);
         for (const e of log.console.entries) console.log(`     ${e.type}: ${e.text.split('\n')[0]}`);
       }
     }

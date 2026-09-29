@@ -3,6 +3,7 @@ import { PIXELS_PER_METER } from '@beananza/shared';
 import type { RailLayout } from '@beananza/sim';
 import { CART_WHEEL_RADIUS_M, propAnchor, propPart } from '../art/props';
 import { PALETTE, UI_FONT as FONT, cssColor } from '../config';
+import { sharpText } from '../screen-scale';
 import { RAIL_GAUGE_M, depthKey, toScreen } from './hub-view';
 
 const m = (meters: number) => meters * PIXELS_PER_METER;
@@ -86,16 +87,18 @@ export class CartView {
     this.back = scene.add.container(0, 0, [propPart(scene, 'cart', 'back'), ...(loaded ? [propPart(scene, 'cart', 'rocks')] : [])]);
     this.wheels = [propPart(scene, 'cart', 'wheel-west'), propPart(scene, 'cart', 'wheel-east')];
     this.front = scene.add.container(0, 0, [propPart(scene, 'cart', 'front'), ...this.wheels]);
-    this.readout = scene.add
-      .text(0, 0, speedReadout(0), {
-        fontFamily: FONT,
-        fontSize: '16px',
-        color: cssColor(PALETTE.ink),
-        backgroundColor: cssColor(PALETTE.panel),
-        padding: { x: 6, y: 2 },
-      })
-      .setOrigin(0.5, 1)
-      .setDepth(readoutDepth);
+    this.readout = sharpText(
+      scene.add
+        .text(0, 0, speedReadout(0), {
+          fontFamily: FONT,
+          fontSize: '16px',
+          color: cssColor(PALETTE.ink),
+          backgroundColor: cssColor(PALETTE.panel),
+          padding: { x: 6, y: 2 },
+        })
+        .setOrigin(0.5, 1)
+        .setDepth(readoutDepth),
+    );
   }
 
   /**

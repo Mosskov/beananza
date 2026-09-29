@@ -1,10 +1,11 @@
 import Phaser from 'phaser';
 import { URL_PARAM_LAYOUT, URL_PARAM_LOOK, URL_PARAM_PAUSED, URL_PARAM_SCENE, parseLook } from '@beananza/shared';
 import { HUB_LAYOUT_NAMES } from '@beananza/sim';
-import { GAME_HEIGHT, GAME_WIDTH, PALETTE } from './config';
+import { PALETTE } from './config';
 import { loadPropArt } from './art/props';
 import { loadBeanArt } from './rig/bean-art';
 import { DEFAULT_SCENE, SCENE_NAMES, SCENES, coloursFor } from './scenes/registry';
+import { canvasSizeFor, initialRenderScale, installRenderScale } from './screen-scale';
 import type { SceneStartData } from './scenes/TestableScene';
 import { installTestHooks } from './test-hooks';
 
@@ -38,17 +39,23 @@ if (!SceneClass) {
 } else if (artError) {
   bootError(`Could not load the art: ${artError}`);
 } else {
+  // The canvas has the screen's real pixels (see screen-scale.ts); scenes lay out in 1280×720.
+  const parent = document.getElementById('game');
+  if (!parent) throw new Error('index.html has no #game element.');
+  const size = canvasSizeFor(initialRenderScale(parent));
   const game = new Phaser.Game({
     type: Phaser.AUTO,
-    parent: 'game',
-    width: GAME_WIDTH,
-    height: GAME_HEIGHT,
+    parent,
+    width: size.width,
+    height: size.height,
     backgroundColor: PALETTE.cream,
     scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },
     banner: false,
     // No sound yet; this also keeps the browser autoplay warning out of the console.
     audio: { noAudio: true },
   });
+
+  installRenderScale(game, parent);
 
   const scene = new SceneClass();
   const data: SceneStartData = { paused: params.get(URL_PARAM_PAUSED) === '1', look, layout };

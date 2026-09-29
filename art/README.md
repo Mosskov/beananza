@@ -44,7 +44,11 @@ the tree's greens (`#5F9150`, `#6A9C5A`, `#86B874`) are new. The game loads them
 - `cart.svg`: the mine cart, 0.8 m long, rim 0.48 m high. Its origin is the point on the near
   rail below the cart's centre (the game places it 0.1 m south of the rail's centre line). `shadow`; `back` and `rocks` (only
   the loaded 20 kg cart), drawn behind a rider; `front`, `wheel-west` and `wheel-east`, drawn in
-  front of a rider. Wheels roll about their hub (the centre of their first circle), radius 9.
+  front of a rider. Wheels roll about their hub (`data-pivot`), radius 9. Anchors: `floor`
+  (where a rider stands: the rail's centre line, 10 units north of the origin, plus the sim's
+  cart floor height of 0.1 m; a test checks they agree) and `rim-west`, `rim-east`,
+  `base-east`, `base-west` (the corners of the front: below the rim a rider only shows inside
+  them).
 
 ## Boss (`baron/`), parked
 - `heavy-baron.svg`: The Heavy Baron in his smug default expression.

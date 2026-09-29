@@ -175,6 +175,32 @@ function roadmap(input: PageInput): string {
 </section>`;
 }
 
+/**
+ * Comments under a decision, filled in by site.js from /api/comments. Hidden until comments load,
+ * so a copy of the site served without the Worker shows none of it. Only open decisions take new
+ * comments; comments on a decision that has since closed stay readable.
+ */
+function comments(d: Decision): string {
+  const form =
+    d.status === 'open'
+      ? `
+      <form class="comment-form" novalidate>
+        <label>Your name <input name="name" autocomplete="name" maxlength="60" required /></label>
+        <label>Your comment <textarea name="body" rows="4" maxlength="2000" required></textarea></label>
+        <div class="comment-actions">
+          <button type="submit">Post comment</button>
+          <p class="comment-status" role="status"></p>
+        </div>
+      </form>`
+      : '';
+  return `
+    <section class="comments" data-decision="${esc(d.id)}" data-open="${d.status === 'open'}" aria-label="Comments on ${esc(d.id)}" hidden>
+      <h4>Comments</h4>
+      <ol class="comment-list"></ol>
+      <p class="comment-empty">No comments yet.</p>${form}
+    </section>`;
+}
+
 function decisions(input: PageInput): string {
   const counts = (s: DecisionStatus) => input.decisions.filter((d) => d.status === s).length;
   const filters = [
@@ -190,7 +216,7 @@ function decisions(input: PageInput): string {
   <details>
     <summary>
       <span class="decision-id">${esc(d.id)}</span>
-      <span class="decision-topic">${mdInline(d.topic)}</span>
+      <span class="decision-topic">${mdInline(d.topic)}<span class="decision-count" hidden></span></span>
       ${badge(d.status, STATUS_LABEL[d.status])}
     </summary>
     <dl>
@@ -198,6 +224,7 @@ function decisions(input: PageInput): string {
       <dt>Current leaning</dt><dd>${mdInline(d.leaning)}</dd>
       <dt>Status</dt><dd>${mdInline(d.statusText)}</dd>
     </dl>
+    ${comments(d)}
   </details>
 </li>`,
     )
@@ -206,7 +233,7 @@ function decisions(input: PageInput): string {
 <section id="decisions" class="band">
   <div class="wrap">
     <h2>Decisions</h2>
-    <p class="lede">Every design and technical choice, and how settled it is. Open decisions are where your views help most. Select a decision to see the options and notes.</p>
+    <p class="lede">Every design and technical choice, and how settled it is. Open decisions are where your views help most: select one to see the options and notes, read what others think, and add your comment.</p>
     <div class="filters" role="group" aria-label="Show decisions">${filters}</div>
     <ul class="decisions">${rows}</ul>
   </div>

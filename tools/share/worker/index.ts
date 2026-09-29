@@ -3,11 +3,17 @@
  * Any username works; only the password is checked. The password is the Worker secret
  * SITE_PASSWORD (`pnpm share:password`), never in the repo. Without it, every request is
  * refused, so a missing secret can never leave the site open.
+ * Behind the password, /api/comments serves comments on decisions (comments.ts).
  */
+import { d1Store, handleComments, type CommentStore, type D1Like } from './comments';
 
 export interface Env {
   ASSETS: { fetch(request: Request): Promise<Response> };
   SITE_PASSWORD?: string;
+  /** Cloudflare D1 with the comments table (wrangler.jsonc). */
+  DB?: D1Like;
+  /** Tests pass an in-memory store instead of DB. */
+  COMMENTS?: CommentStore;
 }
 
 const REALM = 'Beananza preview';
@@ -55,6 +61,9 @@ export default {
     }
     const given = basicPassword(request.headers.get('Authorization'));
     if (given === null || !(await samePassword(given, env.SITE_PASSWORD))) return askForPassword();
+    if (new URL(request.url).pathname === '/api/comments') {
+      return handleComments(request, env.COMMENTS ?? (env.DB ? d1Store(env.DB) : null));
+    }
     return env.ASSETS.fetch(request);
   },
 };

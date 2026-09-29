@@ -257,6 +257,8 @@ pnpm share:preview    # serve it at http://localhost:4190
 pnpm share:dry-run    # rebuild, then check the Cloudflare deploy without uploading
 pnpm share:deploy     # rebuild, then deploy (needs `npx wrangler login` once)
 pnpm share:password   # set or change the site password (asks for it)
+pnpm share:migrate    # apply tools/share/migrations to the comments database
+pnpm share:comments   # list every comment (id, decision, name, date, text)
 ```
 
 `pnpm share:password` must run in a real terminal (PowerShell or similar). Run through Claude
@@ -285,6 +287,15 @@ too, or run `pnpm --filter @beananza/share exec wrangler versions deploy <versio
   The password is the Worker secret `SITE_PASSWORD`, set with `pnpm share:password`, never in
   the repo. Until it is set the site answers 503 to everyone, so it is never open by mistake.
   Changing it locks out everyone who had the old one.
+- **Comments on decisions:** each open decision has a comment list and a form (name and
+  comment, plain text, up to 60 and 2000 characters); comments on decisions that have since
+  closed stay visible, and each decision's line shows its count. They live in the Cloudflare D1
+  database `beananza-comments` (schema in `tools/share/migrations/`), behind the same password,
+  through `/api/comments` (`tools/share/worker/comments.ts`). Posts must be JSON from the site
+  itself, so the remembered password cannot be used to post from another site. No emails or IP
+  addresses are stored. To remove a comment:
+  `pnpm --filter @beananza/share exec wrangler d1 execute beananza-comments --remote --command "DELETE FROM comments WHERE id = 7"`.
+  Served without the Worker (e.g. `pnpm share:preview`), the page hides the comment sections.
 
 ## Layout
 

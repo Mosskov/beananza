@@ -19,7 +19,9 @@
     "check": "pnpm typecheck && pnpm lint && pnpm test && pnpm build",
     "shot:check-carts": "pnpm --filter @beananza/shot check-carts",
     "share": "pnpm --filter @beananza/share share",
-    "share:preview": "pnpm --filter @beananza/share preview"
+    "share:preview": "pnpm --filter @beananza/share preview",
+    "share:dry-run": "pnpm share && pnpm --filter @beananza/share cf-check",
+    "share:deploy": "pnpm share && pnpm --filter @beananza/share cf-deploy"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",

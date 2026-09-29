@@ -85,7 +85,7 @@ async function takeShots(): Promise<void> {
 }
 
 function copyStatic(): void {
-  for (const f of ['site.css', 'site.js']) copyFileSync(join(TOOL, 'site', f), join(OUT, f));
+  for (const f of ['site.css', 'site.js', '_headers']) copyFileSync(join(TOOL, 'site', f), join(OUT, f));
   mkdirSync(join(OUT, 'fonts'), { recursive: true });
   const fonts: [string, string][] = [
     ['fredoka', 'fredoka-latin-500-normal.woff2'],

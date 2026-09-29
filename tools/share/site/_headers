@@ -1,0 +1,10 @@
+# Response headers for the share site on Cloudflare (Workers static assets).
+# For people with the link, not search engines; no referrer leaks to other sites.
+/*
+  X-Robots-Tag: noindex
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: no-referrer
+
+# The game build's file names carry a content hash, so they never change.
+/play/assets/*
+  Cache-Control: public, max-age=31536000, immutable

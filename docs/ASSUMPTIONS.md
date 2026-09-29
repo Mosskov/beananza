@@ -21,6 +21,15 @@ deployed, and D11 is untouched.
   dev server of another checkout on port 5180 can never leak into them.
 - **Fonts are self-hosted** (`@fontsource` 5.3.0), so visitors make no requests to Google.
 - **`noindex`** on the page: it is for people with the link, not search engines.
+- **Cloudflare setup, not deployed:** the Worker is named `beananza` (the user's choice) and
+  serves static files only (`tools/share/wrangler.jsonc`); `pnpm share:deploy` rebuilds and then
+  deploys. The user asked to deploy once the M1 session 3 work is on `main`.
+- **wrangler 4.143.0**, not 4.143.1: 4.143.1 was published less than a day before this
+  session. Its `workerd` dependency (Cloudflare's local runtime, only for `wrangler dev`) has
+  its install script denied in `pnpm-workspace.yaml`.
+- **Response headers** (`tools/share/site/_headers`): `X-Robots-Tag: noindex`, `nosniff`,
+  `Referrer-Policy: no-referrer`, and a year of immutable caching for `play/assets/*`
+  (content-hashed names).
 - **Look:** the game's palette on graph paper (the field-notebook style in DESIGN.md §5),
   Fredoka for headings, Nunito for text, Caveat for handwritten captions. Status badges pair a
   shape with a word, never colour alone. The only animation is the dashed arc in the hero,

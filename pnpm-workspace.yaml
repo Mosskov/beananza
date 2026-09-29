@@ -5,3 +5,6 @@ packages:
 # Dependencies allowed to run install scripts (pnpm blocks all others).
 allowBuilds:
   esbuild: true
+  # Cloudflare's local runtime (a wrangler dependency). Only `wrangler dev` needs it; the share
+  # site only deploys static files, so its install script stays off.
+  workerd: false

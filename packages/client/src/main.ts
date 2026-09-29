@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { URL_PARAM_PAUSED, URL_PARAM_SCENE } from '@beananza/shared';
 import { GAME_HEIGHT, GAME_WIDTH, PALETTE } from './config';
+import { loadPropArt } from './art/props';
 import { loadBeanArt } from './rig/bean-art';
 import { DEFAULT_SCENE, SCENE_NAMES, SCENES } from './scenes/registry';
 import type { SceneStartData } from './scenes/TestableScene';
@@ -16,8 +17,9 @@ function bootError(message: string): void {
   console.error(message);
 }
 
-// The bean's parts are checked against the art contract and rasterized before any scene starts.
-const artError = await loadBeanArt().then(
+// The bean's and props' parts are checked against the art contract and rasterized before any
+// scene starts.
+const artError = await Promise.all([loadBeanArt(), loadPropArt()]).then(
   () => null,
   (err: unknown) => (err instanceof Error ? err.message : String(err)),
 );
@@ -25,7 +27,7 @@ const artError = await loadBeanArt().then(
 if (!SceneClass) {
   bootError(`Unknown scene "${sceneName}". Registered scenes: ${SCENE_NAMES.join(', ')}.`);
 } else if (artError) {
-  bootError(`Could not load the bean art: ${artError}`);
+  bootError(`Could not load the art: ${artError}`);
 } else {
   const game = new Phaser.Game({
     type: Phaser.AUTO,

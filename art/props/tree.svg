@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-100 -262 200 280" width="400" height="560">
+  <!-- Plaza tree. One drawing: it never turns (D12). Origin (0,0) = the middle of its footprint on the
+       ground (a 0.5 x 0.4 m box in the sim). 100 units = 1 m. Groups are parts, drawn in this order. -->
+  <g id="shadow"><ellipse cx="4" cy="2" rx="58" ry="17" fill="#3B2F2A" opacity="0.15"/></g>
+  <g id="trunk">
+    <path d="M-11 2 C-9 -40 -9 -90 -7 -128 L7 -128 C9 -90 9 -40 11 2 C4 5 -4 5 -11 2 Z" fill="#8A5C3C"/>
+    <path d="M-11 2 C-16 2 -21 5 -24 7 C-16 8 -8 6 -5 3 Z M11 2 C16 2 21 5 24 7 C16 8 8 6 5 3 Z" fill="#8A5C3C"/>
+    <path d="M1 2 C3 -40 3 -90 4 -128 L7 -128 C9 -90 9 -40 11 2 C8 4 4 4 1 2 Z" fill="#6B4A36" opacity="0.55"/>
+    <path d="M-3 -96 C-14 -110 -24 -118 -34 -122 L-31 -127 C-20 -123 -9 -114 1 -104 Z" fill="#8A5C3C"/>
+    <path d="M3 -108 C12 -120 22 -128 32 -132 L34 -127 C24 -122 15 -114 8 -104 Z" fill="#8A5C3C"/>
+  </g>
+  <g id="canopy">
+    <circle cx="-44" cy="-152" r="40" fill="#5F9150"/>
+    <circle cx="46" cy="-156" r="42" fill="#5F9150"/>
+    <circle cx="0" cy="-146" r="46" fill="#5F9150"/>
+    <circle cx="-28" cy="-200" r="44" fill="#6A9C5A"/>
+    <circle cx="30" cy="-204" r="46" fill="#6A9C5A"/>
+    <circle cx="0" cy="-176" r="52" fill="#6A9C5A"/>
+    <circle cx="2" cy="-228" r="32" fill="#6A9C5A"/>
+    <circle cx="-34" cy="-212" r="18" fill="#86B874"/>
+    <circle cx="-8" cy="-236" r="14" fill="#86B874"/>
+    <circle cx="-52" cy="-172" r="12" fill="#86B874"/>
+  </g>
+</svg>

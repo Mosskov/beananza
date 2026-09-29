@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { PIXELS_PER_METER } from '@beananza/shared';
 import { FIXED_DT, HUB_BEAN_RADIUS_M, Sim, createHubScenario, type HubCommand, type HubInput, type HubState } from '@beananza/sim';
 import { prefersReducedMotion } from '../accessibility';
+import { propPart } from '../art/props';
 import { GAME_HEIGHT, GAME_WIDTH, PALETTE, cssColor } from '../config';
 import { BeanRig, createBeanShadow } from '../rig/BeanRig';
 import { chooseClip, samplePose } from '../rig/player';
@@ -22,12 +23,6 @@ const GROUND_DEPTH = -1e6;
  */
 const CHARACTER_TIE_BREAK = 0.5;
 const UI_DEPTH = 1e6;
-
-// PLACEHOLDER art: a round tree (trunk plus canopy) standing on the prop footprint.
-const TRUNK_WIDTH_M = 0.2;
-const TRUNK_HEIGHT_M = 1.35;
-const CANOPY_RADIUS_M = 0.72;
-const CANOPY_HEIGHT_M = 1.75;
 
 const FONT = 'system-ui, "Segoe UI", Roboto, sans-serif';
 /** Pushing a cart this heavy or heavier plays the heavy push (lean 16°, slower steps). */
@@ -129,18 +124,9 @@ export class HubScene extends SimScene<HubState, HubCommand> {
     g.lineStyle(4, PALETTE.cardShadow, 1).strokeRoundedRect(nw.x, nw.y, se.x - nw.x, se.y - nw.y, 18);
   }
 
+  /** The tree from art/props/tree.svg; its origin is the middle of its footprint. */
   private drawTree(): Phaser.GameObjects.Container {
-    // Origin is the middle of the footprint on the ground.
-    const shadow = this.add.ellipse(0, 0, m(1.1), m(0.34), PALETTE.ink, 0.18);
-    const trunk = this.add
-      .rectangle(0, 0, m(TRUNK_WIDTH_M), m(TRUNK_HEIGHT_M), 0x8a5a3b)
-      .setOrigin(0.5, 1)
-      .setStrokeStyle(3, PALETTE.ink, 0.8);
-    const canopy = this.add
-      .circle(0, -m(CANOPY_HEIGHT_M), m(CANOPY_RADIUS_M), 0x5f9150)
-      .setStrokeStyle(4, PALETTE.ink, 0.8);
-    const highlight = this.add.circle(-m(0.22), -m(CANOPY_HEIGHT_M + 0.22), m(0.22), 0x78ad66);
-    return this.add.container(0, 0, [shadow, trunk, canopy, highlight]);
+    return this.add.container(0, 0, ['shadow', 'trunk', 'canopy'].map((part) => propPart(this, 'tree', part)));
   }
 
   private setUpInput(): void {

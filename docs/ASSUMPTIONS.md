@@ -119,9 +119,10 @@ Claude draws the art as SVG; it stays Open. See `docs/DECISIONS.md`.
   before and after, and the solved impact time, for the scripted checks.
 
 ### Carts in the client
-- **PLACEHOLDER art** (marked in `hub-carts.ts`): a wooden cart on two wheels that roll without
-  slipping, rocks in the 20 kg cart, rails, sleepers and bumpers drawn flat on the ground.
-  Carts draw at a fixed size like the tree (props are not depth-scaled).
+- **Drawn carts** from `art/props/cart.svg` (added at the user's request after review round 1):
+  back and rocks behind a rider, front and two wheels in front; the wheels roll without
+  slipping (angle = x / 0.09 m). The rail, sleepers and bumpers are still PLACEHOLDER shapes in
+  code. Carts draw at a fixed size like the tree (props are not depth-scaled).
 - **Speed readout** above each cart: |v| with two decimals and "m/s" (a measurement readout,
   D17). No mass labels (no labels on interactables); the rocks show which cart is heavy. The
   shot log lists each cart's readout next to the speed it should show.
@@ -141,6 +142,16 @@ Claude draws the art as SVG; it stays Open. See `docs/DECISIONS.md`.
   hands reach the cart.
 - **The readout moves up (1.35 m instead of 0.95 m) while the cart is ridden**, clear of the
   bean's head.
+
+### Prop art (`art/props/`, `packages/client/src/art/`)
+- **The tree and the cart are drawn once as SVG** (they never turn) and loaded by part id like
+  the bean, rasterized at boot by the shared `art/raster.ts`. Part lists per prop are checked
+  at boot and in `prop-art.test.ts`. Wheels pivot on their hub by rule (`wheel-…` parts).
+- **The tree's look changed** (a cloud canopy of flat circles, a flared trunk); its footprint,
+  position and draw order did not.
+- **A rider is wider than its cart:** the bean's body (1.0 m × depth scale, about 0.87 m by the
+  rail) sticks out past the 0.8 m cart's sides. The prototype clipped the rider below the rim.
+  Open issue.
 
 ### tools/shot
 - **`pnpm shot:check-carts`** re-checks the three cart scripts' logs: push acceleration

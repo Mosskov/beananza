@@ -40,7 +40,7 @@ Pick a scene with `?scene=<name>`:
 |---|---|---|
 | `empty` | http://localhost:5180/?scene=empty | Background only; proves the client boots |
 | `drop` | http://localhost:5180/?scene=drop | A 1 kg and a 10 kg ball released from 10 m, with a timer. R or tap: drop again |
-| `hub` (default) | http://localhost:5180/?scene=hub | The hub plaza in ¾ top-down view, with one tree to walk behind and in front of, and a rail with a 5 kg and a 20 kg cart (speed shown in m/s). Arrows or WASD move, Shift runs, Space jumps, tap or click walks to a spot. Walk into a cart's end to push it (Shift pushes harder); E gets in or out of the 5 kg cart, Space also gets out. The bean is the parts rig; the plaza and carts are placeholder art |
+| `hub` (default) | http://localhost:5180/?scene=hub | The hub plaza in ¾ top-down view, with one tree to walk behind and in front of, and a rail with a 5 kg and a 20 kg cart (speed shown in m/s). Arrows or WASD move, Shift runs, Space jumps, tap or click walks to a spot. Walk into a cart's end to push it (Shift pushes harder); E gets in or out of the 5 kg cart, Space also gets out. The bean, the tree and the carts are drawn art from `art/`; the plaza floor and the rail are placeholder shapes |
 | `bean` | http://localhost:5180/?scene=bean | Rig gallery for review: the 8 directions, then walk, run, jump, fall, land, breathing and a blink at fixed clip times (labelled; no sim) |
 
 `&paused=1` starts the scene's sim paused at t = 0 (tools/shot uses this to step to an exact time).
@@ -90,6 +90,8 @@ Also, in `packages/client/test/`:
 - `bean-art.test.ts`: the art contract for `art/bean/*.svg` (required parts, flat groups,
   facing-left drawings for asymmetric parts, the scarf tail on the bean's left in all 8
   directions, eye highlights on the light side, pivots).
+- `prop-art.test.ts`: the art contract for `art/props/*.svg` (the tree and cart parts, wheel
+  pivots and radius).
 - `player.test.ts`: clip data and timings, the rig player, reduced motion, and choosing the clip
   from sim state.
 

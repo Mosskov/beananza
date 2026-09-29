@@ -24,6 +24,17 @@ SVG paths so they can seed a parts-based rig (see `docs/DESIGN.md` §6).
 - `forms.svg`: the four body forms (Bean, Mochi, Gumdrop, Pill) with each form's eye-line y.
   All forms are cosmetic and share one collider.
 
+## Props (`props/`)
+Props that never turn are drawn once, as seen in the hub's ¾ view (D12), by the same rules as the
+bean: 100 units = 1 m, origin (0, 0) on the ground (under the middle of the prop's footprint),
+flat top-level `<g id>` parts, soft shadows. Colours come from the palette below where it has them;
+the tree's greens (`#5F9150`, `#6A9C5A`, `#86B874`) are new. The game loads them by part id
+(`packages/client/src/art/props.ts`; checks in `packages/client/test/prop-art.test.ts`).
+- `tree.svg`: `shadow`, `trunk`, `canopy`. The sim's footprint is 0.5 × 0.4 m.
+- `cart.svg`: the mine cart, 0.8 m long, rim 0.48 m high. `shadow`; `back` and `rocks` (only
+  the loaded 20 kg cart), drawn behind a rider; `front`, `wheel-west` and `wheel-east`, drawn in
+  front of a rider. Wheels roll about their hub (the centre of their first circle), radius 9.
+
 ## Boss (`baron/`), parked
 - `heavy-baron.svg`: The Heavy Baron in his smug default expression.
 - **Known issue:** the sash runs into the mouth and off the edge of the body, and the "1 t" medal sits on the mouth. A corrected version (sash lowered and clipped to the body, medal moved up onto the sash near the left shoulder) is in the "The Heavy Baron" section of `reference/showcase.html`. This SVG still has the original.

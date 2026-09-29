@@ -85,7 +85,18 @@ A separate reviewer subagent that wrote no code ran from a clean clone. It check
 4. tools/shot hardcoded `'empty'` as the fallback scene: fixed. It now asks the game for its default scene.
 5. The balls had different radii, so their centres differed even when they were level: fixed. Both are now drawn the same size.
 
-**Round 2:** see below.
+**Round 2** was a fresh reviewer and clean clone at `9d9621e`. It passed all items and confirmed each round 1 fix:
+- `--all --t 1.0` exits 0, and the `empty` log carries the note.
+- Plain `pnpm shot` uses the game's default scene.
+- The balls are level at both centre and bottom at 1.0 s.
+- The STATUS numbers match the committed logs, and it reproduced the `--software-gl` numbers.
+
+It found three wording nits in this file, fixed in the final commit:
+- the round 2 placeholder, now this entry;
+- open issue 5's list of math operations;
+- the M1 section, where the decision list overstated what ROADMAP.md says blocks M1.
+
+No round 3 was needed, and nothing failed.
 
 ### Open issues
 
@@ -93,7 +104,7 @@ A separate reviewer subagent that wrote no code ran from a clean clone. It check
 2. **Text in the drop scene:** a timer, landing times, masses, ruler labels, and the controls hint "R or tap: drop again". This conflicts with the "no text inside game scenes" preference unless measurement readouts count as an exception. It needs your call. The field-notebook overlay style would be the natural home for it.
 3. **Phaser's `actualFps` (about 108) disagrees with rAF sampling (170)** in headless GPU mode. Not investigated. Treat headless fps as informational.
 4. **No fps numbers from real target devices** (Chromebooks, phones).
-5. **Cross-engine determinism:** the sim so far uses only `+ − × ÷` and `sqrt`, which IEEE 754 makes reproducible. `Math.sin`, `Math.exp` and the like are not guaranteed bit-identical across JS engines. This matters once a Node server is the authority in M2. Both would be V8, but that should be tested when it arrives.
+5. **Cross-engine determinism:** the sim so far uses only operations that are exactly specified: `+ − × ÷`, `sqrt`, `floor`, `min`/`max`, `Math.imul` and integer bit operations. `Math.sin`, `Math.exp` and the like are not guaranteed bit-identical across JS engines. This matters once a Node server is the authority in M2. Both would be V8, but that should be tested when it arrives.
 6. **Test hooks ship in production builds.** They are tiny, but should be gated if that matters.
 7. **Brand fonts are not loaded** (Fredoka, Nunito, Caveat). Placeholder system font for now.
 8. **typescript-eslint is pinned to 8.70.1** because pnpm 12's minimum release age rejected 8.71.0. Bump it later.
@@ -117,7 +128,7 @@ All logged in `docs/ASSUMPTIONS.md`. The ones most worth a look:
 
 ## Proposed plan for M1 (single-player vertical slice)
 
-**Decisions to settle first**, since they block M1 per `docs/ROADMAP.md`:
+**Decisions to settle first.** `docs/ROADMAP.md` only gates the expedition on D9. My recommendation is to settle these before building on them:
 - D6/D14: stack and engine.
 - D1: hub camera, with ¾ top-down as the leaning.
 - D3: parts rig.

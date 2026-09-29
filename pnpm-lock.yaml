@@ -217,6 +217,9 @@ importers:
       '@beananza/shared':
         specifier: workspace:*
         version: link:../../packages/shared
+      '@beananza/sim':
+        specifier: workspace:*
+        version: link:../../packages/sim
       playwright:
         specifier: 1.63.0
         version: 1.63.0

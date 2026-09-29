@@ -1,0 +1,13 @@
+{
+  "scene": "drop",
+  "steps": [
+    { "wait": 1.0 },
+    { "shot": "t1" },
+    { "press": "KeyR" },
+    { "wait": 0.5 },
+    { "shot": "after-r" },
+    { "tap": [640, 360] },
+    { "wait": 0.25 },
+    { "shot": "after-tap" }
+  ]
+}

@@ -11,6 +11,18 @@ Planck.js), D4 in part (Planck.js for hub collisions), and the new D15 (hub coor
 (realistic hub jump) and D17 (measurement readouts allowed). See `docs/DECISIONS.md`. The M0
 note "the stack is scaffolding, not a decision" no longer applies to those parts.
 
+### tools/shot scripts
+- **One JSON format, one action per step** (`keyDown`, `keyUp`, `press`, `tap`, `wait`,
+  `shot`). No loops or assertions in scripts; checks read the JSON logs.
+- **`wait` rounds to whole 60 Hz steps** and must be at least one step. Both the tool and
+  `__game.advanceBy` use `Math.round(seconds · 60)`.
+- **After every input step the tool waits two rendered frames** (`__game.settle()`) so the
+  client has handled the event. The sim stays paused, so this does not change any sim state.
+- **Script shots are not fps-sampled** (the sim is paused); the logs carry sim state and the
+  cumulative console output instead.
+- **Output goes to `artifacts/shots/<script name>/`**, and relative `--script` paths resolve
+  against `INIT_CWD` (where `pnpm shot` was typed), since pnpm runs the tool from `tools/shot`.
+
 ## M0 (scaffold and verification loop), 2026-09-29
 
 ### Scope and decisions

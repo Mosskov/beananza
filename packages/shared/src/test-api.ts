@@ -29,6 +29,16 @@ export interface GameTestApi {
    * resolve with the reached sim time once that state has been rendered.
    */
   advanceTo(seconds: number): Promise<number>;
+  /**
+   * Pause, step the sim forward by `seconds` rounded to the nearest whole number of fixed
+   * steps, and resolve with the reached sim time once that state has been rendered.
+   */
+  advanceBy(seconds: number): Promise<number>;
+  /**
+   * Resolve after the game has run and rendered two more frames, so input events sent to the
+   * page have been handled (and turned into sim commands) without the paused sim moving.
+   */
+  settle(): Promise<void>;
   /** Scene-specific state as plain JSON, for logs and assertions. */
   debugState(): unknown;
   /** Phaser's own measured frame rate. */

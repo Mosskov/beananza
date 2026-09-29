@@ -92,6 +92,56 @@ pnpm shot --help                                 # all options
   there is one. `--software-gl` uses the headless shell with SwiftShader (no GPU); that mode logs
   "GPU stall due to ReadPixels" warnings for WebGL canvases. Headless fps is informational only.
 
+### Scripted playthroughs (`--script`)
+
+```sh
+pnpm shot --script tools/shot/scripts/drop-reset.json
+```
+
+A script is a JSON file naming a scene and a list of steps, each with exactly one action:
+
+```json
+{
+  "scene": "drop",
+  "steps": [
+    { "wait": 1.0 },
+    { "shot": "t1" },
+    { "press": "KeyR" },
+    { "wait": 0.5 },
+    { "shot": "after-r" }
+  ]
+}
+```
+
+| Action | Value | What it does |
+|---|---|---|
+| `keyDown` / `keyUp` | Playwright key name (`"ArrowRight"`, `"KeyW"`, `"ShiftLeft"`, `"Space"`) | Hold or release a key |
+| `press` | key name | Press and release a key |
+| `tap` | `[x, y]` in viewport pixels (1280×720 by default, same as the game) | Click or tap there |
+| `wait` | seconds of sim time | Step the sim forward, rounded to whole 60 Hz steps (at least one) |
+| `shot` | name (lowercase, digits, `-`, `_`; unique) | Write `<name>.png` and `<name>.json` |
+
+- **Deterministic:** the scene opens with `?paused=1` and the sim only moves on `wait` steps,
+  in whole fixed steps. The same script always gives the same states.
+- **Real input path:** keys and taps go through Playwright's keyboard and mouse into the page,
+  so the client's own input handling turns them into sim commands. After each input the tool
+  waits two rendered frames (`__game.settle()`) so the event is handled; the paused sim does not
+  move. A command queued by an input applies at the start of the next sim step.
+- **Output:** `artifacts/shots/<script file name>/<shot>.png` and `.json`, plus `run.json` for
+  the whole run. Each shot log has the sim time, the scene's sim state (and, for scenes that
+  provide it, what was drawn where), every step run so far with the sim time it ran at, and the
+  console output since the page loaded.
+- **Exit code:** non-zero if the script is invalid, a step throws, or the page logs any console
+  error, page error or failed request.
+- `--script` is repeatable and cannot be combined with `--scene`, `--all` or `--t`. Relative
+  paths resolve from the directory you ran the command in.
+
+Scripts in `tools/shot/scripts/`:
+
+| Script | Checks |
+|---|---|
+| `drop-reset.json` | The drop at t = 1.0 s; R and a tap each restart it |
+
 The contract between the game and the tool is `packages/shared/src/test-api.ts`.
 
 ## Layout

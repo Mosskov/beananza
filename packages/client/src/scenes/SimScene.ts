@@ -67,6 +67,14 @@ export abstract class SimScene<S extends SimStateBase, C> extends Phaser.Scene i
     return this.sim.time;
   }
 
+  stepBy(steps: number): number {
+    if (!Number.isInteger(steps) || steps < 0) throw new Error(`stepBy needs a whole number of steps >= 0, got ${steps}.`);
+    this.paused = true;
+    for (let i = 0; i < steps; i++) this.stepOnce();
+    this.drawState(1);
+    return this.sim.time;
+  }
+
   debugState(): unknown {
     return { tick: this.sim.tick, simTime: this.sim.time, paused: this.paused, state: this.sim.snapshot() };
   }

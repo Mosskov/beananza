@@ -19,6 +19,10 @@ export class EmptyScene extends Phaser.Scene implements TestableScene {
     throw new Error('Scene "empty" has no sim to step.');
   }
 
+  stepBy(): number {
+    throw new Error('Scene "empty" has no sim to step.');
+  }
+
   debugState(): unknown {
     return {};
   }

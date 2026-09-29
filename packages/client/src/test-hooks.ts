@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import type { GameTestApi } from '@beananza/shared';
+import { SIM_HZ } from '@beananza/sim';
 import { SCENE_NAMES } from './scenes/registry';
 import type { TestableScene } from './scenes/TestableScene';
 
@@ -53,6 +54,12 @@ export function installTestHooks(game: Phaser.Game, sceneName: string, scene: Te
       await afterRenders(game, 2);
       return reached;
     },
+    advanceBy: async (seconds: number) => {
+      const reached = scene.stepBy(Math.round(seconds * SIM_HZ));
+      await afterRenders(game, 2);
+      return reached;
+    },
+    settle: () => afterRenders(game, 2),
     debugState: () => scene.debugState(),
     actualFps: () => game.loop.actualFps,
   };

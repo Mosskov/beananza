@@ -2,8 +2,8 @@
 // time, and write a PNG plus a JSON log (console errors and warnings, fps, sim time, git commit).
 // Usage: see printHelp() or README.md.
 import { execFileSync } from 'node:child_process';
-import { mkdirSync, writeFileSync } from 'node:fs';
-import { dirname, join, relative, resolve } from 'node:path';
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { basename, dirname, extname, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parseArgs } from 'node:util';
 import { chromium, type Browser, type Page } from 'playwright';
@@ -15,6 +15,8 @@ import {
   URL_PARAM_PAUSED,
   URL_PARAM_SCENE,
 } from '@beananza/shared';
+import { SIM_HZ } from '@beananza/sim';
+import { describeStep, parseScript, waitSteps, type ShotScript } from './script';
 
 const REPO = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
 const CLIENT = join(REPO, 'packages/client');
@@ -23,6 +25,7 @@ const APP_MARKER = '<meta name="application-name" content="beananza"';
 interface Options {
   scenes: string[];
   all: boolean;
+  scripts: string[];
   times: (number | undefined)[];
   outDir: string;
   port: number;
@@ -74,11 +77,47 @@ interface ShotLog {
 
 type ServerMode = 'started' | 'reused' | 'external';
 
+/** One input step of a script as it was run. */
+interface ScriptInputLog {
+  step: number;
+  action: string;
+  /** Sim time when the step ran. Input becomes sim commands, applied at the next step. */
+  simTime: number | null;
+}
+
+/** Log for one `shot` step of a script. */
+interface ScriptShotLog {
+  ok: boolean;
+  error: string | null;
+  script: string;
+  scene: string;
+  shot: string;
+  step: number;
+  url: string;
+  simTime: number | null;
+  screenshot: string | null;
+  git: { commit: string | null; dirty: boolean | null };
+  timestamp: string;
+  viewport: { width: number; height: number };
+  browser: string;
+  glRenderer: string | null;
+  server: ServerMode;
+  /** Every non-shot step run so far, in order. */
+  inputs: ScriptInputLog[];
+  /** Console output since the page loaded (cumulative). */
+  console: { errors: number; warnings: number; entries: ConsoleEntry[] };
+  sceneState: unknown;
+}
+
 function printHelp(): void {
   console.log(`Usage: pnpm shot [options]
 
   --scene <name>   Scene to shoot (repeatable). Default: the game's default scene.
   --all            Shoot every registered scene.
+  --script <file>  Run a scripted playthrough (repeatable; JSON, see README.md). The scene
+                   starts paused; keys and taps go through Playwright's keyboard and mouse,
+                   and only "wait" steps advance the sim, in whole fixed steps.
+                   Cannot be combined with --scene, --all or --t.
   --t <seconds>    Pause the sim at t = 0, step it to this time, then shoot (repeatable).
                    Without --t the scene runs live and is shot after the fps sample.
                    Scenes without a sim ignore --t (noted in the log).
@@ -94,7 +133,8 @@ function printHelp(): void {
   --software-gl    Use the headless shell with SwiftShader (no GPU) instead of Chromium's
                    new headless mode, which uses the GPU when there is one.
 
-Writes <out>/<scene>[_t<time>].png and .json. Exits non-zero if any shot has a console
+Writes <out>/<scene>[_t<time>].png and .json; a script writes
+<out>/<script name>/<shot name>.png and .json, plus run.json. Exits non-zero if any shot has a console
 error, a page error, a failed request, or does not become ready.`);
 }
 
@@ -103,6 +143,7 @@ function parseOptions(): Options | null {
     options: {
       scene: { type: 'string', multiple: true },
       all: { type: 'boolean', default: false },
+      script: { type: 'string', multiple: true },
       t: { type: 'string', multiple: true },
       out: { type: 'string', default: 'artifacts/shots' },
       port: { type: 'string', default: '5180' },
@@ -127,9 +168,15 @@ function parseOptions(): Options | null {
     return n;
   };
   const times = values.t?.map((raw) => num('t', raw));
+  const scripts = values.script ?? [];
+  if (scripts.length > 0 && (values.scene || values.all || values.t)) {
+    throw new Error('--script cannot be combined with --scene, --all or --t (the script names its scene)');
+  }
   return {
     scenes: values.scene ?? [],
     all: values.all,
+    // pnpm runs this from tools/shot; resolve script paths against where the command was typed.
+    scripts: scripts.map((f) => resolve(process.env.INIT_CWD ?? process.cwd(), f)),
     times: times && times.length > 0 ? times : [undefined],
     outDir: resolve(REPO, values.out),
     port: num('port', values.port),
@@ -233,20 +280,8 @@ async function measureFps(page: Page, sampleMs: number): Promise<FpsSample> {
   };
 }
 
-async function shoot(
-  browser: Browser,
-  baseUrl: string,
-  serverMode: ServerMode,
-  scene: string,
-  t: number | undefined,
-  opts: Options,
-): Promise<ShotLog> {
-  const base = t === undefined ? scene : `${scene}_t${t.toFixed(3)}`;
-  const pngPath = join(opts.outDir, `${base}.png`);
-  const url = new URL(baseUrl);
-  url.searchParams.set(URL_PARAM_SCENE, scene);
-  if (t !== undefined) url.searchParams.set(URL_PARAM_PAUSED, '1');
-
+/** A new page that records console errors and warnings, page errors and failed requests. */
+async function openPage(browser: Browser, opts: Options) {
   const entries: ConsoleEntry[] = [];
   const context = await browser.newContext({
     viewport: { width: opts.width, height: opts.height },
@@ -263,6 +298,36 @@ async function shoot(
   page.on('requestfailed', (req) =>
     entries.push({ type: 'requestfailed', text: `${req.url()} ${req.failure()?.errorText ?? ''}`.trim() }),
   );
+  return { context, page, entries };
+}
+
+function consoleSummary(entries: ConsoleEntry[]) {
+  return {
+    errors: entries.filter((e) => e.type !== 'warning').length,
+    warnings: entries.filter((e) => e.type === 'warning').length,
+    entries: [...entries],
+  };
+}
+
+function errorMessage(err: unknown): string {
+  return err instanceof Error ? err.message.split('\n')[0] ?? String(err) : String(err);
+}
+
+async function shoot(
+  browser: Browser,
+  baseUrl: string,
+  serverMode: ServerMode,
+  scene: string,
+  t: number | undefined,
+  opts: Options,
+): Promise<ShotLog> {
+  const base = t === undefined ? scene : `${scene}_t${t.toFixed(3)}`;
+  const pngPath = join(opts.outDir, `${base}.png`);
+  const url = new URL(baseUrl);
+  url.searchParams.set(URL_PARAM_SCENE, scene);
+  if (t !== undefined) url.searchParams.set(URL_PARAM_PAUSED, '1');
+
+  const { context, page, entries } = await openPage(browser, opts);
 
   const log: ShotLog = {
     ok: false,
@@ -299,7 +364,7 @@ async function shoot(
     log.sceneState = await callGame(page, 'debugState()');
     log.glRenderer = (await page.evaluate(glRendererExpr)) as string | null;
   } catch (err) {
-    log.error = err instanceof Error ? err.message.split('\n')[0] ?? String(err) : String(err);
+    log.error = errorMessage(err);
   }
 
   try {
@@ -311,11 +376,122 @@ async function shoot(
   }
   await context.close();
 
-  log.console.errors = entries.filter((e) => e.type !== 'warning').length;
-  log.console.warnings = entries.filter((e) => e.type === 'warning').length;
+  log.console = consoleSummary(entries);
   log.ok = log.error === null && log.console.errors === 0;
   writeFileSync(join(opts.outDir, `${base}.json`), `${JSON.stringify(log, null, 2)}\n`);
   return log;
+}
+
+/**
+ * Run one script: open its scene paused, send each input through Playwright's keyboard and
+ * mouse (so the client's own input handling turns it into sim commands), advance the sim only
+ * on `wait` steps, and write a PNG plus a JSON log for each `shot` step. Returns the number of
+ * failures.
+ */
+async function runScript(
+  browser: Browser,
+  baseUrl: string,
+  serverMode: ServerMode,
+  scriptPath: string,
+  opts: Options,
+): Promise<number> {
+  const relScript = relative(REPO, scriptPath).replaceAll('\\', '/');
+  let script: ShotScript;
+  try {
+    script = parseScript(JSON.parse(readFileSync(scriptPath, 'utf8')));
+  } catch (err) {
+    console.log(`FAIL ${relScript}: ${errorMessage(err)}`);
+    return 1;
+  }
+  const outDir = join(opts.outDir, basename(scriptPath, extname(scriptPath)));
+  mkdirSync(outDir, { recursive: true });
+
+  const url = new URL(baseUrl);
+  url.searchParams.set(URL_PARAM_SCENE, script.scene);
+  url.searchParams.set(URL_PARAM_PAUSED, '1');
+  const { context, page, entries } = await openPage(browser, opts);
+  const git = gitInfo();
+  const browserName = `chromium ${browser.version()}${opts.softwareGl ? ' (headless shell)' : ''}`;
+  const inputs: ScriptInputLog[] = [];
+  let failures = 0;
+  let runError: string | null = null;
+  let glRenderer: string | null;
+  const simTime = () => callGame<number | null>(page, 'simTime()');
+
+  console.log(`script ${relScript} (scene ${script.scene})`);
+  try {
+    await page.goto(url.toString(), { waitUntil: 'load' });
+    await waitForReady(page, opts.timeoutMs);
+    if ((await simTime()) === null) throw new Error(`scene "${script.scene}" has no sim; scripts need one`);
+    glRenderer = (await page.evaluate(glRendererExpr)) as string | null;
+
+    for (const [i, step] of script.steps.entries()) {
+      const before = await simTime();
+      if ('shot' in step) {
+        const pngPath = join(outDir, `${step.shot}.png`);
+        const log: ScriptShotLog = {
+          ok: false,
+          error: null,
+          script: relScript,
+          scene: script.scene,
+          shot: step.shot,
+          step: i,
+          url: url.toString(),
+          simTime: before,
+          screenshot: null,
+          git,
+          timestamp: new Date().toISOString(),
+          viewport: { width: opts.width, height: opts.height },
+          browser: browserName,
+          glRenderer,
+          server: serverMode,
+          inputs: [...inputs],
+          console: consoleSummary(entries),
+          sceneState: null,
+        };
+        try {
+          log.sceneState = await callGame(page, 'debugState()');
+          await page.screenshot({ path: pngPath });
+          log.screenshot = relative(REPO, pngPath).replaceAll('\\', '/');
+        } catch (err) {
+          log.error = errorMessage(err);
+        }
+        log.console = consoleSummary(entries);
+        log.ok = log.error === null && log.console.errors === 0;
+        writeFileSync(join(outDir, `${step.shot}.json`), `${JSON.stringify(log, null, 2)}\n`);
+        if (!log.ok) failures += 1;
+        const time = log.simTime === null ? '' : `, sim ${log.simTime.toFixed(3)} s`;
+        console.log(
+          `${log.ok ? 'ok  ' : 'FAIL'} ${step.shot} -> ${log.screenshot ?? '(no png)'} ` +
+            `(${log.console.errors} errors, ${log.console.warnings} warnings${time})`,
+        );
+        if (log.error) console.log(`     error: ${log.error}`);
+        continue;
+      }
+      if ('keyDown' in step) await page.keyboard.down(step.keyDown);
+      else if ('keyUp' in step) await page.keyboard.up(step.keyUp);
+      else if ('press' in step) await page.keyboard.press(step.press);
+      else if ('tap' in step) await page.mouse.click(step.tap[0], step.tap[1]);
+      if ('wait' in step) {
+        await callGame(page, `advanceBy(${waitSteps(step.wait) / SIM_HZ})`);
+      } else {
+        // Let the game handle the input event (and queue its sim command) without stepping.
+        await callGame(page, 'settle()');
+      }
+      inputs.push({ step: i, action: describeStep(step), simTime: before });
+    }
+  } catch (err) {
+    runError = errorMessage(err);
+  }
+  await context.close();
+
+  const summary = consoleSummary(entries);
+  const ok = runError === null && summary.errors === 0 && failures === 0;
+  const run = { ok, error: runError, script: relScript, scene: script.scene, url: url.toString(), git, inputs, console: summary };
+  writeFileSync(join(outDir, 'run.json'), `${JSON.stringify(run, null, 2)}\n`);
+  if (runError) console.log(`FAIL ${relScript}: ${runError}`);
+  for (const e of summary.entries) console.log(`     ${e.type}: ${e.text.split('\n')[0]}`);
+  return ok ? 0 : Math.max(failures, 1);
 }
 
 /** Load the page without ?scene= and ask the game for its default and registered scenes. */
@@ -352,6 +528,11 @@ async function main(): Promise<number> {
       headless: !opts.headed,
       ...(opts.softwareGl ? {} : { channel: 'chromium' }),
     });
+    if (opts.scripts.length > 0) {
+      console.log(`shot: ${baseUrl} (${mode} server), ${browser.version()}`);
+      for (const scriptPath of opts.scripts) failures += await runScript(browser, baseUrl, mode, scriptPath, opts);
+      return failures === 0 ? 0 : 1;
+    }
     let scenes = opts.scenes;
     if (opts.all || scenes.length === 0) {
       const listed = await listScenes(browser, baseUrl, opts.timeoutMs);

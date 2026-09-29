@@ -8,6 +8,8 @@ export interface TestableScene extends Phaser.Scene {
   resumeSim(): void;
   /** Pause and step the sim to `seconds` (whole steps). Returns the reached sim time. */
   stepTo(seconds: number): number;
+  /** Pause and take `steps` more fixed steps. Returns the reached sim time. */
+  stepBy(steps: number): number;
   debugState(): unknown;
 }
 

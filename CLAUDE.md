@@ -74,6 +74,13 @@ art/
 - Verify with screenshots and scripted playthroughs, and never claim a result you haven't looked at
 
 ## Commands
-To be filled in once the scaffold exists.
+Details in `README.md`.
+- `pnpm install`, then once `pnpm shot:install` (Playwright Chromium)
+- `pnpm dev`: game at http://localhost:5180/?scene=<name> (`empty`, `drop`; `&paused=1` starts paused)
+- `pnpm check`: typecheck, lint, tests and build (`pnpm test`, `pnpm typecheck`, `pnpm lint`, `pnpm build`)
+- `pnpm shot --all` or `pnpm shot --scene drop --t 1.0`: PNG plus JSON log in `artifacts/shots/`.
+  Look at the screenshot and the log before claiming a scene works or looks right.
+- New scenes register in `packages/client/src/scenes/registry.ts` under their `?scene=` name.
+- Routine choices go in `docs/ASSUMPTIONS.md`; current state in `docs/STATUS.md`.
 
 @docs/DECISIONS.md

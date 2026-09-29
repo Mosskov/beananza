@@ -3,6 +3,14 @@
 Routine choices made while building, logged so they can be reviewed and reversed. None of them
 changes a decision in `docs/DECISIONS.md`. Newest milestone first.
 
+## M1 session 1 (tools/shot scripts, hub plaza, movement), 2026-09-29
+
+### Decisions confirmed at the start of the session
+D1 (¾ top-down), D14 (web, TypeScript + Phaser), D6 in part (TypeScript, Phaser, Vite, Vitest,
+Planck.js), D4 in part (Planck.js for hub collisions), and the new D15 (hub coordinates), D16
+(realistic hub jump) and D17 (measurement readouts allowed). See `docs/DECISIONS.md`. The M0
+note "the stack is scaffolding, not a decision" no longer applies to those parts.
+
 ## M0 (scaffold and verification loop), 2026-09-29
 
 ### Scope and decisions

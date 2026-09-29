@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-70 -152 140 168" width="280" height="336">
+  <!-- Bean buddy, BACK 3/4 view moving up-left: only the parts that are not symmetric, drawn as seen on
+       screen (not mirrored). Every other part is back-34.svg mirrored. The scarf tail stays on the
+       bean's left, which is the side nearer the camera here. -->
+  <g id="scarf-tail" data-after="scarf"><path d="M-22 -46 L-34 -20 L-24 -18 L-14 -44 Z" fill="#E3A93B"/></g>
+</svg>

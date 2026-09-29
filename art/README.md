@@ -10,6 +10,17 @@ SVG paths so they can seed a parts-based rig (see `docs/DESIGN.md` §6).
   `cheeks`, `mouth`, `arm-near`, `arm-far`, `foot-near`, `foot-far`, `headwear-goggles`, …).
 - Coordinate convention: origin (0, 0) is the ground point between the feet; the body is about
   114 units tall and 100 wide. Headwear anchors at the top of the body (y = −114 for the Bean form).
+- `front-34-left.svg`, `side-left.svg`, `back-34-left.svg`: for the three mirrored directions,
+  only the parts that are **not symmetric** (today the scarf tail and the eyes, whose highlights
+  stay on the light side), drawn as seen on screen rather than mirrored. Cosmetics never jump
+  from one side of the bean to the other (D12). A part is asymmetric if it has such a drawing,
+  and then it needs one in every mirrored view that has it. `data-after="<part id>"` places
+  it in the draw order (for example the scarf tail in front of the body when facing left).
+- The game loads these files as they are, by part id (D3). Parts must be flat top-level
+  `<g id>` groups (no nesting). Pivots are derived by rule until the files carry pivot markers:
+  arms and the scarf tail rotate about the first point of their path, feet about their ellipse
+  centre, eyes about the mean eye centre, everything else about (0, 0). The checks live in
+  `packages/client/src/rig/bean-contract.ts` and `packages/client/test/bean-art.test.ts`.
 - `forms.svg`: the four body forms (Bean, Mochi, Gumdrop, Pill) with each form's eye-line y.
   All forms are cosmetic and share one collider.
 

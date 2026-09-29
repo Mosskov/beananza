@@ -1,0 +1,29 @@
+{
+  "scene": "hub",
+  "steps": [
+    { "keyDown": "ArrowUp" },
+    { "wait": 0.8333 },
+    { "keyUp": "ArrowUp" },
+    { "shot": "same-row-as-bench" },
+    { "keyDown": "ArrowUp" },
+    { "wait": 0.4 },
+    { "keyUp": "ArrowUp" },
+    { "keyDown": "ArrowLeft" },
+    { "wait": 0.5 },
+    { "keyUp": "ArrowLeft" },
+    { "shot": "behind-bench" },
+    { "keyDown": "ArrowRight" },
+    { "wait": 0.5 },
+    { "keyUp": "ArrowRight" },
+    { "keyDown": "ArrowDown" },
+    { "wait": 0.8 },
+    { "keyUp": "ArrowDown" },
+    { "keyDown": "ArrowLeft" },
+    { "wait": 0.5 },
+    { "keyUp": "ArrowLeft" },
+    { "shot": "in-front-of-bench" },
+    { "press": "KeyE" },
+    { "wait": 1.0 },
+    { "shot": "sat-with-e" }
+  ]
+}

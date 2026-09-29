@@ -31,6 +31,9 @@ exploration) and are not loaded yet.
   also has `anchor-lean` (the point whose forward tip the pushing stand-off adds). The `-left`
   files have no anchors: mirrored views mirror their base view's. Anchors must lie inside the
   viewBox.
+- `front.svg` also has `eyes-sleep` (closed eyes) and `doze-z` (a drawn "z", not text), hidden
+  unless the bean dozes on the bench; seated beans always face the camera, so only the front
+  view needs them.
 - `forms.svg`: the four body forms (Bean, Mochi, Gumdrop, Pill) with each form's eye-line y.
   All forms are cosmetic and share one collider.
 
@@ -49,6 +52,13 @@ the tree's greens (`#5F9150`, `#6A9C5A`, `#86B874`) are new. The game loads them
   cart floor height of 0.1 m; a test checks they agree) and `rim-west`, `rim-east`,
   `base-east`, `base-west` (the corners of the front: below the rim a rider only shows inside
   them).
+
+- `bench.svg`: the plaza bench, 1.6 m long, seen from the south with its backrest on the north
+  side; origin in the middle of its 1.6 × 0.45 m footprint. `shadow`, `back` (backrest and back
+  legs), `seat` (seat top, front edge and front legs). A seated bean draws in front of all of it.
+  Anchors `seat-west` and `seat-east`: where a seated bean's feet point sits, 0.30 m up and
+  0.15 m south of the centre line, 0.4 m either side (the sim's bench layout; a test checks they
+  agree).
 
 ## Boss (`baron/`), parked
 - `heavy-baron.svg`: The Heavy Baron in his smug default expression.

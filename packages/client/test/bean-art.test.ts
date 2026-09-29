@@ -9,6 +9,9 @@ import { parseAttrs, parseSvgParts, partPivot, type Point, type SvgPart } from '
  * moved nothing: arms and the scarf tail at the first point of their path, feet at their ellipse
  * centre, eyes at the mean eye centre, wheels at their first circle, everything else (0, 0).
  */
+/** Parts drawn after the switch to data-pivot (M1 session 3), which the old rules never covered. */
+const ADDED_SINCE_S2 = new Set(['eyes-sleep', 'doze-z']);
+
 function legacyPivot(part: SvgPart): Point {
   const ellipses = [...part.inner.matchAll(/<ellipse\b([^>]*)>/g)].map((m) => parseAttrs(m[1] as string));
   if (part.id.startsWith('wheel-')) {
@@ -124,7 +127,10 @@ describe('bean art contract (art/bean/*.svg)', () => {
 
   it('moved no pivot: every data-pivot equals the rule it replaced (M1 session 2)', () => {
     for (const [name, text] of Object.entries({ ...BEAN_SVGS, ...PROP_SVGS })) {
-      for (const part of parseSvgParts(text).parts) expect(partPivot(part), `${name} ${part.id}`).toEqual(legacyPivot(part));
+      for (const part of parseSvgParts(text).parts) {
+        if (ADDED_SINCE_S2.has(part.id)) continue;
+        expect(partPivot(part), `${name} ${part.id}`).toEqual(legacyPivot(part));
+      }
     }
   });
 

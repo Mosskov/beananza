@@ -23,8 +23,9 @@ type Json = Record<string, unknown>;
  * - M1 session 3 (D21): `bean.riding` and `bean.pushing` became one interaction state `bean.act`.
  * - M1 session 3 (D23): `rail.riders` logs getting in and out (empty in older logs), and a
  *   rider's act records the tick it landed (`since`).
+ * - M1 session 3 (D24): `layout.benches`, the plaza's bench.
  */
-const RENAMES: { since: string; apply: (state: Json) => void }[] = [
+const RENAMES: { since: string; apply: (state: Json, fresh: Json) => void }[] = [
   {
     since: 'M1 session 3: bean.riding and bean.pushing → bean.act',
     apply(state) {
@@ -41,6 +42,15 @@ const RENAMES: { since: string; apply: (state: Json) => void }[] = [
     apply(state) {
       const rail = state.rail as Json | null | undefined;
       if (rail && !('riders' in rail)) rail.riders = [];
+    },
+  },
+  {
+    // D24: the plaza gained a bench. Older layouts had none; the fresh one's is taken as is
+    // (a script that walks into the bench shows up as a difference in the bean's state).
+    since: 'M1 session 3: layout.benches added',
+    apply(state, fresh) {
+      const layout = state.layout as Json | undefined;
+      if (layout && !('benches' in layout)) layout.benches = (fresh.layout as Json | undefined)?.benches;
     },
   },
 ];
@@ -99,7 +109,7 @@ for (const rel of logs(BASE)) {
     console.log(`live    ${rel} (skipped: a live shot's tick depends on wall-clock time)`);
     continue;
   }
-  if (before) for (const r of RENAMES) r.apply(before);
+  if (before && after) for (const r of RENAMES) r.apply(before, after);
   compared += 1;
   const diff = firstDiff(before, after);
   if (diff) {

@@ -1,0 +1,24 @@
+{
+  "scene": "hub",
+  "steps": [
+    { "tap": [280, 170] },
+    { "wait": 0.4 },
+    { "shot": "walking-over" },
+    { "wait": 0.45 },
+    { "shot": "hop-on" },
+    { "wait": 0.65 },
+    { "shot": "sitting" },
+    { "wait": 0.65 },
+    { "shot": "sitting-swing" },
+    { "wait": 4.35 },
+    { "shot": "dozing" },
+    { "wait": 1.0 },
+    { "shot": "dozing-later" },
+    { "keyDown": "ArrowRight" },
+    { "wait": 0.15 },
+    { "shot": "standing-up" },
+    { "wait": 0.5 },
+    { "shot": "walked-off" },
+    { "keyUp": "ArrowRight" }
+  ]
+}

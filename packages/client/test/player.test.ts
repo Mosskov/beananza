@@ -152,3 +152,26 @@ describe('choosing a clip from sim state', () => {
     expect(chooseClip({ ...landed, vx: 2.4 }, 1.95, g).clip).toBe('walk');
   });
 });
+
+describe('sitting on the bench', () => {
+  it('feet dangle 8–15 units below the body and swing in turn over 1.3 s', () => {
+    expect(pose('sit', 0, 'front').footA.y).toBeCloseTo(8, 12);
+    expect(pose('sit', 0.65, 'front').footA.y).toBeCloseTo(15, 12);
+    expect(pose('sit', 0, 'front').footB.y).toBeCloseTo(15, 12);
+    expect(pose('sit', 0.65, 'front').footB.y).toBeCloseTo(8, 12);
+  });
+
+  it('under reduced motion the feet hang still at 12 units and the "z" does not float', () => {
+    for (const t of [0, 0.3, 0.65, 1.1]) {
+      expect(pose('sit', t, 'front', true).footA.y).toBe(12);
+      expect(pose('sit', t, 'front', true).footB.y).toBe(12);
+      expect(pose('doze', t, 'front', true).fx).toEqual({ x: 4, y: -4, rotation: 0, scaleX: 1, scaleY: 1 });
+    }
+  });
+
+  it('dozing: feet still at 12 units, the "z" rises over 2 s', () => {
+    expect(pose('doze', 0.4, 'front').footA.y).toBe(12);
+    expect(pose('doze', 0, 'front').fx.y).toBeCloseTo(6, 12);
+    expect(pose('doze', 1.9, 'front').fx.y).toBeLessThan(-15);
+  });
+});

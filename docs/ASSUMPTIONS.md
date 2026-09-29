@@ -70,6 +70,44 @@ hop and the rider clipped below the rim), D24 (the bench and sitting; D2 stays O
   Graphics in world coordinates, not on the display list), rendered only while in a cart:
   everything above the rim, and the cart front's trapezoid below it, from the cart's anchors.
 
+### The bench and sitting (D24)
+- **Layout:** `layout.benches` (a solid footprint like the props, plus `seatHeight` 0.30 m,
+  `seatDy` −0.15 m and two seats at ±0.4 m). A seated bean's ground point is 0.15 m south of
+  the bench's centre line, so its dangling feet hang over the seat's front edge in the drawing.
+  The bench is at (−3.6, 1.2) m, clear of every earlier script's path (their sim states are
+  unchanged); PLACEHOLDER spot pending D2. The hub's walkable-edges test now uses the plaza
+  without the bench (running north from (−3, −1) meets it); its numbers are unchanged.
+- **Stand spot:** 0.05 m in front of the bench's footprint, in front of each seat. E picks the
+  free seat whose stand spot is nearest (the first on a tie) if it is within 1.3 m; a tap on the
+  bench's drawing (`use`, engine bounds) picks the nearest free seat from anywhere. E tries the
+  cart first, then the bench.
+- **New acts:** `approaching` (a tap target to the stand spot; a held key, a new tap or a jump
+  cancels it, and getting stuck gives up), `seating` (21 steps, arc 0.26 m, starting the step
+  after arriving), `sitting` (`since` = the tick it landed) and `standing` (18 steps, arc 0.26 m;
+  a tap that stood the bean up is walked to afterwards). Mid-hop, E, Space and taps are dropped;
+  held keys still count, so holding a key while landing on the seat stands the bean straight
+  back up (any movement input stands it up).
+- **Seats can be `taken`** (for Priya); nobody else sits there.
+- **A new module hook, `settle`,** runs at the very end of the step: arriving at the stand spot
+  (the tap target is dropped there) starts the hop on.
+- **Drawing:** the seat's point comes from the bench art's `seat-<id>` anchor, and a bean on or
+  hopping to or from the seat is placed between its stand spot on the ground and that anchor
+  (screen space), plus the hop's arc scaled like a jump. So the seated bean sits exactly on the
+  drawn seat, whatever its depth scale (characters are scaled by depth, props are not). It sorts
+  just in front of the bench; no ground shadow while on it.
+- **Clips:** `sit` (feet 8–15 units down, alternating over 1.3 s; arms ±12°; breathing) and
+  `doze` (feet still at 12, slower breathing, the "z" in a new `fx` slot rising and shrinking
+  over 2 s). A track can carry `still`: under reduced motion it holds that value instead of
+  being dropped (the feet hang at 12 units, the "z" stays put).
+- **Doze** is drawn from `sitting.since` (5 s), not sim state: every client derives the same.
+  The eyes swap for `eyes-sleep`; the parts table (`PART_DEFAULTS`) resets them in every other
+  state.
+- **The `bean` gallery** has a fifth row (sit at four phases, doze at four times), so rows moved
+  closer (138 px) and the rigs are a little smaller (0.72).
+- **The dev server on port 5180 did not see new source files** (Vite's resolver answered 500 for
+  a module added during the session), so shots in this session used `--port 5181`, which starts
+  a fresh server per run. Restart `pnpm dev` after pulling.
+
 ### Hub presentation (`packages/client/src/scenes/hub-presentation.ts`)
 - **One row per act kind:** the act's clip (or null for the ground clips), the toggled parts it
   shows (`arm-far-push`), where the bean draws (`ground` or in a `cart`), the shadow, how much

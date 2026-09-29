@@ -30,15 +30,21 @@ interface Cell {
   t: number;
   /** Animation time for overlays (blinking); 0 keeps the eyes open. */
   time?: number;
+  /** Parts shown or hidden, as the hub's presentation table does (dozing). */
+  parts?: Record<string, boolean>;
 }
+
+/** Dozing: the closed eyes and the "z" replace the open eyes (as in the hub's table). */
+const DOZING = { eyes: false, 'eyes-sleep': true, 'doze-z': true };
 
 const cells = (row: Omit<Cell, 'label'>[], label: (c: Omit<Cell, 'label'>) => string): Cell[] =>
   row.map((c) => ({ ...c, label: label(c) }));
 
 /**
- * Four rows of eight, each pose at a fixed clip time, so a screenshot shows the whole rig.
+ * Five rows of eight, each pose at a fixed clip time, so a screenshot shows the whole rig.
  * Row 1: the 8 directions (idle). Row 2: walk, side then front, a quarter cycle apart.
  * Row 3: run, side then front ¾. Row 4: jump, fall, land, breathing and a blink.
+ * Row 5: sitting on the bench (feet swinging, a quarter cycle apart) and dozing.
  */
 const ROWS: Cell[][] = [
   cells(
@@ -72,11 +78,15 @@ const ROWS: Cell[][] = [
     { label: 'idle breathe t=1.5', facing: 'S', clip: 'idle', t: 1.5 },
     { label: 'blink t=3.76', facing: 'SW', clip: 'idle', t: 0, time: 3.76 },
   ],
+  [
+    ...[0, 0.325, 0.65, 0.975].map((t) => ({ label: `sit t=${t.toFixed(3)}`, facing: 'S' as const, clip: 'sit' as const, t })),
+    ...[0, 0.5, 1, 1.5].map((t) => ({ label: `doze t=${t.toFixed(1)}`, facing: 'S' as const, clip: 'doze' as const, t, parts: DOZING })),
+  ],
 ];
 
 const COL_X = (i: number) => 80 + i * 160;
-const ROW_FEET_Y = (r: number) => 150 + r * 170;
-const SCALE = 0.8;
+const ROW_FEET_Y = (r: number) => 118 + r * 138;
+const SCALE = 0.72;
 
 /**
  * Review scene for the bean rig (no sim): every direction and each clip at fixed times. The
@@ -101,11 +111,12 @@ export class BeanGalleryScene extends Phaser.Scene implements TestableScene {
         const rig = new BeanRig(this);
         const choice = viewForFacing(...FACING[cell.facing]!);
         rig.setView(choice);
+        for (const [part, visible] of Object.entries(cell.parts ?? {})) rig.setPartVisible(part, visible);
         const pose = samplePose({ clip: cell.clip, t: cell.t, time: cell.time ?? 0, view: choice.view, reducedMotion: this.reducedMotion });
         rig.applyPose(pose);
         rig.root.setPosition(x, y).setScale(SCALE);
         this.add
-          .text(x, y + 16, cell.label, { fontFamily: FONT, fontSize: '13px', color: cssColor(PALETTE.inkSecondary) })
+          .text(x, y + 14, cell.label, { fontFamily: FONT, fontSize: '13px', color: cssColor(PALETTE.inkSecondary) })
           .setOrigin(0.5, 0);
         this.shown.push({ cell, view: choice.view, mirrored: choice.mirrored, pose });
       }),

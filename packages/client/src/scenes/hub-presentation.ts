@@ -1,4 +1,4 @@
-import { CART_FLOOR_M, SIM_HZ, type HubAct, type HubActKind, type HubState } from '@beananza/sim';
+import { CART_FLOOR_M, DOZE_AFTER_S, SEAT_ARC_M, SIM_HZ, STAND_ARC_M, type HubAct, type HubActKind, type HubState } from '@beananza/sim';
 import { LAND_DURATION, type ClipName } from '../rig/clips';
 import type { ActClip } from '../rig/player';
 
@@ -9,9 +9,9 @@ import type { ActClip } from '../rig/player';
  * function of sim state and animation time only.
  */
 
-/** Parts some act turns on; every other act hides them again. */
-export const TOGGLED_PARTS = ['arm-far-push'] as const;
-export type ToggledPart = (typeof TOGGLED_PARTS)[number];
+/** Parts some act shows or hides, and how every other act draws them. */
+export const PART_DEFAULTS = { 'arm-far-push': false, eyes: true, 'eyes-sleep': false, 'doze-z': false } as const;
+export type ToggledPart = keyof typeof PART_DEFAULTS;
 
 /** Where the bean draws. */
 export type Placement =
@@ -21,13 +21,18 @@ export type Placement =
    * In a cart: drawn between the cart's back and front, and below the rim only inside the
    * cart's front (the rider is wider than the cart, D23).
    */
-  | { kind: 'cart'; cart: string };
+  | { kind: 'cart'; cart: string }
+  /**
+   * On a bench seat or hopping between it and its stand spot: `p` runs from the stand spot (0) to
+   * the seat (1), with an arc (m) on top. The seat's point comes from the bench art's anchor.
+   */
+  | { kind: 'seat'; bench: string; seat: string; p: number; arc: number };
 
 export interface Presentation {
   /** The act's own clip, or null for the ground clips chosen from motion (walk, run, …). */
   clip: ActClip | null;
-  /** The toggled parts this act shows. */
-  shows: readonly ToggledPart[];
+  /** Parts this act shows or hides (others as PART_DEFAULTS). */
+  parts: Partial<Record<ToggledPart, boolean>>;
   placement: Placement;
   /** Draw the ground shadow. */
   shadow: boolean;
@@ -61,13 +66,16 @@ function hopClip(p: number): ActClip {
 }
 
 const GROUND: Omit<Presentation, 'clip'> = {
-  shows: [],
+  parts: {},
   placement: { kind: 'ground' },
   shadow: true,
   standOffCarts: 1,
   usingCart: null,
   flatZ: null,
 };
+
+/** On the bench: in front of it, no ground shadow (the bench's own shadow is there). */
+const SEATED: Omit<Presentation, 'clip' | 'placement'> = { parts: {}, shadow: false, standOffCarts: 0, usingCart: null, flatZ: null };
 
 type Row<K extends HubActKind> = (act: Extract<HubAct, { kind: K }>, state: HubState, time: number) => Presentation;
 
@@ -76,7 +84,7 @@ const PRESENTATION: { [K in HubActKind]: Row<K> } = {
   pushing: (act, state, time) => {
     const cart = state.rail?.carts.find((c) => c.id === act.cart);
     const clip: ClipName = (cart?.mass ?? 0) >= HEAVY_PUSH_KG ? 'pushHeavy' : 'push';
-    return { ...GROUND, clip: { clip, t: time }, shows: ['arm-far-push'] };
+    return { ...GROUND, clip: { clip, t: time }, parts: { 'arm-far-push': true } };
   },
   // A crouch, then a hop that is over the cart (and drawn in it) from its top onwards.
   boarding: (act, _state, time) => {
@@ -84,7 +92,7 @@ const PRESENTATION: { [K in HubActKind]: Row<K> } = {
     const p = hopAt(time, act.hopTick, act.endTick);
     return {
       clip: crouching ? { clip: 'jump', t: 0, first: true } : hopClip(p),
-      shows: [],
+      parts: {},
       placement: p >= 0.5 ? { kind: 'cart', cart: act.cart } : { kind: 'ground' },
       shadow: true,
       standOffCarts: Math.max(0, 1 - 2 * p),
@@ -97,7 +105,7 @@ const PRESENTATION: { [K in HubActKind]: Row<K> } = {
     const since = time - act.since / SIM_HZ;
     return {
       clip: since < LAND_DURATION ? { clip: 'land', t: Math.max(0, since), first: true } : { clip: 'idle', t: time },
-      shows: [],
+      parts: {},
       placement: { kind: 'cart', cart: act.cart },
       shadow: false,
       standOffCarts: 0,
@@ -109,13 +117,36 @@ const PRESENTATION: { [K in HubActKind]: Row<K> } = {
     const p = hopAt(time, act.startTick, act.endTick);
     return {
       clip: hopClip(p),
-      shows: [],
+      parts: {},
       placement: p < 0.5 ? { kind: 'cart', cart: act.cart } : { kind: 'ground' },
       shadow: true,
       standOffCarts: 0,
       usingCart: act.cart,
       flatZ: CART_FLOOR_M * (1 - p),
     };
+  },
+  // Walking over to the bench: ordinary walking.
+  approaching: () => ({ ...GROUND, clip: null }),
+  seating: (act, _state, time) => {
+    const p = hopAt(time, act.startTick, act.endTick);
+    return { ...SEATED, clip: hopClip(p), placement: { kind: 'seat', bench: act.bench, seat: act.seat, p, arc: SEAT_ARC_M } };
+  },
+  // Feet dangle and swing; after DOZE_AFTER_S the bean dozes: eyes closed, a "z" floats up.
+  sitting: (act, _state, time) => {
+    const since = time - act.since / SIM_HZ;
+    const placement: Placement = { kind: 'seat', bench: act.bench, seat: act.seat, p: 1, arc: 0 };
+    if (since < LAND_DURATION) return { ...SEATED, clip: { clip: 'land', t: Math.max(0, since), first: true }, placement };
+    if (since < DOZE_AFTER_S) return { ...SEATED, clip: { clip: 'sit', t: since, first: true }, placement };
+    return {
+      ...SEATED,
+      clip: { clip: 'doze', t: since - DOZE_AFTER_S, first: true },
+      parts: { eyes: false, 'eyes-sleep': true, 'doze-z': true },
+      placement,
+    };
+  },
+  standing: (act, _state, time) => {
+    const q = hopAt(time, act.startTick, act.endTick);
+    return { ...SEATED, clip: hopClip(q), placement: { kind: 'seat', bench: act.bench, seat: act.seat, p: 1 - q, arc: STAND_ARC_M } };
   },
 };
 

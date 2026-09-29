@@ -3,6 +3,7 @@ import type { Scenario } from '../sim';
 import { FIXED_DT, ticksToSeconds } from '../time';
 import { EARTH_GRAVITY } from '../constants';
 import { CART_HALF_LENGTH, stepRail } from '../rail';
+import { benchInteraction } from '../interactions/bench';
 import { cartInteraction } from '../interactions/cart';
 import type { HubInteraction, HubStep } from '../interactions/types';
 import {
@@ -13,6 +14,7 @@ import {
   HUB_RUN_SPEED,
   HUB_STUCK_STEPS,
   HUB_WALK_SPEED,
+  actUsesPlanck,
   actWalks,
   clampTarget,
   type HubBean,
@@ -44,7 +46,7 @@ export * from './hub-world';
  */
 
 /** The interaction modules, in the order they are offered commands and run. */
-const INTERACTIONS: readonly HubInteraction[] = [cartInteraction];
+const INTERACTIONS: readonly HubInteraction[] = [cartInteraction, benchInteraction];
 
 const ownerOf = (kind: HubBean['act']['kind']) => INTERACTIONS.find((m) => m.acts.includes(kind));
 
@@ -82,7 +84,8 @@ function buildWorld(layout: PlazaLayout): { world: World; bean: Body; carts: Map
     ),
     { friction: 0 },
   );
-  for (const prop of layout.props) {
+  // Props and benches are solid footprints.
+  for (const prop of [...layout.props, ...layout.benches]) {
     const body = world.createBody({ position: { x: prop.x, y: prop.y } });
     body.createFixture(new BoxShape(prop.halfWidth, prop.halfDepth), { friction: 0 });
   }
@@ -165,6 +168,7 @@ export function createHubScenario(options: HubOptions = {}): Scenario<HubState, 
       for (const c of commands) {
         // Commands will one day arrive over the network: drop any with non-finite numbers.
         if ((c.type === 'move' || c.type === 'moveTo') && !(Number.isFinite(c.x) && Number.isFinite(c.y))) continue;
+        if (c.type === 'use' && typeof c.id !== 'string') continue;
         if (INTERACTIONS.some((m) => m.command(step, c))) continue;
         if (c.type === 'move') {
           state.input = { x: c.x, y: c.y, run: c.run };
@@ -238,8 +242,9 @@ export function createHubScenario(options: HubOptions = {}): Scenario<HubState, 
       });
 
       // Ground motion and collisions (Planck), from the state, only while the bean walks
-      // freely. Every other act (pushing, riding) places the bean itself.
-      body.setActive(act.kind === 'free');
+      // freely. Every other act (pushing, riding, hops) places the bean itself.
+      const usesPlanck = actUsesPlanck(act);
+      body.setActive(usesPlanck);
       body.setTransform({ x: bean.x, y: bean.y }, 0);
       body.setLinearVelocity({ x: vx, y: vy });
       body.setAwake(true);
@@ -248,10 +253,7 @@ export function createHubScenario(options: HubOptions = {}): Scenario<HubState, 
         cartBodies.get(c.id)?.setTransform({ x: c.x, y: railY }, 0);
         cartBodies.get(c.id)?.setLinearVelocity({ x: 0, y: 0 });
       }
-      const owner = ownerOf(act.kind);
-      if (owner) {
-        owner.place(step);
-      } else {
+      if (usesPlanck) {
         const p = body.getPosition();
         const v = body.getLinearVelocity();
         bean.x = p.x;
@@ -259,9 +261,12 @@ export function createHubScenario(options: HubOptions = {}): Scenario<HubState, 
         bean.vx = v.x;
         bean.vy = v.y;
       }
+      const owner = ownerOf(act.kind);
+      owner?.place(step);
 
-      // Facing: the act's own rule, or the direction of ground movement (kept while idle).
-      const facing = owner ? owner.facing(step) : vx !== 0 || vy !== 0 ? { x: vx / Math.hypot(vx, vy), y: vy / Math.hypot(vx, vy) } : null;
+      // Facing: the act's own rule, or else the direction of ground movement (kept while idle).
+      const moving = vx !== 0 || vy !== 0;
+      const facing = owner?.facing(step) ?? (moving ? { x: vx / Math.hypot(vx, vy), y: vy / Math.hypot(vx, vy) } : null);
       if (facing) {
         bean.facingX = facing.x;
         bean.facingY = facing.y;
@@ -285,6 +290,7 @@ export function createHubScenario(options: HubOptions = {}): Scenario<HubState, 
       }
 
       if (actWalks(bean.act)) stepHeight(bean, state.gravity, state.tick);
+      for (const m of INTERACTIONS) m.settle?.(step);
     },
   };
 }
@@ -293,6 +299,7 @@ function structuredCloneLayout(layout: PlazaLayout): PlazaLayout {
   return {
     walkable: { ...layout.walkable },
     props: layout.props.map((p) => ({ ...p })),
+    benches: layout.benches.map((b) => ({ ...b, seats: b.seats.map((q) => ({ ...q })) })),
     start: { ...layout.start },
     rail: layout.rail ? { ...layout.rail, carts: layout.rail.carts.map((c) => ({ ...c })) } : null,
   };

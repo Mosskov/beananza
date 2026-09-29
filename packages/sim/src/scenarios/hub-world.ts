@@ -67,10 +67,33 @@ export interface RailLayout extends Rail {
   carts: CartSpec[];
 }
 
+/** One seat on a bench. */
+export interface SeatSpec {
+  id: string;
+  /** Along the bench from its centre (m, east positive). */
+  dx: number;
+  /** Someone else sits here (a classmate), so the bean cannot. */
+  taken?: boolean;
+}
+
+/**
+ * A bench (D24): a solid footprint centred on (x, y), seen from the south with its backrest on
+ * the north side. A seated bean sits at (x + seat.dx, y + seatDy), `seatHeight` up, and gets
+ * on and off from its stand spot in front of the bench.
+ */
+export interface BenchSpec extends PropFootprint {
+  /** Height of the seat (m). */
+  seatHeight: number;
+  /** Where on the seat a bean sits, north of the bench's centre line (m, negative = south). */
+  seatDy: number;
+  seats: SeatSpec[];
+}
+
 export interface PlazaLayout {
   /** Where the bean's centre and footprint may go. */
   walkable: Rect;
   props: PropFootprint[];
+  benches: BenchSpec[];
   /** Where the bean starts. */
   start: { x: number; y: number };
   rail: RailLayout | null;
@@ -83,6 +106,23 @@ export interface PlazaLayout {
 export const DEFAULT_PLAZA: PlazaLayout = {
   walkable: { minX: -5.8, maxX: 5.8, minY: -3, maxY: 2 },
   props: [{ id: 'tree', x: 2.2, y: 0.2, halfWidth: 0.25, halfDepth: 0.2 }],
+  // D24: 1.6 × 0.45 m, seat 0.30 m high, seats 0.4 m either side of the centre. PLACEHOLDER
+  // spot in the plaza (D2).
+  benches: [
+    {
+      id: 'bench',
+      x: -3.6,
+      y: 1.2,
+      halfWidth: 0.8,
+      halfDepth: 0.225,
+      seatHeight: 0.3,
+      seatDy: -0.15,
+      seats: [
+        { id: 'west', dx: -0.4 },
+        { id: 'east', dx: 0.4 },
+      ],
+    },
+  ],
   start: { x: -2.5, y: -0.8 },
   // The prototype's rail (7.36 m) and cart spots, centred on x = 0. PLACEHOLDER layout (D2).
   rail: {
@@ -122,7 +162,15 @@ export type HubAct =
   /** Standing in a cart, on its floor (z = CART_FLOOR_M). */
   | { kind: 'riding'; cart: string; since: number }
   /** Getting out (D23): a hop from the cart's floor to (toX, toY) on the ground. */
-  | { kind: 'leaving'; cart: string; startTick: number; endTick: number; fromX: number; fromY: number; toX: number; toY: number; arc: number };
+  | { kind: 'leaving'; cart: string; startTick: number; endTick: number; fromX: number; fromY: number; toX: number; toY: number; arc: number }
+  /** Walking to a seat's stand spot to sit (D24): a tap target; any other input cancels it. */
+  | { kind: 'approaching'; bench: string; seat: string }
+  /** The hop from the stand spot onto the seat. */
+  | { kind: 'seating'; bench: string; seat: string; startTick: number; endTick: number; fromX: number; fromY: number }
+  /** Sitting since tick `since` (dozes after a while, which the client draws from `since`). */
+  | { kind: 'sitting'; bench: string; seat: string; since: number }
+  /** The hop down to the stand spot; then walks to `then` if a tap asked for it. */
+  | { kind: 'standing'; bench: string; seat: string; startTick: number; endTick: number; then: { x: number; y: number } | null };
 
 export type HubActKind = HubAct['kind'];
 
@@ -200,8 +248,10 @@ export type HubCommand =
   | { type: 'moveTo'; x: number; y: number }
   /** Jump, if on the ground. In a cart: get out. */
   | { type: 'jump' }
-  /** E, the context action: get into the ridable cart when near it, or get out of it. */
-  | { type: 'action' };
+  /** E, the context action: get into the ridable cart or sit on the bench when near, or get out or up. */
+  | { type: 'action' }
+  /** A tap on a prop (by id), e.g. the bench: walk over and use it. */
+  | { type: 'use'; id: string };
 
 export interface HubOptions {
   layout?: PlazaLayout;
@@ -224,5 +274,8 @@ export function clampTarget(walkable: Rect, x: number, y: number): { x: number; 
   return { x: clamp(x, area.minX, area.maxX), y: clamp(y, area.minY, area.maxY) };
 }
 
-/** Whether the bean walks under the hub's own rules (input, Planck) in this state. */
-export const actWalks = (act: HubAct): boolean => act.kind === 'free' || act.kind === 'pushing';
+/** Whether the bean walks under the hub's own rules (input, targets, jumps) in this state. */
+export const actWalks = (act: HubAct): boolean => act.kind === 'free' || act.kind === 'pushing' || act.kind === 'approaching';
+
+/** Whether Planck moves the bean in this state (pushing places the bean itself). */
+export const actUsesPlanck = (act: HubAct): boolean => act.kind === 'free' || act.kind === 'approaching';

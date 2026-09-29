@@ -40,8 +40,8 @@ Pick a scene with `?scene=<name>`:
 |---|---|---|
 | `empty` | http://localhost:5180/?scene=empty | Background only; proves the client boots |
 | `drop` | http://localhost:5180/?scene=drop | A 1 kg and a 10 kg ball released from 10 m, with a timer. R or tap: drop again |
-| `hub` (default) | http://localhost:5180/?scene=hub | The hub plaza in ¾ top-down view, with one tree to walk behind and in front of, and a rail with a 5 kg and a 20 kg cart (speed shown in m/s). Arrows or WASD move, Shift runs, Space jumps, tap or click walks to a spot. Walk into a cart's end to push it (Shift pushes harder); E gets in or out of the 5 kg cart, Space also gets out. The bean, the tree and the carts are drawn art from `art/`; the plaza floor and the rail are placeholder shapes |
-| `bean` | http://localhost:5180/?scene=bean | Rig gallery for review: the 8 directions, then walk, run, jump, fall, land, breathing and a blink at fixed clip times (labelled; no sim) |
+| `hub` (default) | http://localhost:5180/?scene=hub | The hub plaza in ¾ top-down view, with one tree to walk behind and in front of, and a rail with a 5 kg and a 20 kg cart (speed shown in m/s). Arrows or WASD move, Shift runs, Space jumps, tap or click walks to a spot. Walk into a cart's end to push it (Shift pushes harder); E hops in or out of the 5 kg cart, Space also gets out. Tap the bench, or press E near it, to walk over and sit (the bean dozes after 5 s); any movement, E or Space stands up. The bean, the tree, the carts and the bench are drawn art from `art/`; the plaza floor and the rail are placeholder shapes |
+| `bean` | http://localhost:5180/?scene=bean | Rig gallery for review: the 8 directions, then walk, run, jump, fall, land, breathing, a blink, sitting and dozing at fixed clip times (labelled; no sim) |
 
 `&paused=1` starts the scene's sim paused at t = 0 (tools/shot uses this to step to an exact time).
 An unknown scene name logs a console error listing the registered scenes. The bean art is
@@ -49,7 +49,9 @@ checked against the art contract and rasterized before any scene starts; broken 
 error.
 
 The game follows `prefers-reduced-motion`: the bean loses its bob, squash, stretch, breathing
-and waddle, but still changes pose (see `docs/ASSUMPTIONS.md`, M1 session 2).
+and waddle, but still changes pose (see `docs/ASSUMPTIONS.md`, M1 session 2). Hops (into and out
+of a cart, onto and off the bench) move in a straight line without the arc, the feet on the
+bench hang still, and the doze "z" stays put.
 
 Production build: `pnpm build` (output in `packages/client/dist`), then `pnpm preview`
 (http://localhost:4180/).
@@ -78,6 +80,12 @@ Key tests (in `packages/sim/test/`):
 - `hub-carts.test.ts`: carts in the hub: pushing only from a cart's end (blocked from north and
   south), E and Space to get in and out, riding speeds, a push into the other cart, and
   10,000-step determinism with scripted pushes, rides and jumps.
+- `hub-cart-hops.test.ts`: the hop in (crouch 0.12 s, then 0.32 s + 0.111 s/m, arc
+  0.30 m + 0.3/m, landing on the floor at the end tick) and out (0.38 s, arc 0.40 m), input
+  ignored mid-hop, and restoring a mid-hop snapshot into a fresh scenario.
+- `hub-bench.test.ts`: the bench: solid, E within 1.3 m or a tap walks over and sits (0.35 s hop,
+  arc 0.26 m), taken seats skipped, standing up on a held key, E, Space or a tap (0.30 s hop),
+  cancelling the walk over, a mid-hop snapshot, and 10,000-step determinism.
 - `boundary.test.ts`: fails if `packages/sim` (or the `shared` code it uses) imports Phaser,
   client code, Node or network modules, or touches DOM globals, `Date`, `performance` or
   `Math.random`. It also type-checks the sim against the ES library only. Planck.js is the one
@@ -89,9 +97,12 @@ Also, in `packages/client/test/`:
   the table in `docs/DESIGN.md` §6, starting from the sim's facing.
 - `bean-art.test.ts`: the art contract for `art/bean/*.svg` (required parts, flat groups,
   facing-left drawings for asymmetric parts, the scarf tail on the bean's left in all 8
-  directions, eye highlights on the light side, pivots).
-- `prop-art.test.ts`: the art contract for `art/props/*.svg` (the tree and cart parts, wheel
-  pivots and radius).
+  directions, eye highlights on the light side, `data-pivot` pivots equal to the rules they
+  replaced, anchors, and rejecting broken markup).
+- `prop-art.test.ts`: the art contract for `art/props/*.svg` (the tree, cart and bench parts,
+  wheel pivots and radius, and anchors that agree with the sim: the cart floor and the seats).
+- `hub-presentation.test.ts`: the hub's table of how each interaction state draws (clip, parts,
+  placement, shadow, cart stand-off, the flat hop for reduced motion).
 - `player.test.ts`: clip data and timings, the rig player, reduced motion, and choosing the clip
   from sim state.
 
@@ -187,20 +198,32 @@ Scripts in `tools/shot/scripts/`:
 | `hub-depth-tie.json` | The bean on the same ground row as the tree (east of the trunk, mid-jump): drawn in front, and the log says so |
 | `hub-carts-push.json` | Walk west of the 5 kg cart, push it east (two shots 0.1 s apart while it speeds up, then at the 1.9 m/s cap), let go; it rolls into the 20 kg cart |
 | `hub-carts-heavy.json` | Walk east of the 20 kg cart and push it west: the same 42 N gives F/m a quarter as large, so the net acceleration is 42/20 − 0.26 = 1.84 m/s² against 8.14 m/s² for the 5 kg cart |
-| `hub-carts-ride.json` | Push the 5 kg cart to the cap, E to get in (speed × 5/25), ride, E to get out (speed × 25/5) |
-| `hub-carts-board-still.json` | Walk to the resting 5 kg cart and press E: the rider faces the camera (it faces the way the cart travels while it moves) |
+| `hub-carts-ride.json` | Push the 5 kg cart to the cap, E: crouch, hop up, fall into the cart (masked below the rim), land (speed × 5/25 at touchdown), ride, E: hop out (speed × 25/5 at take-off) |
+| `hub-carts-board-still.json` | Walk to the resting 5 kg cart and press E: mid-hop, then the rider faces the camera (it faces the way the cart travels while it moves) |
+| `hub-bench.json` | Tap the bench: walk over, hop on, sit (feet swinging, two phases), doze after 5 s, then → stands up and walks off |
+| `hub-bench-depth.json` | On the bench's row (drawn in front), behind it (drawn behind), in front of it, then E to sit |
 
 After the three cart scripts, `pnpm shot:check-carts` recomputes from their logs the push
 accelerations (F/m − 0.26 m/s²), the cap, momentum and restitution of the collision, the riding
-speeds and every speed readout, and exits non-zero on any mismatch.
+speeds (from the logged touchdown and take-off, with rolling friction in between) and every
+speed readout, and exits non-zero on any mismatch.
+
+`pnpm shot:compare-states <old status folder> [<new shots folder>]` compares the sim state of
+every stepped shot log in an earlier session's evidence (for example `docs/status/m1-s2`) with a
+fresh run of the same scripts, after mapping the fields renamed or added since (listed in
+`tools/shot/src/compare-states.ts`). Live shots are skipped: their tick depends on wall-clock
+time. It exits non-zero on any difference.
 
 Hub shot logs add a `view` block: the bean's screen position (feet, in viewport pixels),
 depth scale and draw depth, the rig (`view`, `mirrored`, `clip`, clip time and the pose's body
-transform), `reducedMotion`, and for each prop whether the bean is drawn `behind` it or
-`in front`. The `bean` gallery's log lists every cell's view, clip, time and body transform.
-The hub state carries `bean.pushing`, `bean.riding` and `rail` (each cart's mass, position and
-velocity, and the last 16 collisions with the velocities before and after); the `view` block
-adds each cart's readout text.
+transform, the interaction state and how it was drawn: `act`, `placement`, `masked`, `drawnZ`
+and the feet's offsets), `reducedMotion`, and for each prop (the tree and the bench) whether
+the bean is drawn `behind` it or `in front`. The `bean` gallery's log lists every cell's view,
+clip, time and body transform. The hub state carries `bean.act` (the interaction state:
+`free`, `pushing`, `boarding`, `riding`, `leaving`, `approaching`, `seating`, `sitting` or
+`standing`, with its timing in ticks) and `rail` (each cart's mass, position and velocity, the
+last 16 collisions with the velocities before and after, and the last 16 times the bean got in
+or out); the `view` block adds each cart's readout text.
 
 The contract between the game and the tool is `packages/shared/src/test-api.ts`.
 
@@ -211,7 +234,7 @@ packages/
   shared/   constants (PIXELS_PER_METER) and the test-hook contract; pure TS
   sim/      fixed 60 Hz sim in SI units (m, kg, s), seeded RNG; pure TS, no Phaser/DOM.
             Side views: +Y up. Hub: ground plane x east, y north, plus height z (Planck.js
-            for hub collisions)
+            for hub collisions); src/interactions/: one module per interaction (carts, bench)
   client/   Vite + Phaser: scenes render sim state; input becomes sim commands.
             src/rig/: bean art contract, facing-to-view mapping, clips as data, rig player,
             and the Phaser rig

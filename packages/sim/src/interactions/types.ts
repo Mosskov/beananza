@@ -36,10 +36,15 @@ export interface HubInteraction {
    */
   drive?(step: HubStep, desired: Velocity): void;
   /**
-   * After the world moved (carts, Planck): place the bean for an act this module owns and run
-   * its timed transitions.
+   * After the world moved (carts, Planck, which has already placed a bean that walks): place
+   * the bean for an act this module owns and run its timed transitions.
    */
   place(step: HubStep): void;
-  /** Facing for an act this module owns; null keeps the current facing. */
+  /**
+   * Facing for an act this module owns; null keeps the current facing, or follows the ground
+   * movement if the bean moves.
+   */
   facing(step: HubStep): Facing | null;
+  /** At the very end of the step (after tap targets and height): transitions that follow them. */
+  settle?(step: HubStep): void;
 }

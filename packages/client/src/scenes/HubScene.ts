@@ -1,8 +1,8 @@
 import Phaser from 'phaser';
 import { PIXELS_PER_METER } from '@beananza/shared';
-import { CART_HALF_DEPTH, CART_HALF_LENGTH, FIXED_DT, HUB_BEAN_RADIUS_M, Sim, createHubScenario, type HubCommand, type HubInput, type HubState } from '@beananza/sim';
+import { CART_HALF_DEPTH, CART_HALF_LENGTH, FIXED_DT, HUB_BEAN_RADIUS_M, Sim, createHubScenario, standSpot, type HubCommand, type HubInput, type HubState } from '@beananza/sim';
 import { prefersReducedMotion } from '../accessibility';
-import { propPart } from '../art/props';
+import { propAnchor, propPart } from '../art/props';
 import { GAME_HEIGHT, GAME_WIDTH, PALETTE, cssColor } from '../config';
 import { BeanRig, createBeanShadow } from '../rig/BeanRig';
 import { beanArt } from '../rig/bean-art';
@@ -10,7 +10,7 @@ import { chooseClip, samplePose } from '../rig/player';
 import { viewForFacing } from '../rig/views';
 import { SimScene } from './SimScene';
 import { CART_RIDER_DEPTH, CartView, drawRiderMask, drawRail, speedReadout } from './hub-carts';
-import { TOGGLED_PARTS, presentAct } from './hub-presentation';
+import { PART_DEFAULTS, presentAct, type Placement, type ToggledPart } from './hub-presentation';
 import { cartStandOff, characterScreen, depthKey, depthScale, groundFromScreen, toScreen } from './hub-view';
 
 const m = (meters: number) => meters * PIXELS_PER_METER;
@@ -44,6 +44,8 @@ interface RigShown {
   masked: boolean;
   /** Height drawn (m): the sim's z, or the flat hop under reduced motion. */
   drawnZ: number;
+  /** The feet's pose offsets (art units): dangling and swinging on the bench. */
+  feet: { a: { x: number; y: number }; b: { x: number; y: number } };
   view: string;
   mirrored: boolean;
   clip: string;
@@ -67,6 +69,7 @@ export class HubScene extends SimScene<HubState, HubCommand> {
   private rigShown: RigShown | null = null;
   private carts = new Map<string, CartView>();
   private prevCarts = new Map<string, number>();
+  private benchIds = new Set<string>();
   /** The rider's mask shape (world coordinates), used while the bean is in a cart. */
   private riderMaskShape!: Phaser.GameObjects.Graphics;
 
@@ -86,6 +89,13 @@ export class HubScene extends SimScene<HubState, HubCommand> {
       const at = toScreen(prop.x, prop.y);
       root.setPosition(at.x, at.y).setDepth(depthKey(prop.y));
       this.props.set(prop.id, root);
+    }
+    for (const bench of layout.benches) {
+      const root = this.add.container(0, 0, ['shadow', 'back', 'seat'].map((part) => propPart(this, 'bench', part)));
+      const at = toScreen(bench.x, bench.y);
+      root.setPosition(at.x, at.y).setDepth(depthKey(bench.y));
+      this.props.set(bench.id, root);
+      this.benchIds.add(bench.id);
     }
     if (layout.rail) {
       drawRail(this, layout.rail, GROUND_DEPTH + 0.5);
@@ -156,6 +166,13 @@ export class HubScene extends SimScene<HubState, HubCommand> {
 
     this.input.on(Phaser.Input.Events.POINTER_DOWN, (pointer: Phaser.Input.Pointer) => {
       if (pointer.button !== 0) return; // Primary button or touch only.
+      // A tap on the bench's drawing uses it (walk over and sit); anywhere else walks there.
+      for (const id of this.benchIds) {
+        if (this.props.get(id)?.getBounds().contains(pointer.worldX, pointer.worldY)) {
+          this.sim.enqueue({ type: 'use', id });
+          return;
+        }
+      }
       const ground = groundFromScreen(pointer.worldX, pointer.worldY);
       this.sim.enqueue({ type: 'moveTo', x: ground.x, y: ground.y });
     });
@@ -206,12 +223,16 @@ export class HubScene extends SimScene<HubState, HubCommand> {
     // The sim's z and the draw order are unchanged; only the drawn height is scaled (D18).
     // Under reduced motion a hop moves in a straight line (no arc).
     const drawnZ = this.reducedMotion && look.flatZ !== null ? look.flatZ : z;
-    const feet = characterScreen(x, y, drawnZ, scale);
+    let feet = characterScreen(x, y, drawnZ, scale);
     const { rig, shadow } = this.bean;
     // In a cart the bean draws between the back and the front of the cart, and below the rim
     // only inside the cart's front (it is wider than the cart).
     const cartView = inCart !== null && rail !== null ? this.carts.get(inCart) : undefined;
-    const depth = cartView && rail ? depthKey(rail.y) + CART_RIDER_DEPTH : depthKey(y) + CHARACTER_TIE_BREAK;
+    let depth = cartView && rail ? depthKey(rail.y) + CART_RIDER_DEPTH : depthKey(y) + CHARACTER_TIE_BREAK;
+    if (look.placement.kind === 'seat') {
+      const seated = this.seatPlacement(look.placement, scale);
+      if (seated) ({ feet, depth } = seated);
+    }
     rig.root.setPosition(feet.x, feet.y).setScale(scale).setDepth(depth);
     if (cartView) drawRiderMask(this.riderMaskShape, cartView.screen);
     // Keep the readout of the cart in use above the bean's head (its headwear anchor), with a gap.
@@ -226,7 +247,7 @@ export class HubScene extends SimScene<HubState, HubCommand> {
     const choice = viewForFacing(b.facingX, b.facingY);
     const { clip, t } = chooseClip(b, time, this.sim.state.gravity, look.clip);
     rig.setView(choice);
-    for (const part of TOGGLED_PARTS) rig.setPartVisible(part, look.shows.includes(part));
+    for (const [part, shown] of Object.entries(PART_DEFAULTS)) rig.setPartVisible(part, look.parts[part as ToggledPart] ?? shown);
     const pose = samplePose({ clip, t, time, view: choice.view, reducedMotion: this.reducedMotion });
     rig.applyPose(pose);
     // The bean's body is wider than its footprint: next to a cart's end (pushing or not), draw
@@ -257,11 +278,33 @@ export class HubScene extends SimScene<HubState, HubCommand> {
       placement: look.placement.kind,
       masked: rig.root.renderFilters,
       drawnZ: r(drawnZ),
+      feet: { a: { x: r(pose.footA.x), y: r(pose.footA.y) }, b: { x: r(pose.footB.x), y: r(pose.footB.y) } },
       view: choice.view,
       mirrored: choice.mirrored,
       clip,
       clipT: r(t),
       body: { y: r(by), rotation: r(rotation), scaleX: r(scaleX), scaleY: r(scaleY) },
+    };
+  }
+
+  /**
+   * Where a bean on a bench (or hopping on or off it) draws: from its stand spot on the ground
+   * (p = 0) to the seat anchor of the bench's drawing (p = 1), plus the hop's arc, which reduced
+   * motion drops. It sorts just in front of the bench.
+   */
+  private seatPlacement(placement: Extract<Placement, { kind: 'seat' }>, scale: number): { feet: { x: number; y: number }; depth: number } | null {
+    const bench = this.sim.state.layout.benches.find((q) => q.id === placement.bench);
+    const seat = bench?.seats.find((q) => q.id === placement.seat);
+    if (!bench || !seat) return null;
+    const at = toScreen(bench.x, bench.y);
+    const anchor = propAnchor('bench', `seat-${seat.id}`);
+    const spot = standSpot(bench, seat);
+    const from = toScreen(spot.x, spot.y);
+    const { p, arc } = placement;
+    const up = this.reducedMotion ? 0 : 4 * arc * p * (1 - p) * PIXELS_PER_METER * scale;
+    return {
+      feet: { x: from.x + (at.x + anchor.x - from.x) * p, y: from.y + (at.y + anchor.y - from.y) * p - up },
+      depth: depthKey(bench.y) + CHARACTER_TIE_BREAK,
     };
   }
 

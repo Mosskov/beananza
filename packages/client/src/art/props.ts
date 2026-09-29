@@ -2,26 +2,29 @@ import type Phaser from 'phaser';
 // Props that never turn are drawn once, as SVG files in art/props/ (D12), and loaded by part id
 // like the bean. Vite inlines the text at build time.
 import cart from '../../../../art/props/cart.svg?raw';
+import bench from '../../../../art/props/bench.svg?raw';
 import tree from '../../../../art/props/tree.svg?raw';
 import { insideViewBox, parseSvgParts, partPivot, type Point, type SvgDoc } from '../rig/svg-parts';
 import { addTextures, partImage, rasterizeParts, type PartTexture } from './raster';
 
-export const PROP_SVGS: Readonly<Record<string, string>> = { tree, cart };
+export const PROP_SVGS: Readonly<Record<string, string>> = { tree, cart, bench };
 
 /** Parts each prop must have, in the art contract (`art/README.md`). */
 export const PROP_PARTS: Readonly<Record<string, readonly string[]>> = {
   tree: ['shadow', 'trunk', 'canopy'],
   cart: ['shadow', 'back', 'rocks', 'front', 'wheel-west', 'wheel-east'],
+  bench: ['shadow', 'back', 'seat'],
 };
 
 /**
  * Anchors each prop must have (D22). The cart: `floor` (where a rider stands) and the corners
  * of its front (`rim-west`, `rim-east`, `base-west`, `base-east`): below the rim, a rider only
- * shows inside them.
+ * shows inside them. The bench: `seat-<seat id>`, where a seated bean's feet point is.
  */
 export const PROP_ANCHORS: Readonly<Record<string, readonly string[]>> = {
   tree: [],
   cart: ['floor', 'rim-west', 'rim-east', 'base-west', 'base-east'],
+  bench: ['seat-west', 'seat-east'],
 };
 
 export interface PropArtSpec {

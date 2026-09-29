@@ -52,7 +52,10 @@ function channelNeutral(channel: Channel): number {
 
 function applyClip(pose: Pose, clip: Clip, seconds: number, reducedMotion: boolean): void {
   for (const track of clip.tracks) {
-    if (reducedMotion && track.motion) continue;
+    if (reducedMotion && track.motion) {
+      if (track.still !== undefined) pose[track.slot][track.channel] = track.still;
+      continue;
+    }
     pose[track.slot][track.channel] = sampleTrack(clip, track, seconds);
   }
 }

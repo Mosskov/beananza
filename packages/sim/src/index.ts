@@ -8,3 +8,4 @@ export * from './rail';
 export * from './interactions/cart';
 export * from './interactions/hop';
 export * from './interactions/types';
+export * from './interactions/bench';

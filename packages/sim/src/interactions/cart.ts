@@ -5,6 +5,7 @@ import {
   CART_HALF_DEPTH,
   HUB_BEAN_MASS_KG,
   HUB_BEAN_RADIUS_M,
+  actWalks,
   clampTarget,
   type HubAct,
   type HubBean,
@@ -98,11 +99,14 @@ function getOut(state: HubState, cartId: string): void {
   bean.vy = 0;
 }
 
-/** Start the hop into the ridable cart if it is near: a crouch, then a hop that lands in it. */
-function getIn(state: HubState): void {
+/**
+ * Start the hop into the ridable cart if it is near: a crouch, then a hop that lands in it.
+ * Returns whether it did.
+ */
+function getIn(state: HubState): boolean {
   const bean = state.bean;
   const rail = state.layout.rail;
-  if (!rail || !state.rail || !bean.grounded) return;
+  if (!rail || !state.rail || !bean.grounded || !actWalks(bean.act)) return false;
   for (const spec of rail.carts) {
     const cart = cartById(state, spec.id);
     if (!spec.ridable || !cart) continue;
@@ -127,8 +131,9 @@ function getIn(state: HubState): void {
     bean.stuckSteps = 0;
     bean.vx = 0;
     bean.vy = 0;
-    return;
+    return true;
   }
+  return false;
 }
 
 export const cartInteraction: HubInteraction = {
@@ -146,11 +151,8 @@ export const cartInteraction: HubInteraction = {
       getOut(state, act.cart);
       return true;
     }
-    if (command.type === 'action') {
-      getIn(state);
-      return true;
-    }
-    return false;
+    // E next to the cart gets in; elsewhere another interaction may use it.
+    return command.type === 'action' && getIn(state);
   },
 
   drive({ state }: HubStep, desired: Velocity) {

@@ -5,7 +5,7 @@
   <g id="arm-far-push" visibility="hidden"><path d="M-2 -60 q22 -8 46 -4" fill="none" stroke="#B5633A" stroke-width="10" stroke-linecap="round"/></g>
   <g id="scarf-tail"><path d="M-36 -50 L-60 -40 L-56 -30 L-34 -42 Z" fill="#E3A93B"/></g>
   <g id="body"><path d="M-40 -4 C-48 -46 -42 -112 2 -114 C46 -112 52 -46 44 -4 C38 6 -34 6 -40 -4 Z" fill="#E08A5B"/></g>
-  <g id="belly"><ellipse cx="22" cy="-24" rx="18" ry="18" fill="#F2B48C"/></g>
+  <g id="belly"><path d="M46.9 -42 C47.3 -30.3 46.4 -18.5 44.7 -8 C14 -12 14 -38 46.9 -42 Z" fill="#F2B48C"/></g>
   <g id="scarf"><path d="M-42 -54 Q2 -42 46 -54 L46 -44 Q2 -32 -42 -44 Z" fill="#F6C66B"/></g>
   <g id="eyes"><ellipse cx="25" cy="-80" rx="5.5" ry="8" fill="#2B211C"/><circle cx="27" cy="-83" r="2" fill="#FFFFFF"/></g>
   <g id="cheeks"><ellipse cx="35" cy="-66" rx="5" ry="3.5" fill="#F08F7A" opacity="0.6"/></g>

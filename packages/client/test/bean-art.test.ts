@@ -61,6 +61,24 @@ describe('bean art contract (art/bean/*.svg)', () => {
     expect(layer('side', true)).toBe('in front');
   });
 
+  it('puts the near arm and foot on the side nearer the camera in the ¾ views', () => {
+    // Turned to its right towards the camera (front ¾), the bean's right side is near and on
+    // screen left; turned to its right away from the camera (back ¾), it is near and on screen right.
+    const pivotX = (name: string, id: string) => {
+      const p = view(name, false).parts.find((q) => q.id === id);
+      if (!p) throw new Error(`no ${id}`);
+      return p.pivot.x;
+    };
+    for (const id of ['arm-near', 'foot-near']) {
+      expect(pivotX('front-34', id), id).toBeLessThan(0);
+      expect(pivotX('back-34', id), id).toBeGreaterThan(0);
+    }
+    for (const id of ['arm-far', 'foot-far']) {
+      expect(pivotX('front-34', id), id).toBeGreaterThan(0);
+      expect(pivotX('back-34', id), id).toBeLessThan(0);
+    }
+  });
+
   it('keeps the eye highlights on the light side (up and to the right of each pupil)', () => {
     for (const source of ['front', 'front-34', 'side', 'front-34-left', 'side-left']) {
       const eyes = parseSvgParts(BEAN_SVGS[source] as string).parts.find((p) => p.id === 'eyes');

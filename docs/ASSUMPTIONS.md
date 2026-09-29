@@ -5,9 +5,9 @@ changes a decision in `docs/DECISIONS.md`. Newest milestone first.
 
 ## Share site (`tools/share`), 2026-09-29
 
-Step 1 of sharing the project with coworkers: a static site built locally. Hosting it (a
-Cloudflare Worker was discussed) and comments on open decisions are later steps; nothing is
-deployed, and D11 is untouched.
+Sharing the project with coworkers: a site built locally from the docs and deployed on
+2026-09-29 to https://beananza.niclasmosskov.workers.dev, behind one shared password. Comments on
+open decisions are a later step. D11 has a note only and stays Open.
 - **Built from the docs on every run**, not written by hand, so it matches the repo. Only the
   pitch, section intros and labels are written in `tools/share/src/page.ts`.
 - **Teacher sections** are DESIGN.md §1 (vision), §2 (core loop), §8 (expeditions and learning),
@@ -21,9 +21,16 @@ deployed, and D11 is untouched.
   dev server of another checkout on port 5180 can never leak into them.
 - **Fonts are self-hosted** (`@fontsource` 5.3.0), so visitors make no requests to Google.
 - **`noindex`** on the page: it is for people with the link, not search engines.
-- **Cloudflare setup, not deployed:** the Worker is named `beananza` (the user's choice) and
-  serves static files only (`tools/share/wrangler.jsonc`); `pnpm share:deploy` rebuilds and then
-  deploys. The user asked to deploy once the M1 session 3 work is on `main`.
+- **Cloudflare:** the Worker is named `beananza` (the user's choice); `pnpm share:deploy`
+  rebuilds and then deploys (`tools/share/wrangler.jsonc`). First deployed after the M1 session 3
+  work was merged, as the user asked. The site's Play buttons include the `looks` scene, and the
+  third teacher screenshot is the looks gallery.
+- **Setting the password:** the first `pnpm share:password` ran through Claude Code's `!` prompt,
+  got no input and saved an empty secret; the Worker's fail-closed check kept the site shut
+  (503). The user then set it in the dashboard, which saves a version without deploying it;
+  it went live with `wrangler versions deploy`. Checked live: every path, the game's files
+  included, answers 401 with the login prompt without a password or with a wrong one; the user
+  confirmed the right password opens the site and the game.
 - **wrangler 4.143.0**, not 4.143.1: 4.143.1 was published less than a day before this
   session. Its `workerd` dependency (Cloudflare's local runtime, only for `wrangler dev`) has
   its install script denied in `pnpm-workspace.yaml`.

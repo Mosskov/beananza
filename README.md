@@ -259,6 +259,12 @@ pnpm share:deploy     # rebuild, then deploy (needs `npx wrangler login` once)
 pnpm share:password   # set or change the site password (asks for it)
 ```
 
+`pnpm share:password` must run in a real terminal (PowerShell or similar). Run through Claude
+Code's `!` prompt it gets no input and saves an empty password (the site then stays closed).
+The password can also be changed in the Cloudflare dashboard (Workers & Pages → beananza →
+Settings → Variables and Secrets), but saving there only creates a new version: press Deploy
+too, or run `pnpm --filter @beananza/share exec wrangler versions deploy <version id>@100%`.
+
 - **Page** (`index.html`): the pitch, the playable game, and sections for teachers (DESIGN.md
   §1, 2, 8, 10, 11, 12), the roadmap (ROADMAP.md, with progress from STATUS.md), every decision
   (DECISIONS.md, filterable, `#D9` opens D9) and developers (IMPLEMENTATION.md §3 and the newest

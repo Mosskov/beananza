@@ -1,0 +1,6 @@
+{
+  // Pure sim: ES library only, no DOM and no Node types. Using `window`, `document`,
+  // `performance`, `setTimeout` or `console` here is a type error.
+  "extends": "../../tsconfig.base.json",
+  "include": ["src"]
+}

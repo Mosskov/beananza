@@ -1,0 +1,4 @@
+# Keep LF in the repo on every platform (core.autocrlf is on for this machine).
+* text=auto eol=lf
+*.png binary
+*.zip binary

@@ -19,7 +19,7 @@ and at home.
 - `docs/ROADMAP.md`: milestones and acceptance checks
 - `docs/DECISIONS.md`: decision log with open questions (imported below)
 - `docs/IMPLEMENTATION.md`: lessons from the prototypes, architecture rules, rotation approach, engine options, behavior inventory and verified tuning numbers
-- `docs/ART_PIPELINE.md`: proposed asset pipeline and art contract
+- `docs/ART_PIPELINE.md`: the art pipeline (Claude draws SVG text, contract checks, review sheets)
 - `docs/TOPICS.md`: design topics backlog
 - `prompts/M0-first-session.md`: the prepared prompt for the first build session
 - `reference/`: the showcase page and the bean rotation comparison (open in a browser). Behavior reference only; never port their code.
@@ -78,14 +78,26 @@ Details in `README.md`.
 - `pnpm install`, then once `pnpm shot:install` (Playwright Chromium)
 - `pnpm dev`: game at http://localhost:5180/?scene=<name> (`hub` is the default; also `bean`, `looks`, `drop`, `empty`; `&paused=1` starts paused; `&look=blue,spots,bow,glasses` sets the bean's look; `&layout=bench` opens a test yard instead of the plaza)
 - `pnpm check`: typecheck, lint, tests and build (`pnpm test`, `pnpm typecheck`, `pnpm lint`, `pnpm build`)
+- `pnpm verify`: the whole pass in about a minute: check, every scene and script, the looks, and
+  the log checks against the newest `docs/status/` folder. Between steps use
+  `pnpm verify --no-check --scripts <names>`.
 - `pnpm shot --all` or `pnpm shot --scene drop --t 1.0`: PNG plus JSON log in `artifacts/shots/`.
+  It starts its own server on a free port (`--reuse` for the one on 5180), and `--jobs 4` runs
+  scripts in parallel.
   Checks on the logs: `pnpm shot:check-carts`, `pnpm shot:check-looks`, `pnpm shot:compare-states <old evidence folder>`.
   Look at the screenshot and the log before claiming a scene works or looks right.
+- `pnpm shot:sheet <pngs or folders> [--crop x,y,w,h]`: many frames in one labelled image.
+- `pnpm art:sheet`: before, after and difference of the art against HEAD. Every art change is
+  shown to the user with this sheet.
+- Concurrent sessions each work in their own `git worktree` at a short path, on their own branch.
+- Design passes (questions that need the user's answers) run in a separate chat before a build
+  session. The build prompt starts from what `docs/DECISIONS.md` records.
 - New scenes register in `packages/client/src/scenes/registry.ts` under their `?scene=` name.
 - Routine choices go in `docs/ASSUMPTIONS.md`; current state in `docs/STATUS.md`.
 - Concurrent sessions: each works in its own git worktree on its own branch
   (`git worktree add -b <branch> E:/bz-<topic> main`, then `pnpm install`), never by switching
-  branches in a shared tree. `pnpm shot` always starts its own server, so it tests its own tree.
+  branches in a shared tree. `pnpm shot` starts its own server by default, so it tests its own
+  tree; don't pass `--reuse` there (the server on 5180 may be another worktree's).
 - New hub interactions follow "Adding a hub interaction" in `README.md`.
 
 @docs/DECISIONS.md

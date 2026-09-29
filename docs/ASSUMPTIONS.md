@@ -18,8 +18,6 @@ No behaviour change: 58 sim states identical to `docs/status/m1-s3`, and the vie
   order; it used to draw every prop as a tree. `compare-states` maps older logs (a rename entry).
 - **Client constants:** `UI_FONT` (was copied in five scenes) and `PALETTE.hedge` in `config.ts`;
   the ground, hedge, shadow and text styles in `HubScene.ts` are named.
-- **tools/shot never reuses a server:** a running `pnpm dev` may serve another worktree. It starts
-  its own on a free port (or `--port`); `check-looks` does the same.
 - **Test yards:** `?layout=<name>` opens the hub on a named layout (`HUB_LAYOUTS`): `plaza`, or
   a yard with the plaza's ground, start and camera and one thing on it (`bench`, `carts`), so the
   depth scale and screen positions match the plaza. Scripts take `"layout"`; `pnpm shot --layout`
@@ -28,6 +26,38 @@ No behaviour change: 58 sim states identical to `docs/status/m1-s3`, and the vie
 - **Not done:** per-session STATUS files. The share site shows the first `## ` section of
   `STATUS.md` as the newest report, and the conflict it would avoid (two sessions adding a
   section at the top) is small.
+
+## Workflow tools (`pnpm verify`, `shot:sheet`, `art:sheet`), 2026-09-29
+
+Built on the branch `tools/workflow`, from the workflow chat (`docs/TOPICS.md`, "A smoother
+session workflow"). D13 is partly confirmed there.
+- **tools/shot starts its own server by default**, on a free port. Reusing a running
+  `pnpm dev` is opt-in (`--reuse`): in M1 session 3 a stale one answered 500.
+- **`verify` runs 4 scripts at a time.** Each script steps a paused sim explicitly, so the
+  states are the same. This was checked: `--jobs 1` and `--jobs 4` gave 56 sim states with
+  0 differences, and all 12 scripts took 9 s instead of 14 s. The CLI's default stays 1.
+- **`verify` runs `pnpm check` alongside the scripts**, which don't sample fps. The live scenes
+  wait until it finishes, so their fps samples run on a quiet machine.
+- **`verify` finds the timed shots in the baseline folder** (`drop_t1.000` and `drop_t1.500`),
+  rather than keeping a list of its own, so the baseline decides what gets compared.
+- **Open issue: one browser crash in 6 full runs.** Once, the headless browser closed mid-run
+  ("Target page, context or browser has been closed"). The cause is unknown; possibly load from
+  the concurrent `pnpm check`. The next 5 runs passed.
+  - `verify` now reports a crash as a FAIL row for the step it hit, skips the log checks, and
+    still prints the summary.
+  - If it recurs, run `pnpm check` and `pnpm verify --no-check` one after the other, and look
+    into it.
+- **`verify` prints only failures and a summary table.** The full log goes to
+  `artifacts/verify/`, to keep a session's context small.
+- **Sheets are drawn on a canvas in headless Chromium**, so no image library (such as sharp)
+  was added.
+- **The art sheet** shows the `bean` and `looks` galleries (fixed poses, no sim) and the hub
+  paused at t = 0, at 2× scale.
+  - "Before" uses the ref's art with the current code, served by a Vite plugin from `git show`.
+    An art file that is new since the ref uses the current file, and a note says so.
+  - A pixel counts as changed when a channel differs by more than 2 of 255. Two runs without
+    an art change were pixel-identical in all three scenes.
+  - The zoom crop is the changed box plus 40 units of margin, at least 200 × 200 CSS pixels.
 
 ## Share site (`tools/share`), 2026-09-29
 

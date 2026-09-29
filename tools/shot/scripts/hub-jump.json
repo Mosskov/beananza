@@ -1,0 +1,18 @@
+{
+  "scene": "hub",
+  "steps": [
+    { "shot": "ground" },
+    { "press": "Space" },
+    { "wait": 0.4 },
+    { "shot": "apex" },
+    { "wait": 0.6 },
+    { "shot": "landed" },
+    { "keyDown": "KeyD" },
+    { "press": "Space" },
+    { "wait": 0.5 },
+    { "shot": "air-control" },
+    { "keyUp": "KeyD" },
+    { "wait": 0.5 },
+    { "shot": "landed-again" }
+  ]
+}

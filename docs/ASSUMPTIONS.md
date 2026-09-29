@@ -58,6 +58,28 @@ note "the stack is scaffolding, not a decision" no longer applies to those parts
 - **Commands:** `move` (held direction plus Run), `moveTo` (tap target), `jump`. The held input
   is part of the sim state, so a replay needs only the commands.
 
+### Hub scene (`packages/client/src/scenes/HubScene.ts`)
+- **Projection:** `screen = (x·100, −(y + z)·100)` px, no foreshortening (1 m north = 100 px
+  up, as in the prototype). Camera zoom 1, centred on ground point (0, −0.5), so the 11.6 × 5 m
+  walkable area fills most of the 1280×720 view.
+- **Depth scale** `0.62 + 0.30·clamp((y_top − y) / depth_range, 0, 1)`, with y_top the walkable
+  area's north edge and depth_range its north-south size (5 m). Only the bean is scaled;
+  props are drawn at a fixed size (DESIGN.md §4 says characters scale).
+- **Draw order** is `−y·100` from the ground position (not the height), so a jump never changes
+  the order. Props sort by their footprint centre. Ground, floor and shadows sit below
+  everything sorted.
+- **Placeholders**, all marked in code: the bean is an outlined ellipse with a belly and eyes.
+  The eyes slide toward the facing direction and hide when facing away; this is not the 8-view
+  mapping. The prop is a round tree. The floor is a stone rectangle with a hedge band.
+- **Input:** held keys are read from Phaser key objects, and a `move` command is sent only when
+  the direction or Run changes (on key events and once per frame, which catches keys released
+  on blur). Space sends `jump` on its keydown event, ignoring OS repeats. Phaser's `JustDown`
+  misses a press and release within one frame. A tap or click sends `moveTo` with the ground
+  point under the pointer (z = 0).
+- **No on-screen touch buttons** for Run and Jump yet; phones can tap-to-move only.
+- **The hub shows one controls hint** ("Move: arrows or WASD   Run: Shift   Jump: Space"),
+  which the no-text rule allows. There is no other text.
+
 ## M0 (scaffold and verification loop), 2026-09-29
 
 ### Scope and decisions

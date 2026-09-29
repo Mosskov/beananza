@@ -1,0 +1,18 @@
+{
+  "scene": "hub",
+  "steps": [
+    { "tap": [860, 230] },
+    { "wait": 2.5 },
+    { "shot": "behind-prop" },
+    { "tap": [740, 230] },
+    { "wait": 0.75 },
+    { "tap": [740, 360] },
+    { "wait": 0.75 },
+    { "tap": [860, 360] },
+    { "wait": 0.75 },
+    { "shot": "in-front-of-prop" },
+    { "tap": [860, 60] },
+    { "wait": 2.0 },
+    { "shot": "stuck-cancelled" }
+  ]
+}

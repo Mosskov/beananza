@@ -1,8 +1,9 @@
 # Beananza (working name)
 
-A browser game that teaches high school physics through play. This repo is at **Milestone 0**:
-a TypeScript workspace, a pure fixed-step sim, a Phaser client that renders it, and a
-screenshot tool used to verify every scene. There are no game features yet.
+A browser game that teaches high school physics through play. This repo is early in
+**Milestone 1**: a TypeScript workspace, a pure fixed-step sim, a Phaser client that renders it,
+a screenshot and scripted-playthrough tool used to verify every scene, and a first hub plaza
+where a placeholder bean walks, runs and jumps.
 
 Start with `CLAUDE.md` and `docs/` (design, decisions, implementation notes). Nothing in there
 is approved yet. Current state: `docs/STATUS.md`. Routine choices made while building:
@@ -38,6 +39,7 @@ Pick a scene with `?scene=<name>`:
 |---|---|---|
 | `empty` (default) | http://localhost:5180/?scene=empty | Background only; proves the client boots |
 | `drop` | http://localhost:5180/?scene=drop | A 1 kg and a 10 kg ball released from 10 m, with a timer. R or tap: drop again |
+| `hub` | http://localhost:5180/?scene=hub | The hub plaza in ¾ top-down view, with one tree to walk behind and in front of. Arrows or WASD move, Shift runs, Space jumps, tap or click walks to a spot. Placeholder art |
 
 `&paused=1` starts the scene's sim paused at t = 0 (tools/shot uses this to step to an exact time).
 An unknown scene name logs a console error listing the registered scenes.
@@ -48,7 +50,7 @@ Production build: `pnpm build` (output in `packages/client/dist`), then `pnpm pr
 ## Tests and checks
 
 ```sh
-pnpm test              # Vitest: sim timing, determinism, drop physics, sim boundary
+pnpm test              # Vitest: sim timing, determinism, drop and hub physics, sim boundary, tools
 pnpm typecheck         # tsc in every package
 pnpm lint              # ESLint
 pnpm build             # typecheck the client, then Vite production build
@@ -59,9 +61,17 @@ Key tests (in `packages/sim/test/`):
 - `determinism.test.ts`, `drop.test.ts`: the same seed and inputs give an identical state after
   10,000 steps.
 - `drop.test.ts`: both balls land at sqrt(2·10/9.81) ≈ 1.428 s, within one step.
+- `hub.test.ts`: walk 2.4 m/s and run 4.2 m/s, diagonals no faster, jump apex 0.768 m and
+  air time 2·v₀/g ≈ 0.791 s under 9.81 m/s², air control, walkable bounds and the prop, tap
+  targets (arrive, clamp, cancel after 0.35 s stuck), and 10,000-step determinism with
+  scripted input.
 - `boundary.test.ts`: fails if `packages/sim` (or the `shared` code it uses) imports Phaser,
   client code, Node or network modules, or touches DOM globals, `Date`, `performance` or
-  `Math.random`. It also type-checks the sim against the ES library only.
+  `Math.random`. It also type-checks the sim against the ES library only. Planck.js is the one
+  allowed third-party import.
+
+Also: `packages/client/test/hub-view.test.ts` (hub projection, depth scale and draw order) and
+`tools/shot/test/script.test.ts` (script validation).
 
 ## tools/shot
 
@@ -141,6 +151,13 @@ Scripts in `tools/shot/scripts/`:
 | Script | Checks |
 |---|---|
 | `drop-reset.json` | The drop at t = 1.0 s; R and a tap each restart it |
+| `hub-walk.json` | Hold → for 1.0 s (2.4 m), Shift + A for 1.0 s (4.2 m back), ↑ + → for 0.5 s |
+| `hub-jump.json` | Space: apex at 0.4 s, landed at 1.0 s; then a jump while holding D (air control) |
+| `hub-depth.json` | Taps to walk north of the tree (drawn behind it), then south (drawn in front), then a tap straight through the tree (target dropped after 0.35 s stuck) |
+
+Hub shot logs add a `view` block: the bean's screen position (feet, in viewport pixels),
+depth scale and draw depth, and for each prop whether the bean is drawn `behind` it or
+`in front`.
 
 The contract between the game and the tool is `packages/shared/src/test-api.ts`.
 
@@ -149,7 +166,9 @@ The contract between the game and the tool is `packages/shared/src/test-api.ts`.
 ```
 packages/
   shared/   constants (PIXELS_PER_METER) and the test-hook contract; pure TS
-  sim/      fixed 60 Hz sim in SI units (m, kg, s), +Y up, seeded RNG; pure TS, no Phaser/DOM
+  sim/      fixed 60 Hz sim in SI units (m, kg, s), seeded RNG; pure TS, no Phaser/DOM.
+            Side views: +Y up. Hub: ground plane x east, y north, plus height z (Planck.js
+            for hub collisions)
   client/   Vite + Phaser: scenes render sim state; input becomes sim commands
 tools/
   shot/     Playwright screenshot and log tool

@@ -1,0 +1,22 @@
+{
+  "scene": "hub",
+  "steps": [
+    { "shot": "start" },
+    { "keyDown": "ArrowRight" },
+    { "wait": 1.0 },
+    { "keyUp": "ArrowRight" },
+    { "shot": "walked-1s" },
+    { "keyDown": "ShiftLeft" },
+    { "keyDown": "KeyA" },
+    { "wait": 1.0 },
+    { "keyUp": "KeyA" },
+    { "keyUp": "ShiftLeft" },
+    { "shot": "ran-back-1s" },
+    { "keyDown": "ArrowUp" },
+    { "keyDown": "ArrowRight" },
+    { "wait": 0.5 },
+    { "keyUp": "ArrowUp" },
+    { "keyUp": "ArrowRight" },
+    { "shot": "diagonal-half-s" }
+  ]
+}

@@ -4,6 +4,7 @@
  * written here.
  */
 import { Marked } from 'marked';
+import { DEFAULT_LAYOUT, HUB_LAYOUT_NAMES } from '@beananza/sim';
 import type { Decision, DecisionStatus, Milestone } from './docs';
 
 export interface PageInput {
@@ -23,6 +24,15 @@ export const PLAY_SCENES: readonly { scene: string; label: string }[] = [
   { scene: 'bean', label: 'Bean in every direction' },
   { scene: 'drop', label: 'Drop test' },
 ];
+
+/**
+ * The hub's test yards (every layout but the plaza), for developers: each opens the hub with
+ * one prop or interaction on its own. Generated, so a new yard shows up on the next build.
+ */
+export const PLAY_YARDS: readonly { layout: string; label: string }[] = HUB_LAYOUT_NAMES.filter((name) => name !== DEFAULT_LAYOUT).map((layout) => ({
+  layout,
+  label: layout.charAt(0).toUpperCase() + layout.slice(1),
+}));
 
 const marked = new Marked({ gfm: true, async: false });
 
@@ -80,6 +90,12 @@ function hero(): string {
   const sceneButtons = PLAY_SCENES.map(
     (s, i) => `<button type="button" class="scene" data-scene="${esc(s.scene)}" aria-pressed="${i === 0}">${esc(s.label)}</button>`,
   ).join('');
+  const yardButtons = PLAY_YARDS.map(
+    (y) => `<button type="button" class="scene" data-scene="hub" data-layout="${esc(y.layout)}" aria-pressed="false">${esc(y.label)}</button>`,
+  ).join('');
+  const yards = PLAY_YARDS.length
+    ? `<div class="scenes yards" role="group" aria-labelledby="yards-label"><span class="scenes-label" id="yards-label">Test yards, one thing at a time:</span>${yardButtons}</div>`
+    : '';
   return `
 <header class="hero">
   <div class="wrap hero-grid">
@@ -104,6 +120,7 @@ function hero(): string {
       </div>
       <figcaption>
         <div class="scenes" role="group" aria-label="Scene">${sceneButtons}</div>
+        ${yards}
         <p class="controls">
           <span><kbd>Arrows</kbd> or <kbd>WASD</kbd> or tap to move</span>
           <span><kbd>Shift</kbd> run</span>

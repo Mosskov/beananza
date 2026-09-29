@@ -7,12 +7,14 @@
   const openFull = document.getElementById('open-full');
   const sceneButtons = [...document.querySelectorAll('.scene')];
   let scene = 'hub';
+  // A hub test yard (`?layout=`), or null for the plaza.
+  let layout = null;
 
-  const sceneUrl = (name) => `play/?scene=${encodeURIComponent(name)}`;
+  const sceneUrl = (name, yard) => `play/?scene=${encodeURIComponent(name)}${yard ? `&layout=${encodeURIComponent(yard)}` : ''}`;
 
   // The game (about 1.7 MB) loads only when someone asks for it.
   function start() {
-    iframe.src = sceneUrl(scene);
+    iframe.src = sceneUrl(scene, layout);
     frame.classList.add('playing');
     iframe.addEventListener('load', () => iframe.focus(), { once: true });
   }
@@ -21,8 +23,9 @@
   for (const button of sceneButtons) {
     button.addEventListener('click', () => {
       scene = button.dataset.scene;
+      layout = button.dataset.layout ?? null;
       for (const b of sceneButtons) b.setAttribute('aria-pressed', String(b === button));
-      openFull.href = sceneUrl(scene);
+      openFull.href = sceneUrl(scene, layout);
       start();
     });
   }

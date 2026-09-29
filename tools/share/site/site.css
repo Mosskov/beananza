@@ -131,6 +131,8 @@ h1 {
 
 .game figcaption { margin-top: 1.5rem; display: grid; gap: 0.75rem; }
 .scenes { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.scenes.yards { align-items: center; }
+.scenes-label { font: 700 0.95rem var(--body); color: var(--ink-soft); margin-right: 0.25rem; }
 .scene, .filter {
   font: 700 0.95rem var(--body);
   color: var(--ink);

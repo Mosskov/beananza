@@ -217,6 +217,9 @@ importers:
 
   tools/share:
     dependencies:
+      '@beananza/sim':
+        specifier: workspace:*
+        version: link:../../packages/sim
       '@fontsource/caveat':
         specifier: 5.3.0
         version: 5.3.0

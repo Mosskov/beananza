@@ -182,6 +182,19 @@ describe('hub carts', () => {
     expect([sim.state.bean.facingX, sim.state.bean.facingY]).toEqual([0, -1]);
   });
 
+  it('a rider in a cart moving west faces west', () => {
+    const sim = newHub({ start: { x: LIGHT_X + 1.2, y: rail.y } });
+    sim.enqueue(move(-1, 0));
+    run(sim, 40);
+    expect(sim.state.bean.pushing?.dir).toBe(-1);
+    sim.enqueue(move(0, 0));
+    sim.enqueue({ type: 'action' });
+    sim.step();
+    expect(sim.state.bean.riding).toBe('light');
+    expect(cart(sim, 'light').v).toBeLessThan(-0.3);
+    expect([sim.state.bean.facingX, sim.state.bean.facingY]).toEqual([-1, 0]);
+  });
+
   it('E does nothing far from the cart or next to the 20 kg cart', () => {
     const far = newHub({ start: { x: LIGHT_X, y: rail.y + 1.5 } });
     far.enqueue({ type: 'action' });

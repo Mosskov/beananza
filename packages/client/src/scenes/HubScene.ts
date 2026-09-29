@@ -104,7 +104,7 @@ export class HubScene extends SimScene<HubState, HubCommand> {
       }
     }
     this.reducedMotion = prefersReducedMotion();
-    this.bean = { rig: new BeanRig(this), shadow: createBeanShadow(this).setDepth(GROUND_DEPTH + 1) };
+    this.bean = { rig: new BeanRig(this, this.look), shadow: createBeanShadow(this).setDepth(GROUND_DEPTH + 1) };
     // The rider mask (D23): a WebGL mask filter on the rig, rendered only while in a cart.
     this.riderMaskShape = this.make.graphics({}, false);
     this.bean.rig.root.enableFilters();
@@ -235,9 +235,6 @@ export class HubScene extends SimScene<HubState, HubCommand> {
     }
     rig.root.setPosition(feet.x, feet.y).setScale(scale).setDepth(depth);
     if (cartView) drawRiderMask(this.riderMaskShape, cartView.screen);
-    // Keep the readout of the cart in use above the bean's head (its headwear anchor), with a gap.
-    const headTop = feet.y + ((beanArt().spec.anchors.front.headwear?.y ?? 0) - READOUT_GAP_UNITS) * scale;
-    if (look.usingCart) this.carts.get(look.usingCart)?.keepReadoutAbove(headTop);
     rig.root.renderFilters = cartView !== undefined;
     const ground = toScreen(x, y);
     // The shadow stays on the ground and shrinks as the bean rises.
@@ -248,6 +245,8 @@ export class HubScene extends SimScene<HubState, HubCommand> {
     const { clip, t } = chooseClip(b, time, this.sim.state.gravity, look.clip);
     rig.setView(choice);
     for (const [part, shown] of Object.entries(PART_DEFAULTS)) rig.setPartVisible(part, look.parts[part as ToggledPart] ?? shown);
+    // Keep the readout of the cart in use above the bean's head (headwear included), with a gap.
+    if (look.usingCart) this.carts.get(look.usingCart)?.keepReadoutAbove(feet.y + (rig.drawnTop() - READOUT_GAP_UNITS) * scale);
     const pose = samplePose({ clip, t, time, view: choice.view, reducedMotion: this.reducedMotion });
     rig.applyPose(pose);
     // The bean's body is wider than its footprint: next to a cart's end (pushing or not), draw

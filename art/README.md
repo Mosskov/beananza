@@ -34,6 +34,23 @@ exploration) and are not loaded yet.
 - `front.svg` also has `eyes-sleep` (closed eyes) and `doze-z` (a drawn "z", not text), hidden
   unless the bean dozes on the bench; seated beans always face the camera, so only the front
   view needs them.
+- **Customization (D25), composed at load time, never per combination:**
+  - **Colours:** the bean is drawn in orange key colours (body `#E08A5B`, arm `#C96F42`, foot
+    `#B8622F`, belly `#F2B48C`, and the side and ¾ views' far foot `#A3572A` and far arm
+    `#B5633A`). The game swaps them for another palette colour before rasterizing; the far shades
+    keep orange's per-channel ratio to the foot and arm. Anything else (scarf, eyes, cheeks) keeps
+    its colour. Cream, the one very light colour, gets a soft outline on the body.
+  - `patterns/spots.svg`: one flat group per view (`front`, `front-34`, `side`, `back-34`,
+    `back`), in that view's frame, in the arm key colour. The game clips each group to that
+    view's `body` when rasterizing, so spots may run over the edge.
+  - `headwear/sprout.svg`, `bear-ears.svg`, `bow.svg`: one flat group per view, drawn with the
+    origin at that view's `anchor-headwear`. `data-layer="behind"` puts a group behind the body.
+    A piece that is not symmetric (the bow, on the bean's left) also has `front-34-left`,
+    `side-left` and `back-34-left` groups, drawn as seen on screen with the origin at the
+    mirrored anchor, so it never jumps sides. Bear ears use the body and belly key colours.
+  - `faces/glasses.svg`: groups for the views that show the eyes (`front`, `front-34`, `side`),
+    in the view's frame, drawn after the eyes.
+  - Checks: `packages/client/src/rig/looks.ts` and `packages/client/test/looks.test.ts`.
 - `forms.svg`: the four body forms (Bean, Mochi, Gumdrop, Pill) with each form's eye-line y.
   All forms are cosmetic and share one collider.
 
@@ -65,6 +82,8 @@ the tree's greens (`#5F9150`, `#6A9C5A`, `#86B874`) are new. The game loads them
 - **Known issue:** the sash runs into the mouth and off the edge of the body, and the "1 t" medal sits on the mouth. A corrected version (sash lowered and clipped to the body, medal moved up onto the sash near the left shoulder) is in the "The Heavy Baron" section of `reference/showcase.html`. This SVG still has the original.
 
 ## Palette
+New colours used by props and cosmetics (not in the tables below): the tree's greens, the
+bench's wood uses the cart's browns, and the bow (`#D94F6B`, knot `#B23A55`).
 UI and world:
 | Use | Hex |
 |---|---|

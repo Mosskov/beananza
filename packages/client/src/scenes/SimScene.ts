@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { DEFAULT_LOOK, type BeanLook } from '@beananza/shared';
 import { FixedStepper, secondsToTicks, type Sim, type SimStateBase } from '@beananza/sim';
 import type { SceneStartData, TestableScene } from './TestableScene';
 
@@ -10,9 +11,12 @@ export abstract class SimScene<S extends SimStateBase, C> extends Phaser.Scene i
   protected sim!: Sim<S, C>;
   private readonly stepper = new FixedStepper();
   private paused = false;
+  /** The player's bean look (drawing only; the sim never sees it). */
+  protected look: BeanLook = DEFAULT_LOOK;
 
   init(data: SceneStartData): void {
     this.paused = data.paused === true;
+    this.look = data.look ?? DEFAULT_LOOK;
     this.stepper.reset();
   }
 

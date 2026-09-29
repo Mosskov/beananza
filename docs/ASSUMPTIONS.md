@@ -108,6 +108,39 @@ hop and the rider clipped below the rim), D24 (the bench and sitting; D2 stays O
   a module added during the session), so shots in this session used `--port 5181`, which starts
   a fresh server per run. Restart `pnpm dev` after pulling.
 
+### Customization basics (D25)
+- **The look is data in `shared/src/look.ts`** (colour, pattern, headwear, face; the palette's
+  10 colours), for the M2 server to pass between players. The sim never uses it: the boundary
+  test fails on any sim source that names anything from that file (with a fixture that proves
+  the check can fail).
+- **`?look=`** on any scene (ids in any order; unknown ids are a console warning, not an
+  error). Boot rasterizes the colours the scene needs: the look's, orange and blue (Priya), or
+  all 10 for the `looks` gallery. No in-game wardrobe yet (it needs design).
+- **Texture keys** are `bean:<colour>:<source>:<part>` for parts drawn in key colours and
+  `bean:any:<source>:<part>` for the rest, so a colour costs only the parts that change.
+- **Far shades** (the side and ¾ views' far foot and arm) are not in the palette table: each
+  colour's are its foot and arm darkened by orange's per-channel ratios.
+- **Cream** gets a 2.5-unit outline in its foot colour on the body (the art rule for very light
+  shapes); on the cream plaza it would otherwise vanish.
+- **Spots** are clipped to each view's body with an SVG `clipPath` when rasterized, and sit
+  right after the body (under the belly, scarf and face) in the body's segment, so they bob and
+  squash with it. Front and back spots are symmetric; the side and ¾ views' spots mirror with
+  the view (the bean's two flanks are mirror images).
+- **Headwear** sits after the goggles (or before the body with `data-layer="behind"`), in the
+  body's segment, placed at the view's `anchor-headwear`; the bow's `-left` groups sit at the
+  mirrored anchor. The glasses sit after the eyes; there is no face in the back views. Goggles
+  and headwear or glasses together are not handled yet (the goggles come with the catapult).
+- **The readout of the cart in use** now clears the highest visible part (headwear included),
+  not the body's top.
+- **"The collider and every sim number are identical for every cosmetic"** is proven by the
+  boundary test (the sim cannot see a look) and by `pnpm shot:check-looks`, which runs every
+  hub script in the default look and three others through the real game and compares all 48
+  stepped sim states. A Vitest replay across looks was not added: the sim factory takes no
+  look, so such a test could not fail.
+- **Greyscale:** `looks-greyscale.png` (made from the gallery shot with Pillow) was checked by
+  eye: the sprout, the ears and the bow change the head's outline; spots and glasses read as
+  darker marks. The bow is the smallest silhouette change.
+
 ### Hub presentation (`packages/client/src/scenes/hub-presentation.ts`)
 - **One row per act kind:** the act's clip (or null for the ground clips), the toggled parts it
   shows (`arm-far-push`), where the bean draws (`ground` or in a `cart`), the shadow, how much

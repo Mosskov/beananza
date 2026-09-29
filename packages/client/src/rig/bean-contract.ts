@@ -1,3 +1,4 @@
+import { usesKeyColours } from './colours';
 import { insideViewBox, parseSvgParts, partPivot, type Point, type SvgDoc } from './svg-parts';
 import { HIDDEN_BY_DEFAULT, MIRRORED_VIEWS, REQUIRED_ANCHORS, REQUIRED_PARTS, SHADOW_PART, VIEWS, type BeanView } from './views';
 
@@ -11,6 +12,8 @@ export interface RigPart {
    * mirrored), so the rig counter-flips it.
    */
   screenSpace: boolean;
+  /** Drawn in key colours, so there is one texture per bean colour (`colours.ts`). */
+  keyed: boolean;
 }
 
 export interface RigView {
@@ -126,6 +129,7 @@ export function buildBeanArtSpec(sources: Readonly<Record<string, string>>): Bea
       pivot: partPivot(p),
       hiddenByDefault: p.attrs.visibility === 'hidden' || HIDDEN_BY_DEFAULT.has(p.id),
       screenSpace,
+      keyed: usesKeyColours(p.inner),
     });
     const plain = base.parts.filter((p) => p.id !== SHADOW_PART).map((p) => toRig(view, p, false));
     views.push({ view, mirrored: false, viewBox: base.viewBox, parts: plain });

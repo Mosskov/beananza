@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-70 -152 140 168" width="280" height="336">
+  <!-- Pattern "spots" (D25). One flat group per view, in that view's frame (origin between the feet).
+       The game clips each group to that view's body when it rasterizes it, so spots may run over the
+       edge. Fill = the arm key colour, so every bean colour gets darker spots of its own. Front and
+       back spots are symmetric about the centre line; mirrored views mirror the drawing. -->
+  <g id="front">
+    <circle cx="-36" cy="-40" r="7" fill="#C96F42"/><circle cx="36" cy="-40" r="7" fill="#C96F42"/>
+    <circle cx="-30" cy="-100" r="5" fill="#C96F42"/><circle cx="30" cy="-100" r="5" fill="#C96F42"/>
+    <circle cx="-48" cy="-62" r="6" fill="#C96F42"/><circle cx="48" cy="-62" r="6" fill="#C96F42"/>
+    <circle cx="-44" cy="-14" r="5" fill="#C96F42"/><circle cx="44" cy="-14" r="5" fill="#C96F42"/>
+    <circle cx="0" cy="-107" r="3.5" fill="#C96F42"/>
+  </g>
+  <g id="front-34">
+    <circle cx="-40" cy="-40" r="7" fill="#C96F42"/><circle cx="32" cy="-38" r="6" fill="#C96F42"/>
+    <circle cx="-36" cy="-98" r="5" fill="#C96F42"/><circle cx="24" cy="-104" r="4" fill="#C96F42"/>
+    <circle cx="-50" cy="-64" r="6" fill="#C96F42"/><circle cx="47" cy="-58" r="5" fill="#C96F42"/>
+    <circle cx="-44" cy="-14" r="5" fill="#C96F42"/><circle cx="46" cy="-16" r="5" fill="#C96F42"/>
+  </g>
+  <g id="side">
+    <circle cx="-28" cy="-40" r="7" fill="#C96F42"/><circle cx="-36" cy="-86" r="6" fill="#C96F42"/>
+    <circle cx="-46" cy="-62" r="6" fill="#C96F42"/><circle cx="-6" cy="-104" r="5" fill="#C96F42"/>
+    <circle cx="-14" cy="-16" r="5" fill="#C96F42"/><circle cx="-8" cy="-68" r="4.5" fill="#C96F42"/>
+  </g>
+  <g id="back-34">
+    <circle cx="-32" cy="-40" r="7" fill="#C96F42"/><circle cx="34" cy="-42" r="6" fill="#C96F42"/>
+    <circle cx="0" cy="-72" r="8" fill="#C96F42"/><circle cx="-34" cy="-90" r="5" fill="#C96F42"/>
+    <circle cx="30" cy="-94" r="5" fill="#C96F42"/><circle cx="-48" cy="-16" r="5" fill="#C96F42"/>
+    <circle cx="46" cy="-18" r="5" fill="#C96F42"/><circle cx="-50" cy="-66" r="6" fill="#C96F42"/>
+  </g>
+  <g id="back">
+    <circle cx="-32" cy="-40" r="7" fill="#C96F42"/><circle cx="32" cy="-40" r="7" fill="#C96F42"/>
+    <circle cx="0" cy="-72" r="8" fill="#C96F42"/>
+    <circle cx="-32" cy="-92" r="5" fill="#C96F42"/><circle cx="32" cy="-92" r="5" fill="#C96F42"/>
+    <circle cx="-47" cy="-18" r="5" fill="#C96F42"/><circle cx="47" cy="-18" r="5" fill="#C96F42"/>
+    <circle cx="-50" cy="-64" r="6" fill="#C96F42"/><circle cx="50" cy="-64" r="6" fill="#C96F42"/>
+    <circle cx="0" cy="-106" r="4" fill="#C96F42"/>
+  </g>
+</svg>

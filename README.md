@@ -42,8 +42,14 @@ Pick a scene with `?scene=<name>`:
 | `drop` | http://localhost:5180/?scene=drop | A 1 kg and a 10 kg ball released from 10 m, with a timer. R or tap: drop again |
 | `hub` (default) | http://localhost:5180/?scene=hub | The hub plaza in ¾ top-down view, with one tree to walk behind and in front of, and a rail with a 5 kg and a 20 kg cart (speed shown in m/s). Arrows or WASD move, Shift runs, Space jumps, tap or click walks to a spot. Walk into a cart's end to push it (Shift pushes harder); E hops in or out of the 5 kg cart, Space also gets out. Tap the bench, or press E near it, to walk over and sit (the bean dozes after 5 s); any movement, E or Space stands up. The bean, the tree, the carts and the bench are drawn art from `art/`; the plaza floor and the rail are placeholder shapes |
 | `bean` | http://localhost:5180/?scene=bean | Rig gallery for review: the 8 directions, then walk, run, jump, fall, land, breathing, a blink, sitting and dozing at fixed clip times (labelled; no sim) |
+| `looks` | http://localhost:5180/?scene=looks | Customization gallery for review: spots, the sprout, bear ears, the bow and glasses each on all 8 directions, then the 10 colours with mixed pieces (labelled; no sim) |
 
 `&paused=1` starts the scene's sim paused at t = 0 (tools/shot uses this to step to an exact time).
+`&look=<ids>` sets the bean's look (D25), any of: a colour (`orange` default, `blue`, `green`,
+`pink`, `yellow`, `violet`, `teal`, `coral`, `cream`, `slate`), `spots`, a headwear piece
+(`sprout`, `bear-ears`, `bow`) and `glasses`, comma-separated in any order, for example
+http://localhost:5180/?look=blue,spots,bow,glasses. Unknown ids are logged as a warning. The
+look is drawing only: the sim never sees it. There is no in-game wardrobe yet.
 An unknown scene name logs a console error listing the registered scenes. The bean art is
 checked against the art contract and rasterized before any scene starts; broken art is a boot
 error.
@@ -89,7 +95,8 @@ Key tests (in `packages/sim/test/`):
 - `boundary.test.ts`: fails if `packages/sim` (or the `shared` code it uses) imports Phaser,
   client code, Node or network modules, or touches DOM globals, `Date`, `performance` or
   `Math.random`. It also type-checks the sim against the ES library only. Planck.js is the one
-  allowed third-party import.
+  allowed third-party import. And it fails if any sim source uses anything from
+  `shared/src/look.ts` (cosmetics never touch the sim, D25).
 
 Also, in `packages/client/test/`:
 - `hub-view.test.ts`: hub projection, depth scale, drawn jump height and draw order.
@@ -101,6 +108,11 @@ Also, in `packages/client/test/`:
   replaced, anchors, and rejecting broken markup).
 - `prop-art.test.ts`: the art contract for `art/props/*.svg` (the tree, cart and bench parts,
   wheel pivots and radius, and anchors that agree with the sim: the cart floor and the seats).
+- `looks.test.ts`: parsing `?look=`, the colour swaps (all six key colours, derived far
+  shades, cream's outline, scarf and face never recoloured), the cosmetic art contract, patterns
+  clipped to each view's body and headwear at each view's anchor, the bow on the bean's left in
+  every direction (behind the head facing east, in front facing west), and every one of the 160
+  looks on all 8 directions keeping every drawn part and adding each piece in its place.
 - `hub-presentation.test.ts`: the hub's table of how each interaction state draws (clip, parts,
   placement, shadow, cart stand-off, the flat hop for reduced motion).
 - `player.test.ts`: clip data and timings, the rig player, reduced motion, and choosing the clip
@@ -207,6 +219,11 @@ After the three cart scripts, `pnpm shot:check-carts` recomputes from their logs
 accelerations (F/m − 0.26 m/s²), the cap, momentum and restitution of the collision, the riding
 speeds (from the logged touchdown and take-off, with rolling friction in between) and every
 speed readout, and exits non-zero on any mismatch.
+
+`pnpm shot:check-looks` runs every hub script in the default look and in three other looks
+(together they use every piece and three colours, one of them light) and fails if any shot's sim
+state differs: cosmetics never touch the sim (D25). `pnpm shot --look <ids>` runs any scene or
+script in a look and writes to `<out>/look-<ids>/`.
 
 `pnpm shot:compare-states <old status folder> [<new shots folder>]` compares the sim state of
 every stepped shot log in an earlier session's evidence (for example `docs/status/m1-s2`) with a

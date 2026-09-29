@@ -10,10 +10,6 @@ import { fileURLToPath } from 'node:url';
 import { isDeepStrictEqual } from 'node:util';
 
 const REPO = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
-const [baseArg, newArg = 'artifacts/shots'] = process.argv.slice(2);
-if (!baseArg) throw new Error('usage: compare-states <baseline dir> [<new dir>]');
-const BASE = resolve(REPO, baseArg);
-const NEW = resolve(REPO, newArg);
 
 type Json = Record<string, unknown>;
 
@@ -93,31 +89,60 @@ function firstDiff(a: unknown, b: unknown, path = ''): string | null {
   return `${path || '(root)'}: ${JSON.stringify(a)} ≠ ${JSON.stringify(b)}`;
 }
 
-let compared = 0;
-let failures = 0;
-for (const rel of logs(BASE)) {
-  const fresh = join(NEW, rel);
-  if (!existsSync(fresh)) {
-    failures += 1;
-    console.log(`MISSING ${rel} (not in ${relative(REPO, NEW)})`);
-    continue;
-  }
-  const before = simState(join(BASE, rel));
-  const after = simState(fresh);
-  if (!before && !after) continue; // scenes without a sim (empty, bean gallery)
-  if (before === 'live' || after === 'live') {
-    console.log(`live    ${rel} (skipped: a live shot's tick depends on wall-clock time)`);
-    continue;
-  }
-  if (before && after) for (const r of RENAMES) r.apply(before, after);
-  compared += 1;
-  const diff = firstDiff(before, after);
-  if (diff) {
-    failures += 1;
-    console.log(`DIFF    ${rel}  ${diff}`);
-  } else {
-    console.log(`same    ${rel}`);
-  }
+export interface Comparison {
+  compared: number;
+  failures: number;
+  /** One line per log: same, DIFF, MISSING or live. */
+  lines: string[];
 }
-console.log(`\n${compared} sim states compared, ${failures} failures. Renames applied: ${RENAMES.map((r) => r.since).join('; ')}`);
-process.exit(failures ? 1 : 0);
+
+/**
+ * Compare the sim states of every stepped shot log under `base` with the same log under
+ * `fresh`. `scripts` limits it to those scripts' folders (for example when `fresh` only ran the
+ * hub scripts).
+ */
+export function compareStates(base: string, fresh: string, scripts?: readonly string[]): Comparison {
+  const result: Comparison = { compared: 0, failures: 0, lines: [] };
+  const wanted = (rel: string) => !scripts || scripts.includes(rel.split(/[\\/]/)[0] ?? '');
+  for (const rel of logs(base).filter(wanted)) {
+    const other = join(fresh, rel);
+    if (!existsSync(other)) {
+      result.failures += 1;
+      result.lines.push(`MISSING ${rel} (not in ${relative(REPO, fresh)})`);
+      continue;
+    }
+    const before = simState(join(base, rel));
+    const after = simState(other);
+    if (!before && !after) continue; // scenes without a sim (empty, the galleries)
+    if (before === 'live' || after === 'live') {
+      result.lines.push(`live    ${rel} (skipped: a live shot's tick depends on wall-clock time)`);
+      continue;
+    }
+    if (before && after) for (const r of RENAMES) r.apply(before, after);
+    result.compared += 1;
+    const diff = firstDiff(before, after);
+    if (diff) {
+      result.failures += 1;
+      result.lines.push(`DIFF    ${rel}  ${diff}`);
+    } else {
+      result.lines.push(`same    ${rel}`);
+    }
+  }
+  if (result.compared === 0) {
+    result.failures += 1;
+    result.lines.push('nothing compared');
+  }
+  return result;
+}
+
+export const RENAME_NOTES = RENAMES.map((r) => r.since);
+
+// Run as a command: compare-states <baseline dir> [<new dir>].
+if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  const [baseArg, newArg = 'artifacts/shots'] = process.argv.slice(2);
+  if (!baseArg) throw new Error('usage: compare-states <baseline dir> [<new dir>]');
+  const { compared, failures, lines } = compareStates(resolve(REPO, baseArg), resolve(REPO, newArg));
+  for (const line of lines) console.log(line);
+  console.log(`\n${compared} sim states compared, ${failures} failures. Renames applied: ${RENAME_NOTES.join('; ')}`);
+  process.exit(failures ? 1 : 0);
+}

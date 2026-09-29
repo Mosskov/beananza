@@ -1,4 +1,5 @@
 import type Phaser from 'phaser';
+import type { BeanLook } from '@beananza/shared';
 
 /** What every registered scene exposes to the test hooks (see shared/src/test-api.ts). */
 export interface TestableScene extends Phaser.Scene {
@@ -17,4 +18,6 @@ export interface TestableScene extends Phaser.Scene {
 export interface SceneStartData {
   /** Start with the sim paused at t = 0 (`?paused=1`). */
   paused?: boolean;
+  /** The player's bean look (`?look=`, D25). Drawing only: it never reaches the sim. */
+  look?: BeanLook;
 }

@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-40 -50 80 70" width="160" height="140">
+  <!-- Headwear "sprout" (D25): a tall, thin sprout with two leaves. One flat group per view, drawn
+       with its origin at that view's headwear anchor (the top of the body). Symmetric, so the
+       mirrored views mirror it. Its own greens: they never change with the bean's colour. -->
+  <g id="front">
+    <path d="M0 3 C1 -5 -1 -13 0 -21" fill="none" stroke="#5A8A4B" stroke-width="3.5" stroke-linecap="round"/>
+    <path d="M0 -19 C-5 -29 -17 -31 -21 -25 C-15 -18 -6 -17 0 -19 Z" fill="#6A9C5A"/>
+    <path d="M0 -19 C5 -29 17 -31 21 -25 C15 -18 6 -17 0 -19 Z" fill="#86B874"/>
+  </g>
+  <g id="front-34">
+    <path d="M0 3 C1 -5 -1 -13 0 -21" fill="none" stroke="#5A8A4B" stroke-width="3.5" stroke-linecap="round"/>
+    <path d="M0 -19 C-4 -29 -14 -31 -18 -25 C-13 -18 -5 -17 0 -19 Z" fill="#6A9C5A"/>
+    <path d="M0 -19 C4 -29 14 -31 18 -25 C13 -18 5 -17 0 -19 Z" fill="#86B874"/>
+  </g>
+  <g id="side">
+    <path d="M0 3 C1 -5 -1 -13 0 -21" fill="none" stroke="#5A8A4B" stroke-width="3.5" stroke-linecap="round"/>
+    <path d="M0 -19 C-3 -29 -11 -31 -15 -26 C-10 -19 -4 -17 0 -19 Z" fill="#6A9C5A"/>
+    <path d="M0 -19 C4 -29 14 -31 18 -25 C13 -18 5 -17 0 -19 Z" fill="#86B874"/>
+  </g>
+  <g id="back-34">
+    <path d="M0 3 C1 -5 -1 -13 0 -21" fill="none" stroke="#5A8A4B" stroke-width="3.5" stroke-linecap="round"/>
+    <path d="M0 -19 C-4 -29 -14 -31 -18 -25 C-13 -18 -5 -17 0 -19 Z" fill="#86B874"/>
+    <path d="M0 -19 C4 -29 14 -31 18 -25 C13 -18 5 -17 0 -19 Z" fill="#6A9C5A"/>
+  </g>
+  <g id="back">
+    <path d="M0 3 C1 -5 -1 -13 0 -21" fill="none" stroke="#5A8A4B" stroke-width="3.5" stroke-linecap="round"/>
+    <path d="M0 -19 C-5 -29 -17 -31 -21 -25 C-15 -18 -6 -17 0 -19 Z" fill="#86B874"/>
+    <path d="M0 -19 C5 -29 17 -31 21 -25 C15 -18 6 -17 0 -19 Z" fill="#6A9C5A"/>
+  </g>
+</svg>

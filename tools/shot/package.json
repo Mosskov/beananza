@@ -10,7 +10,8 @@
     "typecheck": "tsc -p tsconfig.json",
     "check-carts": "tsx src/check-carts.ts",
     "compare-states": "tsx src/compare-states.ts",
-    "check-looks": "tsx src/check-looks.ts"
+    "check-looks": "tsx src/check-looks.ts",
+    "verify": "tsx src/verify.ts"
   },
   "dependencies": {
     "@beananza/shared": "workspace:*",

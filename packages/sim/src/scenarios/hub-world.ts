@@ -119,7 +119,8 @@ export const DEFAULT_PLAZA: PlazaLayout = {
       seatDy: -0.15,
       seats: [
         { id: 'west', dx: -0.4 },
-        { id: 'east', dx: 0.4 },
+        // Priya, the seated classmate (DESIGN.md §7), sits here.
+        { id: 'east', dx: 0.4, taken: true },
       ],
     },
   ],

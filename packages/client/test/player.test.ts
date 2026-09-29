@@ -174,4 +174,11 @@ describe('sitting on the bench', () => {
     expect(pose('doze', 0, 'front').fx.y).toBeCloseTo(6, 12);
     expect(pose('doze', 1.9, 'front').fx.y).toBeLessThan(-15);
   });
+
+  it('waving (Priya): sitting, with the screen-right arm raised and waving every 0.4 s; still raised under reduced motion', () => {
+    expect(pose('wave', 0, 'front').armB.rotation).toBeCloseTo(-95, 12);
+    expect(pose('wave', 0.2, 'front').armB.rotation).toBeCloseTo(-125, 12);
+    expect(pose('wave', 0.65, 'front').footA.y).toBeCloseTo(pose('sit', 0.65, 'front').footA.y, 12);
+    expect(pose('wave', 0.2, 'front', true).armB.rotation).toBe(-110);
+  });
 });

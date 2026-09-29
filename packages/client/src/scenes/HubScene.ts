@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { PIXELS_PER_METER } from '@beananza/shared';
-import { CART_HALF_DEPTH, CART_HALF_LENGTH, FIXED_DT, HUB_BEAN_RADIUS_M, Sim, createHubScenario, standSpot, type HubCommand, type HubInput, type HubState } from '@beananza/sim';
+import { CART_HALF_DEPTH, CART_HALF_LENGTH, FIXED_DT, HUB_BEAN_RADIUS_M, Sim, createHubScenario, seatSpot, standSpot, type HubCommand, type HubInput, type HubState } from '@beananza/sim';
 import { prefersReducedMotion } from '../accessibility';
 import { propAnchor, propPart } from '../art/props';
 import { GAME_HEIGHT, GAME_WIDTH, PALETTE, cssColor } from '../config';
@@ -10,6 +10,7 @@ import { chooseClip, samplePose } from '../rig/player';
 import { viewForFacing } from '../rig/views';
 import { SimScene } from './SimScene';
 import { CART_RIDER_DEPTH, CartView, drawRiderMask, drawRail, speedReadout } from './hub-carts';
+import { CLASSMATES, greetingAt, type Classmate } from './classmates';
 import { PART_DEFAULTS, presentAct, type Placement, type ToggledPart } from './hub-presentation';
 import { cartStandOff, characterScreen, depthKey, depthScale, groundFromScreen, toScreen } from './hub-view';
 
@@ -70,6 +71,8 @@ export class HubScene extends SimScene<HubState, HubCommand> {
   private carts = new Map<string, CartView>();
   private prevCarts = new Map<string, number>();
   private benchIds = new Set<string>();
+  /** Seated classmates (Priya), drawn on the seats the sim keeps for them. */
+  private classmates: { who: Classmate; rig: BeanRig; bubble: Phaser.GameObjects.Text; greeting: number | null; clip: string }[] = [];
   /** The rider's mask shape (world coordinates), used while the bean is in a cart. */
   private riderMaskShape!: Phaser.GameObjects.Graphics;
 
@@ -104,6 +107,7 @@ export class HubScene extends SimScene<HubState, HubCommand> {
       }
     }
     this.reducedMotion = prefersReducedMotion();
+    this.createClassmates();
     this.bean = { rig: new BeanRig(this, this.look), shadow: createBeanShadow(this).setDepth(GROUND_DEPTH + 1) };
     // The rider mask (D23): a WebGL mask filter on the rig, rendered only while in a cart.
     this.riderMaskShape = this.make.graphics({}, false);
@@ -215,6 +219,7 @@ export class HubScene extends SimScene<HubState, HubCommand> {
     // so paused and scripted shots are deterministic. Idle keeps the last facing.
     const time = this.sim.time - (1 - alpha) * FIXED_DT;
     const look = presentAct(act, this.sim.state, time);
+    this.drawClassmates(time);
     const inCart = look.placement.kind === 'cart' ? look.placement.cart : null;
     for (const c of this.sim.state.rail?.carts ?? []) {
       this.carts.get(c.id)?.draw(lerp(this.prevCarts.get(c.id) ?? c.x, c.x), rail?.y ?? 0, c.v, look.usingCart === c.id);
@@ -287,6 +292,49 @@ export class HubScene extends SimScene<HubState, HubCommand> {
   }
 
   /**
+   * Classmates sit on bench seats the sim marks as taken, facing the camera, in front of the
+   * bench like a seated bean. Priya's "Hi!" is the one text in the hub besides readouts and the
+   * controls hint (docs/IMPLEMENTATION.md §7). PLACEHOLDER font and bubble style.
+   */
+  private createClassmates(): void {
+    for (const who of CLASSMATES) {
+      const bench = this.sim.state.layout.benches.find((b) => b.id === who.bench);
+      const seat = bench?.seats.find((q) => q.id === who.seat);
+      if (!bench || !seat?.taken) continue;
+      const rig = new BeanRig(this, who.look);
+      rig.setView({ view: 'front', mirrored: false });
+      const at = toScreen(bench.x, bench.y);
+      const anchor = propAnchor('bench', `seat-${seat.id}`);
+      const scale = depthScale(seatSpot(bench, seat).y, this.sim.state.layout.walkable);
+      rig.root.setPosition(at.x + anchor.x, at.y + anchor.y).setScale(scale).setDepth(depthKey(bench.y) + CHARACTER_TIE_BREAK);
+      const bubble = this.add
+        .text(rig.root.x, rig.root.y + (rig.drawnTop() - READOUT_GAP_UNITS) * scale, 'Hi!', {
+          fontFamily: FONT,
+          fontSize: '20px',
+          fontStyle: 'bold',
+          color: cssColor(PALETTE.ink),
+          backgroundColor: cssColor(PALETTE.panel),
+          padding: { x: 10, y: 4 },
+        })
+        .setOrigin(0.5, 1)
+        .setDepth(UI_DEPTH - 2)
+        .setVisible(false);
+      this.classmates.push({ who, rig, bubble, greeting: null, clip: 'sit' });
+    }
+  }
+
+  /** Classmates sit (feet swinging), and wave and say "Hi!" while greeting the bean. */
+  private drawClassmates(time: number): void {
+    for (const c of this.classmates) {
+      c.greeting = greetingAt(this.sim.state, c.who, time);
+      const clip = c.greeting === null ? 'sit' : 'wave';
+      c.clip = clip;
+      c.rig.applyPose(samplePose({ clip, t: time + c.who.swingOffset, time: time + c.who.swingOffset, view: 'front', reducedMotion: this.reducedMotion }));
+      c.bubble.setVisible(c.greeting !== null);
+    }
+  }
+
+  /**
    * Where a bean on a bench (or hopping on or off it) draws: from its stand spot on the ground
    * (p = 0) to the seat anchor of the bench's drawing (p = 1), plus the hop's arc, which reduced
    * motion drops. It sorts just in front of the bench.
@@ -332,6 +380,14 @@ export class HubScene extends SimScene<HubState, HubCommand> {
             screen: view ? { x: Math.round((view.screen.x - cam.scrollX) * 10) / 10, y: Math.round((view.screen.y - cam.scrollY) * 10) / 10 } : null,
           };
         }),
+        classmates: this.classmates.map((c) => ({
+          name: c.who.name,
+          clip: c.clip,
+          greeting: c.greeting === null ? null : Math.round(c.greeting * 1e4) / 1e4,
+          bubble: c.bubble.visible ? c.bubble.text : null,
+          screen: onScreen(c.rig.root),
+          depth: c.rig.root.depth,
+        })),
         props: [...this.props].map(([id, root]) => ({
           id,
           screen: onScreen(root),

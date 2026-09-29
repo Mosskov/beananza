@@ -1,5 +1,6 @@
 import { COLOUR_IDS, DEFAULT_LOOK, type BeanLook, type ColourId } from '@beananza/shared';
 import { BeanGalleryScene } from './BeanGalleryScene';
+import { PRIYA_COLOUR } from './classmates';
 import { DropScene } from './DropScene';
 import { EmptyScene } from './EmptyScene';
 import { HubScene } from './HubScene';
@@ -27,8 +28,6 @@ export const SCENE_NAMES: readonly string[] = Object.keys(SCENES);
 
 /** Scenes that show every bean colour (they are rasterized before the scene starts). */
 const ALL_COLOURS: ReadonlySet<string> = new Set(['looks']);
-/** Priya's colour (the seated classmate on the bench). */
-export const PRIYA_COLOUR: ColourId = 'blue';
 
 /** The bean colours a scene needs: the player's, the default, Priya's; or all of them. */
 export function coloursFor(sceneName: string, look: BeanLook): ColourId[] {

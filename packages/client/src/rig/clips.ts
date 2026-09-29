@@ -53,7 +53,7 @@ export interface Clip {
   tracks: Track[];
 }
 
-export const CLIP_NAMES = ['idle', 'walk', 'run', 'jump', 'fall', 'land', 'push', 'pushHeavy', 'sit', 'doze'] as const;
+export const CLIP_NAMES = ['idle', 'walk', 'run', 'jump', 'fall', 'land', 'push', 'pushHeavy', 'sit', 'doze', 'wave'] as const;
 export type ClipName = (typeof CLIP_NAMES)[number];
 
 // Small builders so the data reads like the prototype's keyframes.
@@ -301,6 +301,20 @@ const DOZE = same({
   ],
 });
 
+/**
+ * Waving hello while seated (Priya's greeting, DESIGN.md §7): sitting, with the screen-right arm
+ * raised and waving every 0.4 s (the other arm would be hidden behind a bean sitting on her
+ * west). Under reduced motion the arm stays raised.
+ */
+const WAVE = same({
+  duration: SIT_SWING_S,
+  loop: true,
+  tracks: [
+    ...SIT.front.tracks.filter((track) => track.slot !== 'armB'),
+    t('armB', 'rotation', keys([0, -95], [0.5, -125], [1, -95]), { period: 0.4, motion: true, still: -110 }),
+  ],
+});
+
 export const CLIPS: Readonly<Record<ClipName, Families>> = {
   idle: IDLE,
   walk: WALK_CLIPS,
@@ -312,6 +326,7 @@ export const CLIPS: Readonly<Record<ClipName, Families>> = {
   pushHeavy: push(1, 16, 2),
   sit: SIT,
   doze: DOZE,
+  wave: WAVE,
 };
 
 /** Blinking plays on top of every clip: every 4 s, eyes squeeze to 10% for a moment. */

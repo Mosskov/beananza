@@ -141,6 +141,21 @@ hop and the rider clipped below the rim), D24 (the bench and sitting; D2 stays O
   eye: the sprout, the ears and the bow change the head's outline; spots and glasses read as
   darker marks. The bow is the smallest silhouette change.
 
+### Priya, the seated classmate (D24)
+- **The sim only keeps her seat:** the east seat is `taken`, so E and taps always lead the
+  bean to the west seat. Who sits there (Priya, blue, default look) is client data
+  (`scenes/classmates.ts`); she is drawn only where the sim marks the seat as taken.
+- **Her greeting is worked out from the bean's state:** for 2.4 s after the bean's `sitting.since`
+  on her bench she plays `wave` and shows "Hi!" (the one text exception, DESIGN.md §7;
+  PLACEHOLDER system font and a plain panel). No new sim state, and every client draws the same.
+- **She waves the arm away from the bean** (screen right): the arm towards it would be hidden
+  behind the seated bean. The wave is 0.4 s between −95° and −125°; under reduced motion the arm
+  stays raised at −110°. Her feet swing 0.4 s out of step with the bean's.
+- **She does not doze, walk or react to anything else** (the prototype's Priya also walked to
+  the catapult; out of scope).
+- **`hub-bench.json` changed** with her: the bean now walks to the west seat, so the shots are
+  retimed and add `greeted` and `greeting-over`.
+
 ### Hub presentation (`packages/client/src/scenes/hub-presentation.ts`)
 - **One row per act kind:** the act's clip (or null for the ground clips), the toggled parts it
   shows (`arm-far-push`), where the bean draws (`ground` or in a `cart`), the shadow, how much

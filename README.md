@@ -40,7 +40,7 @@ Pick a scene with `?scene=<name>`:
 |---|---|---|
 | `empty` | http://localhost:5180/?scene=empty | Background only; proves the client boots |
 | `drop` | http://localhost:5180/?scene=drop | A 1 kg and a 10 kg ball released from 10 m, with a timer. R or tap: drop again |
-| `hub` (default) | http://localhost:5180/?scene=hub | The hub plaza in ¾ top-down view, with one tree to walk behind and in front of, and a rail with a 5 kg and a 20 kg cart (speed shown in m/s). Arrows or WASD move, Shift runs, Space jumps, tap or click walks to a spot. Walk into a cart's end to push it (Shift pushes harder); E hops in or out of the 5 kg cart, Space also gets out. Tap the bench, or press E near it, to walk over and sit (the bean dozes after 5 s); any movement, E or Space stands up. The bean, the tree, the carts and the bench are drawn art from `art/`; the plaza floor and the rail are placeholder shapes |
+| `hub` (default) | http://localhost:5180/?scene=hub | The hub plaza in ¾ top-down view, with one tree to walk behind and in front of, and a rail with a 5 kg and a 20 kg cart (speed shown in m/s). Arrows or WASD move, Shift runs, Space jumps, tap or click walks to a spot. Walk into a cart's end to push it (Shift pushes harder); E hops in or out of the 5 kg cart, Space also gets out. Tap the bench, or press E near it, to walk over and sit next to Priya, a blue classmate, who says "Hi!" and waves (the bean dozes after 5 s); any movement, E or Space stands up. The bean, the tree, the carts and the bench are drawn art from `art/`; the plaza floor and the rail are placeholder shapes |
 | `bean` | http://localhost:5180/?scene=bean | Rig gallery for review: the 8 directions, then walk, run, jump, fall, land, breathing, a blink, sitting and dozing at fixed clip times (labelled; no sim) |
 | `looks` | http://localhost:5180/?scene=looks | Customization gallery for review: spots, the sprout, bear ears, the bow and glasses each on all 8 directions, then the 10 colours with mixed pieces (labelled; no sim) |
 
@@ -113,6 +113,8 @@ Also, in `packages/client/test/`:
   clipped to each view's body and headwear at each view's anchor, the bow on the bean's left in
   every direction (behind the head facing east, in front facing west), and every one of the 160
   looks on all 8 directions keeping every drawn part and adding each piece in its place.
+- `classmates.test.ts`: Priya sits on the seat the sim keeps for her and greets for 2.4 s after
+  the bean sits down next to her.
 - `hub-presentation.test.ts`: the hub's table of how each interaction state draws (clip, parts,
   placement, shadow, cart stand-off, the flat hop for reduced motion).
 - `player.test.ts`: clip data and timings, the rig player, reduced motion, and choosing the clip
@@ -212,7 +214,7 @@ Scripts in `tools/shot/scripts/`:
 | `hub-carts-heavy.json` | Walk east of the 20 kg cart and push it west: the same 42 N gives F/m a quarter as large, so the net acceleration is 42/20 − 0.26 = 1.84 m/s² against 8.14 m/s² for the 5 kg cart |
 | `hub-carts-ride.json` | Push the 5 kg cart to the cap, E: crouch, hop up, fall into the cart (masked below the rim), land (speed × 5/25 at touchdown), ride, E: hop out (speed × 25/5 at take-off) |
 | `hub-carts-board-still.json` | Walk to the resting 5 kg cart and press E: mid-hop, then the rider faces the camera (it faces the way the cart travels while it moves) |
-| `hub-bench.json` | Tap the bench: walk over, hop on, sit (feet swinging, two phases), doze after 5 s, then → stands up and walks off |
+| `hub-bench.json` | Tap the bench: walk over to the free (west) seat, hop on, sit next to Priya, who says "Hi!" and waves for 2.4 s (feet swinging, two phases), then no greeting, a doze after 5 s, then → stands up and walks off |
 | `hub-bench-depth.json` | On the bench's row (drawn in front), behind it (drawn behind), in front of it, then E to sit |
 
 After the three cart scripts, `pnpm shot:check-carts` recomputes from their logs the push
@@ -234,7 +236,7 @@ time. It exits non-zero on any difference.
 Hub shot logs add a `view` block: the bean's screen position (feet, in viewport pixels),
 depth scale and draw depth, the rig (`view`, `mirrored`, `clip`, clip time and the pose's body
 transform, the interaction state and how it was drawn: `act`, `placement`, `masked`, `drawnZ`
-and the feet's offsets), `reducedMotion`, and for each prop (the tree and the bench) whether
+and the feet's offsets), `reducedMotion`, each classmate's clip, greeting time and bubble text, and for each prop (the tree and the bench) whether
 the bean is drawn `behind` it or `in front`. The `bean` gallery's log lists every cell's view,
 clip, time and body transform. The hub state carries `bean.act` (the interaction state:
 `free`, `pushing`, `boarding`, `riding`, `leaving`, `approaching`, `seating`, `sitting` or

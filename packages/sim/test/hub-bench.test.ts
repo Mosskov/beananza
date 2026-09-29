@@ -102,13 +102,30 @@ describe('the bench (D24)', () => {
     expect(sim.state.bean.target).toBeNull();
   });
 
+  it('Priya takes the east seat, so E and taps always lead to the west seat', () => {
+    expect(bench.seats.map((q) => [q.id, q.taken ?? false])).toEqual([
+      ['west', false],
+      ['east', true],
+    ]);
+    const spot = standSpot(bench, east);
+    const sim = newHub({ start: { x: spot.x, y: spot.y - 0.3 } });
+    sim.enqueue({ type: 'action' });
+    sim.step();
+    expect(sim.state.bean.act).toMatchObject({ kind: 'approaching', seat: 'west' });
+  });
+
   it('a tap on the bench from anywhere walks to the nearest free seat and sits', () => {
-    const sim = newHub({ start: { x: 1, y: -1 } });
+    const free: PlazaLayout = { ...DEFAULT_PLAZA, benches: [{ ...bench, seats: bench.seats.map((q) => ({ ...q, taken: false })) }] };
+    const sim = newHub({ layout: free, start: { x: 1, y: -1 } });
     sim.enqueue({ type: 'use', id: 'bench' });
     sim.step();
     expect(sim.state.bean.act).toMatchObject({ kind: 'approaching', seat: 'east' });
     until(sim, 'sitting');
     expect(sim.state.bean.x).toBeCloseTo(seatSpot(bench, east).x, 12);
+    const withPriya = newHub({ start: { x: 1, y: -1 } });
+    withPriya.enqueue({ type: 'use', id: 'bench' });
+    withPriya.step();
+    expect(withPriya.state.bean.act).toMatchObject({ kind: 'approaching', seat: 'west' });
     // Unknown ids are ignored.
     const other = newHub({ start: { x: 1, y: -1 } });
     other.enqueue({ type: 'use', id: 'fountain' });

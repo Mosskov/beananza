@@ -114,8 +114,15 @@ export type HubAct =
   | { kind: 'free' }
   /** Walking into a cart's end: re-derived every step from the push rule. */
   | { kind: 'pushing'; cart: string; dir: 1 | -1; run: boolean }
-  /** Standing in a cart. */
-  | { kind: 'riding'; cart: string };
+  /**
+   * Getting into a cart (D23): a crouch until `hopTick`, then a hop from (fromX, fromY) that
+   * lands on the cart's floor wherever the cart is at `endTick`. Timed in whole ticks.
+   */
+  | { kind: 'boarding'; cart: string; startTick: number; hopTick: number; endTick: number; fromX: number; fromY: number; arc: number; facingX: number; facingY: number }
+  /** Standing in a cart, on its floor (z = CART_FLOOR_M). */
+  | { kind: 'riding'; cart: string; since: number }
+  /** Getting out (D23): a hop from the cart's floor to (toX, toY) on the ground. */
+  | { kind: 'leaving'; cart: string; startTick: number; endTick: number; fromX: number; fromY: number; toX: number; toY: number; arc: number };
 
 export type HubActKind = HubAct['kind'];
 
@@ -145,11 +152,26 @@ export interface HubBean {
   act: HubAct;
 }
 
+/** The bean getting into (touchdown) or out of (take-off) a cart, logged for the scripted checks. */
+export interface RiderEvent {
+  kind: 'in' | 'out';
+  cart: string;
+  /** Sim time of the touchdown or take-off (s). */
+  time: number;
+  /** The cart's mass with any rider (kg), and its velocity (m/s), before and after. */
+  massBefore: number;
+  massAfter: number;
+  vBefore: number;
+  vAfter: number;
+}
+
 export interface HubRailState {
   /** West to east, in the layout's order. `riderMass` is the bean while it rides. */
   carts: RailCart[];
   /** The last collisions, oldest first (at most 16). */
   collisions: RailCollision[];
+  /** The last times the bean got in or out, oldest first (at most 16). */
+  riders: RiderEvent[];
 }
 
 /** Held movement input: direction (each axis −1..1, north is +y) and whether Run is held. */

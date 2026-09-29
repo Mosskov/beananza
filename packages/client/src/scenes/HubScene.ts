@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { PIXELS_PER_METER } from '@beananza/shared';
-import { CART_FLOOR_M, CART_HALF_DEPTH, CART_HALF_LENGTH, FIXED_DT, HUB_BEAN_RADIUS_M, Sim, createHubScenario, type HubCommand, type HubInput, type HubState } from '@beananza/sim';
+import { CART_HALF_DEPTH, CART_HALF_LENGTH, FIXED_DT, HUB_BEAN_RADIUS_M, Sim, createHubScenario, type HubCommand, type HubInput, type HubState } from '@beananza/sim';
 import { prefersReducedMotion } from '../accessibility';
 import { propPart } from '../art/props';
 import { GAME_HEIGHT, GAME_WIDTH, PALETTE, cssColor } from '../config';
@@ -9,7 +9,7 @@ import { beanArt } from '../rig/bean-art';
 import { chooseClip, samplePose } from '../rig/player';
 import { viewForFacing } from '../rig/views';
 import { SimScene } from './SimScene';
-import { CART_RIDER_DEPTH, CartView, drawRail, speedReadout } from './hub-carts';
+import { CART_RIDER_DEPTH, CartView, drawRiderMask, drawRail, speedReadout } from './hub-carts';
 import { TOGGLED_PARTS, presentAct } from './hub-presentation';
 import { cartStandOff, characterScreen, depthKey, depthScale, groundFromScreen, toScreen } from './hub-view';
 
@@ -27,6 +27,8 @@ const CHARACTER_TIE_BREAK = 0.5;
 const UI_DEPTH = 1e6;
 
 const FONT = 'system-ui, "Segoe UI", Roboto, sans-serif';
+/** Gap between a bean's head and the readout of the cart it is using (art units). */
+const READOUT_GAP_UNITS = 12;
 
 interface BeanView {
   rig: BeanRig;
@@ -35,6 +37,13 @@ interface BeanView {
 
 /** What the rig showed last frame, for the shot logs. */
 interface RigShown {
+  /** The sim's interaction state and how the presentation table drew it. */
+  act: string;
+  placement: string;
+  /** The rider mask was on (in a cart). */
+  masked: boolean;
+  /** Height drawn (m): the sim's z, or the flat hop under reduced motion. */
+  drawnZ: number;
   view: string;
   mirrored: boolean;
   clip: string;
@@ -58,6 +67,8 @@ export class HubScene extends SimScene<HubState, HubCommand> {
   private rigShown: RigShown | null = null;
   private carts = new Map<string, CartView>();
   private prevCarts = new Map<string, number>();
+  /** The rider's mask shape (world coordinates), used while the bean is in a cart. */
+  private riderMaskShape!: Phaser.GameObjects.Graphics;
 
   constructor() {
     super({ key: 'hub' });
@@ -84,6 +95,11 @@ export class HubScene extends SimScene<HubState, HubCommand> {
     }
     this.reducedMotion = prefersReducedMotion();
     this.bean = { rig: new BeanRig(this), shadow: createBeanShadow(this).setDepth(GROUND_DEPTH + 1) };
+    // The rider mask (D23): a WebGL mask filter on the rig, rendered only while in a cart.
+    this.riderMaskShape = this.make.graphics({}, false);
+    this.bean.rig.root.enableFilters();
+    this.bean.rig.root.filters?.internal.addMask(this.riderMaskShape, false, undefined, 'world');
+    this.bean.rig.root.renderFilters = false;
 
     const center = toScreen(VIEW_CENTER.x, VIEW_CENTER.y);
     this.cameras.main.centerOn(center.x, center.y);
@@ -178,27 +194,35 @@ export class HubScene extends SimScene<HubState, HubCommand> {
     const scale = depthScale(y, this.sim.state.layout.walkable);
     const rail = this.sim.state.layout.rail;
     const act = b.act;
-    const look = presentAct(act, this.sim.state);
-    const ridden = look.placement.kind === 'cart' ? look.placement.cart : null;
-    for (const c of this.sim.state.rail?.carts ?? []) {
-      this.carts.get(c.id)?.draw(lerp(this.prevCarts.get(c.id) ?? c.x, c.x), rail?.y ?? 0, c.v, ridden === c.id);
-    }
-
-    // The sim's z and the draw order are unchanged; only the drawn height is scaled (D18).
-    // In a cart the bean stands on its floor, drawn between the back and the front of the cart.
-    const inCart = ridden !== null && rail !== null;
-    const feet = characterScreen(x, y, inCart ? CART_FLOOR_M : z, scale);
-    const { rig, shadow } = this.bean;
-    const depth = inCart ? depthKey(rail.y) + CART_RIDER_DEPTH : depthKey(y) + CHARACTER_TIE_BREAK;
-    rig.root.setPosition(feet.x, feet.y).setScale(scale).setDepth(depth);
-    const ground = toScreen(x, y);
-    // The shadow stays on the ground and shrinks as the bean rises.
-    const lift = Math.max(0, 1 - z / 1.5);
-    shadow.setPosition(ground.x, ground.y).setScale(scale * (0.55 + 0.45 * lift)).setVisible(look.shadow);
-
     // Animation runs on sim time (interpolated like the positions), never on wall-clock time,
     // so paused and scripted shots are deterministic. Idle keeps the last facing.
     const time = this.sim.time - (1 - alpha) * FIXED_DT;
+    const look = presentAct(act, this.sim.state, time);
+    const inCart = look.placement.kind === 'cart' ? look.placement.cart : null;
+    for (const c of this.sim.state.rail?.carts ?? []) {
+      this.carts.get(c.id)?.draw(lerp(this.prevCarts.get(c.id) ?? c.x, c.x), rail?.y ?? 0, c.v, look.usingCart === c.id);
+    }
+
+    // The sim's z and the draw order are unchanged; only the drawn height is scaled (D18).
+    // Under reduced motion a hop moves in a straight line (no arc).
+    const drawnZ = this.reducedMotion && look.flatZ !== null ? look.flatZ : z;
+    const feet = characterScreen(x, y, drawnZ, scale);
+    const { rig, shadow } = this.bean;
+    // In a cart the bean draws between the back and the front of the cart, and below the rim
+    // only inside the cart's front (it is wider than the cart).
+    const cartView = inCart !== null && rail !== null ? this.carts.get(inCart) : undefined;
+    const depth = cartView && rail ? depthKey(rail.y) + CART_RIDER_DEPTH : depthKey(y) + CHARACTER_TIE_BREAK;
+    rig.root.setPosition(feet.x, feet.y).setScale(scale).setDepth(depth);
+    if (cartView) drawRiderMask(this.riderMaskShape, cartView.screen);
+    // Keep the readout of the cart in use above the bean's head (its headwear anchor), with a gap.
+    const headTop = feet.y + ((beanArt().spec.anchors.front.headwear?.y ?? 0) - READOUT_GAP_UNITS) * scale;
+    if (look.usingCart) this.carts.get(look.usingCart)?.keepReadoutAbove(headTop);
+    rig.root.renderFilters = cartView !== undefined;
+    const ground = toScreen(x, y);
+    // The shadow stays on the ground and shrinks as the bean rises.
+    const lift = Math.max(0, 1 - drawnZ / 1.5);
+    shadow.setPosition(ground.x, ground.y).setScale(scale * (0.55 + 0.45 * lift)).setVisible(look.shadow);
+
     const choice = viewForFacing(b.facingX, b.facingY);
     const { clip, t } = chooseClip(b, time, this.sim.state.gravity, look.clip);
     rig.setView(choice);
@@ -207,7 +231,7 @@ export class HubScene extends SimScene<HubState, HubCommand> {
     rig.applyPose(pose);
     // The bean's body is wider than its footprint: next to a cart's end (pushing or not), draw
     // it back so the body meets the end instead of overlapping it. Drawing only (and its shadow).
-    const onRail = look.standOffCarts && rail !== null && Math.abs(y - rail.y) < CART_HALF_DEPTH + HUB_BEAN_RADIUS_M;
+    const onRail = look.standOffCarts > 0 && rail !== null && Math.abs(y - rail.y) < CART_HALF_DEPTH + HUB_BEAN_RADIUS_M;
     if (onRail) {
       const span = rig.bodySpan();
       const pushDir = act.kind === 'pushing' ? act.dir : 0;
@@ -223,12 +247,16 @@ export class HubScene extends SimScene<HubState, HubCommand> {
         (span.west + Math.max(0, -pushDir) * lean) * unit,
         (span.east + Math.max(0, pushDir) * lean) * unit,
       );
-      rig.root.x += m(off);
-      shadow.x += m(off);
+      rig.root.x += m(off * look.standOffCarts);
+      shadow.x += m(off * look.standOffCarts);
     }
     const r = (n: number) => Math.round(n * 1e4) / 1e4;
     const { y: by, rotation, scaleX, scaleY } = pose.body;
     this.rigShown = {
+      act: act.kind,
+      placement: look.placement.kind,
+      masked: rig.root.renderFilters,
+      drawnZ: r(drawnZ),
       view: choice.view,
       mirrored: choice.mirrored,
       clip,

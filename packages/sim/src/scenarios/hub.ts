@@ -25,7 +25,6 @@ import {
 } from './hub-world';
 
 export * from './hub-world';
-export { BOARD_REACH_M, RIDE_FACE_FRONT_SPEED, RIDE_FACE_TRAVEL_SPEED } from '../interactions/cart';
 
 /**
  * The hub plaza, seen from ¾ top-down (D1). Coordinates (D15): the ground plane is x east and
@@ -141,7 +140,7 @@ function initialBean(start: { x: number; y: number }): HubBean {
 
 function initialRail(rail: RailLayout | null): HubRailState | null {
   if (!rail) return null;
-  return { carts: rail.carts.map((c) => ({ id: c.id, mass: c.mass, riderMass: 0, x: c.x, v: 0 })), collisions: [] };
+  return { carts: rail.carts.map((c) => ({ id: c.id, mass: c.mass, riderMass: 0, x: c.x, v: 0 })), collisions: [], riders: [] };
 }
 
 /** One scenario instance per Sim: it owns that sim's Planck world. */
@@ -285,7 +284,7 @@ export function createHubScenario(options: HubOptions = {}): Scenario<HubState, 
         }
       }
 
-      stepHeight(bean, state.gravity, state.tick);
+      if (actWalks(bean.act)) stepHeight(bean, state.gravity, state.tick);
     },
   };
 }

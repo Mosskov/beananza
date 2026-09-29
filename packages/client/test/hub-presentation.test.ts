@@ -1,35 +1,66 @@
 import { describe, expect, it } from 'vitest';
-import { Sim, createHubScenario, type HubCommand, type HubState } from '@beananza/sim';
-import { HEAVY_PUSH_KG, presentAct } from '../src/scenes/hub-presentation';
+import { CART_FLOOR_M, Sim, createHubScenario, type HubAct, type HubCommand, type HubState } from '@beananza/sim';
+import { HEAVY_PUSH_KG, hopAt, presentAct } from '../src/scenes/hub-presentation';
 
 const state = () => new Sim<HubState, HubCommand>(createHubScenario(), 1).state;
+const boarding: HubAct = { kind: 'boarding', cart: 'light', startTick: 60, hopTick: 67, endTick: 93, fromX: -3, fromY: -2.7, arc: 0.6, facingX: 1, facingY: 0 };
+const leaving: HubAct = { kind: 'leaving', cart: 'light', startTick: 120, endTick: 143, fromX: -2.1, fromY: -2.1, toX: -2.1, toY: -2.6, arc: 0.4 };
 
 describe('hub presentation table (one row per interaction state)', () => {
   it('free: ground clips, on the ground, with a shadow and the cart stand-off', () => {
-    expect(presentAct({ kind: 'free' }, state())).toEqual({
+    expect(presentAct({ kind: 'free' }, state(), 2)).toEqual({
       clip: null,
       shows: [],
       placement: { kind: 'ground' },
       shadow: true,
-      standOffCarts: true,
+      standOffCarts: 1,
+      usingCart: null,
+      flatZ: null,
     });
   });
 
   it('pushing: the push clip (heavy from 10 kg), the far arm shows', () => {
     const s = state();
     expect(s.rail!.carts.map((c) => c.mass >= HEAVY_PUSH_KG)).toEqual([false, true]);
-    const light = presentAct({ kind: 'pushing', cart: 'light', dir: 1, run: false }, s);
-    expect(light).toMatchObject({ clip: 'push', shows: ['arm-far-push'], placement: { kind: 'ground' }, standOffCarts: true });
-    expect(presentAct({ kind: 'pushing', cart: 'heavy', dir: -1, run: true }, s).clip).toBe('pushHeavy');
+    const light = presentAct({ kind: 'pushing', cart: 'light', dir: 1, run: false }, s, 2);
+    expect(light).toMatchObject({ clip: { clip: 'push', t: 2 }, shows: ['arm-far-push'], placement: { kind: 'ground' }, standOffCarts: 1 });
+    expect(presentAct({ kind: 'pushing', cart: 'heavy', dir: -1, run: true }, s, 2).clip?.clip).toBe('pushHeavy');
   });
 
-  it('riding: idle, in the cart, no shadow, no stand-off', () => {
-    expect(presentAct({ kind: 'riding', cart: 'light' }, state())).toEqual({
-      clip: 'idle',
+  it('boarding: crouch, jump up to the top of the hop, then fall into the cart (drawn in it from the top)', () => {
+    const s = state();
+    const at = (tick: number) => presentAct(boarding, s, tick / 60);
+    expect(at(62)).toMatchObject({ clip: { clip: 'jump', t: 0, first: true }, placement: { kind: 'ground' }, shadow: true, standOffCarts: 1, usingCart: 'light', flatZ: 0 });
+    // The draw-back from the cart's end fades out over the first half of the hop.
+    expect(at(73).standOffCarts).toBeCloseTo(1 - 2 * (6 / 26), 12);
+    expect(at(80).standOffCarts).toBe(0);
+    expect(at(70).clip?.clip).toBe('jump');
+    expect(at(80).clip?.clip).toBe('fall');
+    expect(at(80).placement).toEqual({ kind: 'cart', cart: 'light' });
+    expect(at(93).flatZ).toBeCloseTo(CART_FLOOR_M, 12);
+    expect(hopAt(80 / 60, 67, 93)).toBeCloseTo(0.5, 12);
+  });
+
+  it('riding: a landing squash, then idle; in the cart, no shadow, no stand-off', () => {
+    const s = state();
+    const riding: HubAct = { kind: 'riding', cart: 'light', since: 93 };
+    expect(presentAct(riding, s, 94 / 60).clip).toMatchObject({ clip: 'land', first: true });
+    expect(presentAct(riding, s, 3)).toEqual({
+      clip: { clip: 'idle', t: 3 },
       shows: [],
       placement: { kind: 'cart', cart: 'light' },
       shadow: false,
-      standOffCarts: false,
+      standOffCarts: 0,
+      usingCart: 'light',
+      flatZ: null,
     });
+  });
+
+  it('leaving: in the cart until the top of the hop, then on the ground; flat height from the floor down', () => {
+    const s = state();
+    expect(presentAct(leaving, s, 121 / 60).placement).toEqual({ kind: 'cart', cart: 'light' });
+    expect(presentAct(leaving, s, 140 / 60).placement).toEqual({ kind: 'ground' });
+    expect(presentAct(leaving, s, 120 / 60).flatZ).toBeCloseTo(CART_FLOOR_M, 12);
+    expect(presentAct(leaving, s, 143 / 60).flatZ).toBe(0);
   });
 });

@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 import { PIXELS_PER_METER } from '@beananza/shared';
 import type { RailLayout } from '@beananza/sim';
-import { CART_WHEEL_RADIUS_M, propPart } from '../art/props';
+import { CART_WHEEL_RADIUS_M, propAnchor, propPart } from '../art/props';
 import { PALETTE, cssColor } from '../config';
 import { RAIL_GAUGE_M, depthKey, toScreen } from './hub-view';
 
@@ -40,6 +40,31 @@ export function drawRail(scene: Phaser.Scene, rail: RailLayout, depth: number): 
   }
 }
 
+/**
+ * The rider's mask for the cart drawn at `cart` (its origin on screen, world pixels): everything
+ * above the rim, and below it only the cart's front, from the cart art's anchors (D22, D23).
+ */
+export function drawRiderMask(g: Phaser.GameObjects.Graphics, cart: { x: number; y: number }): void {
+  const at = (name: string) => {
+    const p = propAnchor('cart', name);
+    return { x: cart.x + p.x, y: cart.y + p.y };
+  };
+  const rimW = at('rim-west');
+  const rimE = at('rim-east');
+  const baseE = at('base-east');
+  const baseW = at('base-west');
+  const reach = 400; // well past a rider's drawn size
+  g.clear().fillStyle(0xffffff, 1);
+  g.fillRect(cart.x - reach, rimW.y - reach, 2 * reach, reach);
+  g.beginPath();
+  g.moveTo(rimW.x, rimW.y);
+  g.lineTo(rimE.x, rimE.y);
+  g.lineTo(baseE.x, baseE.y);
+  g.lineTo(baseW.x, baseW.y);
+  g.closePath();
+  g.fillPath();
+}
+
 export class CartView {
   private readonly back: Phaser.GameObjects.Container;
   private readonly front: Phaser.GameObjects.Container;
@@ -75,8 +100,8 @@ export class CartView {
   }
 
   /**
-   * Draw at rail position `x` (m, interpolated) with the sim's current velocity `v`. With a
-   * rider the readout moves up, clear of the bean's head.
+   * Draw at rail position `x` (m, interpolated) with the sim's current velocity `v`. While the
+   * bean is getting in, riding or getting out, the readout moves up, clear of its head.
    */
   draw(x: number, railY: number, v: number, ridden = false): void {
     const at = toScreen(x, railY - RAIL_GAUGE_M / 2); // on the near rail
@@ -89,6 +114,11 @@ export class CartView {
     // Wheels roll without slipping: angle = distance / radius.
     for (const w of this.wheels) w.setRotation(x / CART_WHEEL_RADIUS_M);
     this.readout.setPosition(at.x, at.y - m(ridden ? 1.35 : 0.95)).setText(speedReadout(v));
+  }
+
+  /** Keep the readout above `top` (a screen y, world pixels), e.g. a bean hopping over the cart. */
+  keepReadoutAbove(top: number): void {
+    if (this.readout.y > top) this.readout.setY(top);
   }
 
   get screen(): { x: number; y: number } {

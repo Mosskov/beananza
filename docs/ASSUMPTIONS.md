@@ -30,10 +30,51 @@ hop and the rider clipped below the rim), D24 (the bench and sitting; D2 stays O
   stepped shot log with a fresh run, after mapping renamed fields. Live shots (`hub.json`,
   `drop.json`) are skipped: their tick depends on wall-clock time.
 
+### Anchors and pivots (D22)
+- **Pivot values were generated from the old rules** and written into the SVGs as
+  `data-pivot`; a test re-implements the old rules and checks every part of every file still
+  gets the same point. Every stepped PNG was byte-identical before and after.
+- **Anchors used now:** `headwear` (every view, at the top of the body), `lean` (side view,
+  replacing the constant 40), and the cart's `floor`, `rim-west`, `rim-east`, `base-east`,
+  `base-west`. No hand anchors: the push clip still slides the arms by clip data.
+- **The cart floor height is sim data** (`CART_FLOOR_M = 0.1`, moved from the client to
+  `hub-world.ts`, since the hop ends there); the `floor` anchor must match it (the rail's centre
+  line is 10 units north of the cart's origin, plus 10 up).
+- **`RAIL_GAUGE_M` moved to `hub-view.ts`** so tests can import it without Phaser.
+
+### Getting into and out of a cart (D23)
+- **New acts:** `boarding` (crouch until `hopTick`, hop until `endTick`), `riding` (now with
+  `since`, the tick it landed) and `leaving`. Durations are rounded to whole steps: crouch 7,
+  hop in `round((0.32 + d/9)·60)`, hop out 23. `d` is the ground distance from the bean to the
+  cart's centre on the rail when E is pressed.
+- **The arc is a parabola** (`4·arc·p·(1−p)` on top of the straight line), not the prototype's
+  sine: the shape of a real hop, and only exactly specified arithmetic (open issue 5). The arc
+  heights are the prototype's (0.30 m + 0.3·d in, 0.40 m out).
+- **Getting in lands wherever the cart is at the end:** the path bends toward a moving cart.
+  Momentum v·m/(m+20) applies at touchdown, at the end of that step (after the rail step), so
+  the cart coasts under friction during the crouch and the hop. Getting out applies
+  v·(m+20)/m at take-off, at the start of the step (as before).
+- **A rider now stands at z = 0.1 m in the sim** (it was 0 and the client added the floor).
+  `stepHeight` only runs while the bean walks.
+- **Mid-hop:** E, Space and taps are dropped; held keys still update the input, so the bean
+  walks on after landing. During the crouch the bean does not stop carts (it is committed to
+  the hop), and the Planck body is inactive.
+- **`rail.riders`** logs the last 16 in/out events (time, masses, velocities before and after);
+  `shot:check-carts` now checks riding from these events plus friction between the shots.
+- **Drawing:** jump clip for the crouch (t = 0) and the rising half, fall clip for the falling
+  half, a land squash in the cart. Drawn in the cart (between back and front, masked) from the
+  top of the hop in, and until the top of the hop out. The draw-back from the cart's end fades
+  out over the first half of the hop in. The readout of the cart in use moves up and stays 12
+  units above the bean's head. Under reduced motion the drawn height has no arc (`flatZ`).
+- **The rider mask** is a Phaser 4 mask filter on the rig (`filters.internal.addMask` with a
+  Graphics in world coordinates, not on the display list), rendered only while in a cart:
+  everything above the rim, and the cart front's trapezoid below it, from the cart's anchors.
+
 ### Hub presentation (`packages/client/src/scenes/hub-presentation.ts`)
 - **One row per act kind:** the act's clip (or null for the ground clips), the toggled parts it
-  shows (`arm-far-push`), where the bean draws (`ground` or in a `cart`), the shadow, and
-  whether the cart stand-off applies. `chooseClip` takes the act's clip instead of the old
+  shows (`arm-far-push`), where the bean draws (`ground` or in a `cart`), the shadow, how much
+  of the cart stand-off applies, the cart in use, and the flat hop height for reduced motion.
+  Rows take the animation time, so hops animate from sim time. `chooseClip` takes the act's clip instead of the old
   `pushing`/`riding` flags; jump, fall and land still come first.
 
 ## M1 session 2 (bean rig v0, carts on a rail), 2026-09-29

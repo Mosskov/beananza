@@ -128,8 +128,8 @@ describe('choosing a clip from sim state', () => {
 
   it('push while pushing a cart (heavy for a heavy cart), side view lean 10° or 16°', () => {
     const pushing = { ...still, vx: 1.9 };
-    expect(chooseClip(pushing, 2, g, 'push')).toEqual({ clip: 'push', t: 2 });
-    expect(chooseClip(pushing, 2, g, 'pushHeavy')).toEqual({ clip: 'pushHeavy', t: 2 });
+    expect(chooseClip(pushing, 2, g, { clip: 'push', t: 2 })).toEqual({ clip: 'push', t: 2 });
+    expect(chooseClip(pushing, 2, g, { clip: 'pushHeavy', t: 2 })).toEqual({ clip: 'pushHeavy', t: 2 });
     expect(pose('push', 0.3).body.rotation).toBe(10);
     expect(pose('pushHeavy', 0.3).body.rotation).toBe(16);
     expect(pose('push', 0.3).armA.rotation).toBe(-80);
@@ -137,7 +137,11 @@ describe('choosing a clip from sim state', () => {
   });
 
   it('an interaction’s clip wins over the ground-speed clips (idle while riding a moving cart)', () => {
-    expect(chooseClip({ ...still, vx: 1.2 }, 2, g, 'idle')).toEqual({ clip: 'idle', t: 2 });
+    expect(chooseClip({ ...still, vx: 1.2 }, 2, g, { clip: 'idle', t: 2 })).toEqual({ clip: 'idle', t: 2 });
+    // A hop's clip comes even before the landing squash.
+    const landed = { ...still, lastJump: { startedAt: 1, landedAt: 1.95 } };
+    expect(chooseClip(landed, 2, g, { clip: 'idle', t: 2 }).clip).toBe('land');
+    expect(chooseClip(landed, 2, g, { clip: 'fall', t: 0.1, first: true })).toEqual({ clip: 'fall', t: 0.1 });
   });
 
   it('land for LAND_DURATION after the exact touchdown, then back to the ground clips', () => {

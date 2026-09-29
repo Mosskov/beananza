@@ -18,8 +18,11 @@ const NEW = resolve(REPO, newArg);
 type Json = Record<string, unknown>;
 
 /**
- * Field renames, oldest first. Each maps an older sim state onto the current names.
+ * Field renames and additions, oldest first. Each maps an older sim state onto the current
+ * fields; none changes a number.
  * - M1 session 3 (D21): `bean.riding` and `bean.pushing` became one interaction state `bean.act`.
+ * - M1 session 3 (D23): `rail.riders` logs getting in and out (empty in older logs), and a
+ *   rider's act records the tick it landed (`since`).
  */
 const RENAMES: { since: string; apply: (state: Json) => void }[] = [
   {
@@ -31,6 +34,13 @@ const RENAMES: { since: string; apply: (state: Json) => void }[] = [
       bean.act = bean.riding ? { kind: 'riding', cart: bean.riding } : pushing ? { kind: 'pushing', ...pushing } : { kind: 'free' };
       delete bean.riding;
       delete bean.pushing;
+    },
+  },
+  {
+    since: 'M1 session 3: rail.riders added',
+    apply(state) {
+      const rail = state.rail as Json | null | undefined;
+      if (rail && !('riders' in rail)) rail.riders = [];
     },
   },
 ];

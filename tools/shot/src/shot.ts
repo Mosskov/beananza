@@ -2,8 +2,8 @@
 // time, and write a PNG plus a JSON log (console errors and warnings, fps, sim time, git commit).
 // Usage: see printHelp() or README.md.
 import { execFileSync } from 'node:child_process';
-import { mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
-import { basename, dirname, extname, join, relative, resolve } from 'node:path';
+import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { basename, dirname, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parseArgs } from 'node:util';
 import { chromium, type Browser, type Page } from 'playwright';
@@ -16,7 +16,7 @@ import {
   URL_PARAM_SCENE,
 } from '@beananza/shared';
 import { SIM_HZ } from '@beananza/sim';
-import { describeStep, parseScript, waitSteps, type ShotScript } from './script';
+import { describeStep, parseScript, scriptOutputNames, waitSteps, type ShotScript } from './script';
 
 const REPO = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
 const CLIENT = join(REPO, 'packages/client');
@@ -394,6 +394,7 @@ async function runScript(
   baseUrl: string,
   serverMode: ServerMode,
   scriptPath: string,
+  outName: string,
   opts: Options,
 ): Promise<number> {
   const relScript = relative(REPO, scriptPath).replaceAll('\\', '/');
@@ -404,9 +405,16 @@ async function runScript(
     console.log(`FAIL ${relScript}: ${errorMessage(err)}`);
     return 1;
   }
-  const outDir = join(opts.outDir, basename(scriptPath, extname(scriptPath)));
-  // Start clean so a run that fails early leaves no older shots beside its run.json.
-  rmSync(outDir, { recursive: true, force: true });
+  // outName is validated (scriptOutputName), so this is always a direct child of --out.
+  const outDir = join(opts.outDir, outName);
+  if (dirname(outDir) !== opts.outDir) throw new Error(`refusing output folder ${outDir}`);
+  // Start clean so a run that fails early leaves no older shots beside its run.json. Only this
+  // tool's own files (top-level .png and .json) are removed; nothing else, and no subfolders.
+  if (existsSync(outDir)) {
+    for (const f of readdirSync(outDir, { withFileTypes: true })) {
+      if (f.isFile() && /\.(png|json)$/.test(f.name)) rmSync(join(outDir, f.name));
+    }
+  }
   mkdirSync(outDir, { recursive: true });
 
   const url = new URL(baseUrl);
@@ -533,7 +541,10 @@ async function main(): Promise<number> {
     });
     if (opts.scripts.length > 0) {
       console.log(`shot: ${baseUrl} (${mode} server), ${browser.version()}`);
-      for (const scriptPath of opts.scripts) failures += await runScript(browser, baseUrl, mode, scriptPath, opts);
+      const outNames = scriptOutputNames(opts.scripts.map((p) => basename(p)));
+      for (const [i, scriptPath] of opts.scripts.entries()) {
+        failures += await runScript(browser, baseUrl, mode, scriptPath, outNames[i] as string, opts);
+      }
       return failures === 0 ? 0 : 1;
     }
     let scenes = opts.scenes;

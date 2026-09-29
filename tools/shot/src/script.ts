@@ -75,6 +75,26 @@ export function parseScript(json: unknown): ShotScript {
   return { scene, steps: out };
 }
 
+/**
+ * Name of a script's output folder: its file name without the extension. Must look like a
+ * shot name, so it can never be "." or ".." or otherwise escape the output directory.
+ */
+export function scriptOutputName(fileName: string): string {
+  const name = fileName.replace(/\.[^.]*$/, '');
+  if (!SHOT_NAME.test(name)) {
+    throw new Error(`script file name "${fileName}" must be lowercase letters, digits, "-" or "_" (plus .json)`);
+  }
+  return name;
+}
+
+/** Output names of several scripts; throws if two would share an output folder. */
+export function scriptOutputNames(fileNames: readonly string[]): string[] {
+  const names = fileNames.map(scriptOutputName);
+  const dup = names.find((n, i) => names.indexOf(n) !== i);
+  if (dup !== undefined) throw new Error(`two scripts would write to the same folder "${dup}"; rename one`);
+  return names;
+}
+
 /** Whole fixed steps a `wait` takes. */
 export function waitSteps(seconds: number): number {
   return Math.round(seconds * SIM_HZ);

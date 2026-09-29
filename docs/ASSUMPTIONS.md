@@ -20,7 +20,9 @@ note "the stack is scaffolding, not a decision" no longer applies to those parts
   client has handled the event. The sim stays paused, so this does not change any sim state.
 - **Script shots are not fps-sampled** (the sim is paused); the logs carry sim state and the
   cumulative console output instead.
-- **Output goes to `artifacts/shots/<script name>/`**, cleared at the start of each run; the
+- **Output goes to `artifacts/shots/<script name>/`.** Script file names follow the shot-name
+  rules and must be unique within a run, so the folder is always a direct child of `--out`. At
+  the start of a run only that folder's top-level `.png` and `.json` files are removed. The
   shot name `run` is reserved. Relative `--script` paths resolve against the repo root, like
   `--out` (pnpm runs the tool from `tools/shot`).
 
@@ -73,8 +75,8 @@ note "the stack is scaffolding, not a decision" no longer applies to those parts
   props are drawn at a fixed size (DESIGN.md §4 says characters scale).
 - **Draw order** is `−y·100` from the ground position (not the height), so a jump never changes
   the order. On the same ground row the bean draws in front of a prop (explicit +0.5 tie-break),
-  and the shot log's behind or in-front field uses the same rule. Props sort by their footprint centre. Ground, floor and shadows sit below
-  everything sorted.
+  and the shot log's behind or in-front field uses the same rule. Props sort by their footprint
+  centre. Ground, floor and shadows sit below everything sorted.
 - **Placeholders**, all marked in code: the bean is an outlined ellipse with a belly and eyes.
   The eyes slide toward the facing direction and hide when facing away; this is not the 8-view
   mapping. The prop is a round tree. The floor is a stone rectangle with a hedge band.

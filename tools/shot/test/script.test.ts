@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { describeStep, parseScript, waitSteps } from '../src/script';
+import { describeStep, parseScript, scriptOutputName, scriptOutputNames, waitSteps } from '../src/script';
 
 describe('parseScript', () => {
   it('accepts every action', () => {
@@ -35,6 +35,21 @@ describe('parseScript', () => {
     ['no shot', { scene: 'hub', steps: [{ wait: 1 }] }],
   ])('rejects %s', (_label, json) => {
     expect(() => parseScript(json)).toThrow();
+  });
+});
+
+describe('script output names', () => {
+  it('uses the file name without extension', () => {
+    expect(scriptOutputName('hub-walk.json')).toBe('hub-walk');
+  });
+
+  it.each(['..json', '...json', '.json', 'Hub Walk.json', 'a.b.json'])('rejects %s', (name) => {
+    expect(() => scriptOutputName(name)).toThrow();
+  });
+
+  it('rejects two scripts that would share a folder', () => {
+    expect(() => scriptOutputNames(['air.json', 'air.json'])).toThrow();
+    expect(scriptOutputNames(['a.json', 'b.json'])).toEqual(['a', 'b']);
   });
 });
 

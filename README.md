@@ -6,8 +6,8 @@ a screenshot and scripted-playthrough tool used to verify every scene, and a fir
 where a placeholder bean walks, runs and jumps.
 
 Start with `CLAUDE.md` and `docs/` (design, decisions, implementation notes). Only what
-`docs/DECISIONS.md` marks as confirmed is approved; everything else is a proposal. Current state: `docs/STATUS.md`. Routine choices made while building:
-`docs/ASSUMPTIONS.md`.
+`docs/DECISIONS.md` marks as confirmed is approved; everything else is a proposal. Current
+state: `docs/STATUS.md`. Routine choices made while building: `docs/ASSUMPTIONS.md`.
 
 ## Requirements
 
@@ -145,8 +145,9 @@ A script is a JSON file naming a scene and a list of steps, each with exactly on
   error, page error or failed request.
 - `--script` is repeatable and cannot be combined with `--scene`, `--all` or `--t`. Run
   `pnpm shot` from the repo root: relative `--script` and `--out` paths resolve against it.
-- Each run first clears its output folder. Scripts with the same file name share a folder, and
-  the shot name `run` is reserved for `run.json`.
+- Script file names must be lowercase letters, digits, `-` or `_` (plus `.json`), and two
+  scripts in one run cannot share a file name. Each run first removes the `.png` and `.json`
+  files in its own output folder. The shot name `run` is reserved for `run.json`.
 
 Scripts in `tools/shot/scripts/`:
 

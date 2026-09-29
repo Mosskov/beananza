@@ -211,6 +211,9 @@ importers:
       '@beananza/shared':
         specifier: workspace:*
         version: link:../shared
+      planck:
+        specifier: 1.5.0
+        version: 1.5.0(stage-js@1.0.2)
 
   tools/shot:
     dependencies:
@@ -1001,6 +1004,12 @@ packages:
     resolution: {integrity: sha512-qcJu88Q2IWqJsDD529JKMdwGm/dvInW4HvQnRwiH9JtihJvzGOscDtHE3x1pBKeUOTysQ8kVmLnJ2kJu7yhcGA==}
     engines: {node: '>=12'}
 
+  planck@1.5.0:
+    resolution: {integrity: sha512-dlvqJE+FscZgrGUXJ5ybd0o5bvZ5XXyZNbm08xGsXp9WjXeAyWSFT6n9s/1PQcUBo4546fDXA5RMA4wbDyZw6g==}
+    engines: {node: '>=24.0'}
+    peerDependencies:
+      stage-js: ^1.0.0-alpha.12
+
   playwright-core@1.63.0:
     resolution: {integrity: sha512-rYCsBF/M5HjUch52bbtVONEFjv6Xu8sm8h72dNlR5bzIE1fvC/bxgspzkjSfU+MweEMmPM8KJebG6nnyxo5mCg==}
     engines: {node: '>=20'}
@@ -1048,6 +1057,10 @@ packages:
   source-map-js@1.2.1:
     resolution: {integrity: sha512-UXWMKhLOwVKb728IUtQPXxfYU+usdybtUrK/8uGE8CQMvrhOpwvzDBwj0QhSL7MQc7vIsISBG8VQ8+IDQxpfQA==}
     engines: {node: '>=0.10.0'}
+
+  stage-js@1.0.2:
+    resolution: {integrity: sha512-EWTRBYlg7Qv9wGUao99/PfRe3KaiQqWmgSvTOXvaWnu1Jk/q/vV8yJVu6bi/3EqDZeMVnCPAjheba6OFc5k1GQ==}
+    engines: {node: '>=24.0'}
 
   std-env@4.2.0:
     resolution: {integrity: sha512-oCUKSupKTHX53EyjDtuZQ64pjLJ6yYCtpmEw0goYxtjG9KpbRe8KAsl2tBUGU9DyMcJ0RwJ8GqJAFzMXcXW1Rw==}
@@ -1845,6 +1858,10 @@ snapshots:
 
   picomatch@4.0.7: {}
 
+  planck@1.5.0(stage-js@1.0.2):
+    dependencies:
+      stage-js: 1.0.2
+
   playwright-core@1.63.0: {}
 
   playwright@1.63.0:
@@ -1895,6 +1912,8 @@ snapshots:
   shebang-regex@3.0.0: {}
 
   source-map-js@1.2.1: {}
+
+  stage-js@1.0.2: {}
 
   std-env@4.2.0: {}
 

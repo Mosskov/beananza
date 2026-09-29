@@ -23,6 +23,41 @@ note "the stack is scaffolding, not a decision" no longer applies to those parts
 - **Output goes to `artifacts/shots/<script name>/`**, and relative `--script` paths resolve
   against `INIT_CWD` (where `pnpm shot` was typed), since pnpm runs the tool from `tools/shot`.
 
+### Hub sim (`packages/sim/src/scenarios/hub.ts`)
+- **Planck.js 1.5.0** is the only new sim dependency. The boundary test now allows `planck`.
+  I read its bundle: no DOM, network or timers; `Date.now` only feeds its time-of-impact
+  profiling stats, and `Math.random` only backs its public `math.random` helper, which the
+  engine never calls. Planck uses `Math.sin`/`cos`/`atan2` internally; the bean has fixed
+  rotation, but cross-engine bit-identity is still unproven (STATUS open issue 5).
+- **The sim state stays authoritative and plain JSON.** Each scenario instance owns one Planck
+  world (one scenario per `Sim`). Every step copies the bean's position and velocity into
+  Planck, steps it, and reads them back. Warm starting is off, so no solver impulses carry over
+  between steps. Planck's contact list is still hidden state, which matters only if a snapshot
+  is ever restored into a fresh world (not needed yet).
+- **Only ground movement goes through Planck.** Height z is integrated exactly with the
+  touchdown solved inside the step, like the drop. Jumping does not lift the bean over
+  anything yet (the prototype's "hop over low objects above about 0.30 m" is not built).
+- **Velocity is set directly** (no acceleration ramp), as the prototype did: walk 2.4 m/s, run
+  4.2 m/s, full speed from the first step. Held input is normalised when longer than 1, so
+  diagonals are no faster; shorter input (a future stick) moves proportionally slower.
+- **Full air control:** ground velocity follows input in the air exactly as on the ground.
+- **Bean footprint:** one circle, radius 0.25 m (PLACEHOLDER until the rig), friction 0 so it
+  slides along walls and props.
+- **Contact tolerance:** Planck keeps a 0.01 m skin on chains and boxes and allows 0.005 m
+  overlap, so a bean resting against an edge sits between 0.005 m inside and 0.015 m short of
+  it. Tests assert that band.
+- **Walkable area is a rectangle** (a Planck chain loop): x −5.8..5.8 m, y −3..2 m, one prop
+  footprint 0.5 × 0.4 m at (2.2, 0.2). Start (−2.5, −0.8). PLACEHOLDER layout pending D2.
+- **Tap targets** are clamped to the walkable area shrunk by the bean's radius. Held keys win
+  over a target and cancel it. The last step toward a target moves exactly the remaining
+  distance, so the bean arrives exactly. Run applies to tap moves while Shift is held.
+- **Stuck:** a step is blocked when it makes less than 25% of the intended progress toward the
+  target; 21 blocked steps in a row (0.35 s) drop the target. Sliding along a prop is not stuck.
+- **Facing** is the unit vector of the last ground movement, kept while idle; it starts facing
+  the camera (south). The rig will map it to the 8 views.
+- **Commands:** `move` (held direction plus Run), `moveTo` (tap target), `jump`. The held input
+  is part of the sim state, so a replay needs only the commands.
+
 ## M0 (scaffold and verification loop), 2026-09-29
 
 ### Scope and decisions

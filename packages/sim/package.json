@@ -10,6 +10,7 @@
     "typecheck": "tsc -p tsconfig.json && tsc -p test/tsconfig.json"
   },
   "dependencies": {
-    "@beananza/shared": "workspace:*"
+    "@beananza/shared": "workspace:*",
+    "planck": "1.5.0"
   }
 }

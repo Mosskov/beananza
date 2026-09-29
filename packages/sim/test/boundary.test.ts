@@ -9,7 +9,10 @@ const sharedSrc = join(repo, 'packages/shared/src');
 const simTsconfig = join(repo, 'packages/sim/tsconfig.json');
 const rules: BoundaryRules = {
   allowedRoots: [simSrc, sharedSrc],
-  allowedPackages: ['@beananza/shared'],
+  // Planck.js (D4, hub collisions). Checked by hand for M1: it touches no DOM, network or timers;
+  // Date.now only feeds its time-of-impact profiling stats, and Math.random only its unused
+  // public math.random helper. Neither affects results.
+  allowedPackages: ['@beananza/shared', 'planck'],
 };
 const format = (vs: Violation[]) => vs.map((v) => `${v.file}:${v.line} ${v.message}`);
 

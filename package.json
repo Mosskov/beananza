@@ -21,7 +21,8 @@
     "share": "pnpm --filter @beananza/share share",
     "share:preview": "pnpm --filter @beananza/share preview",
     "share:dry-run": "pnpm share && pnpm --filter @beananza/share cf-check",
-    "share:deploy": "pnpm share && pnpm --filter @beananza/share cf-deploy"
+    "share:deploy": "pnpm share && pnpm --filter @beananza/share cf-deploy",
+    "share:password": "pnpm --filter @beananza/share cf-password"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",

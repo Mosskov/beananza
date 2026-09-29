@@ -213,6 +213,7 @@ pnpm share            # build the site (needs pnpm shot:install once)
 pnpm share:preview    # serve it at http://localhost:4190
 pnpm share:dry-run    # rebuild, then check the Cloudflare deploy without uploading
 pnpm share:deploy     # rebuild, then deploy (needs `npx wrangler login` once)
+pnpm share:password   # set or change the site password (asks for it)
 ```
 
 - **Page** (`index.html`): the pitch, the playable game, and sections for teachers (DESIGN.md
@@ -226,10 +227,15 @@ pnpm share:deploy     # rebuild, then deploy (needs `npx wrangler login` once)
 - **No third-party requests:** the fonts (Fredoka, Nunito, Caveat) are self-hosted from
   `@fontsource`. The build fails if the page would contain a private claude.ai link.
 - The folder is plain static files; any file server can host it.
-- **Cloudflare:** `tools/share/wrangler.jsonc` deploys the folder as the Worker `beananza`
-  (static files only), served at `beananza.<account subdomain>.workers.dev`. Deploying always
-  rebuilds first. `tools/share/site/_headers` sets `noindex`, `nosniff`, no referrer, and
-  long caching for the game's hashed files. Build from `main` so the page shows the latest status.
+- **Cloudflare:** `tools/share/wrangler.jsonc` deploys the folder as the Worker `beananza`,
+  served at `beananza.<account subdomain>.workers.dev`. Deploying always rebuilds first.
+  `tools/share/site/_headers` sets `noindex`, `nosniff`, no referrer, and private long caching
+  for the game's hashed files. Build from `main` so the page shows the latest status.
+- **Password:** `tools/share/worker/index.ts` asks every visitor for one shared password (the
+  browser's own login box; any username works) before serving any file, the game included.
+  The password is the Worker secret `SITE_PASSWORD`, set with `pnpm share:password`, never in
+  the repo. Until it is set the site answers 503 to everyone, so it is never open by mistake.
+  Changing it locks out everyone who had the old one.
 
 ## Layout
 

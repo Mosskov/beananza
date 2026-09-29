@@ -27,9 +27,15 @@ deployed, and D11 is untouched.
 - **wrangler 4.143.0**, not 4.143.1: 4.143.1 was published less than a day before this
   session. Its `workerd` dependency (Cloudflare's local runtime, only for `wrangler dev`) has
   its install script denied in `pnpm-workspace.yaml`.
+- **One shared password** (the user chose it over Cloudflare Access): HTTP Basic Auth in a small
+  Worker (`tools/share/worker/index.ts`) that runs before every file (`run_worker_first`). Only
+  the password is checked, any username works. It is compared through SHA-256 digests without
+  an early exit. No `SITE_PASSWORD` secret means 503 for everyone (fail closed). The Worker's
+  own responses are `no-store` and `noindex`. Tested with Vitest in Node; `wrangler dev` is not
+  used (its `workerd` runtime is not installed).
 - **Response headers** (`tools/share/site/_headers`): `X-Robots-Tag: noindex`, `nosniff`,
-  `Referrer-Policy: no-referrer`, and a year of immutable caching for `play/assets/*`
-  (content-hashed names).
+  `Referrer-Policy: no-referrer`, and a year of private, immutable caching for `play/assets/*`
+  (content-hashed names; private because the site is behind a password).
 - **Look:** the game's palette on graph paper (the field-notebook style in DESIGN.md §5),
   Fredoka for headings, Nunito for text, Caveat for handwritten captions. Status badges pair a
   shape with a word, never colour alone. The only animation is the dashed arc in the hero,

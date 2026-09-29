@@ -9,6 +9,7 @@
     "preview": "vite preview --outDir ../../artifacts/share --port 4190 --strictPort",
     "cf-deploy": "wrangler deploy",
     "cf-check": "wrangler deploy --dry-run",
+    "cf-password": "wrangler secret put SITE_PASSWORD",
     "typecheck": "tsc -p tsconfig.json"
   },
   "dependencies": {

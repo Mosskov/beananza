@@ -1,12 +1,17 @@
-// The share site as a Cloudflare Worker that only serves static files (no server code yet).
-// Build first with `pnpm share`; deploy with `pnpm share:deploy`.
+// The share site as a Cloudflare Worker: a shared password (worker/index.ts) in front of the
+// static files that `pnpm share` builds. Deploy with `pnpm share:deploy`; set or change the
+// password with `pnpm share:password`.
 {
   "$schema": "./node_modules/wrangler/config-schema.json",
   "name": "beananza",
   "compatibility_date": "2026-09-28",
+  "main": "worker/index.ts",
   "assets": {
     // Everything pnpm share writes, including _headers.
-    "directory": "../../artifacts/share"
+    "directory": "../../artifacts/share",
+    "binding": "ASSETS",
+    // Every request goes through the password check first, the game's files included.
+    "run_worker_first": true
   },
   // Served at beananza.<account subdomain>.workers.dev; no per-version preview URLs.
   "workers_dev": true,

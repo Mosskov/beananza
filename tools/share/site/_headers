@@ -5,6 +5,7 @@
   X-Content-Type-Options: nosniff
   Referrer-Policy: no-referrer
 
-# The game build's file names carry a content hash, so they never change.
+# The game build's file names carry a content hash, so they never change. Private: the site is
+# behind a password, so only the visitor's own browser may keep a copy.
 /play/assets/*
-  Cache-Control: public, max-age=31536000, immutable
+  Cache-Control: private, max-age=31536000, immutable

@@ -102,8 +102,11 @@ export class CartView {
       .setDepth(readoutDepth);
   }
 
-  /** Draw at rail position `x` (m, interpolated) with the sim's current velocity `v`. */
-  draw(x: number, railY: number, v: number): void {
+  /**
+   * Draw at rail position `x` (m, interpolated) with the sim's current velocity `v`. With a
+   * rider the readout moves up, clear of the bean's head.
+   */
+  draw(x: number, railY: number, v: number, ridden = false): void {
     const at = toScreen(x, railY);
     const depth = depthKey(railY);
     this.screenX = at.x;
@@ -113,7 +116,7 @@ export class CartView {
     this.shadow.setPosition(at.x, at.y + m(0.04));
     // Wheels roll without slipping: angle = distance / radius.
     for (const w of this.wheels) w.setRotation(x / WHEEL_R);
-    this.readout.setPosition(at.x, at.y - m(0.95)).setText(speedReadout(v));
+    this.readout.setPosition(at.x, at.y - m(ridden ? 1.35 : 0.95)).setText(speedReadout(v));
   }
 
   get screen(): { x: number; y: number } {

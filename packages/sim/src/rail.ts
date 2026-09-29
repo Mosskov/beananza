@@ -21,6 +21,11 @@ export const CART_ROLLING_DECEL = 0.26;
 export const CART_ROLLING_COEFFICIENT = CART_ROLLING_DECEL / EARTH_GRAVITY;
 export const BUMPER_RESTITUTION = 0.45;
 export const CART_RESTITUTION = 0.5;
+/**
+ * A bean standing on the rail braces and stops a cart that rolls into it (restitution 0): the
+ * ground takes the momentum. The bean is not moved; carts never shove it along.
+ */
+export const BEAN_STOP_RESTITUTION = 0;
 /** Half a cart's length along the rail (m): carts are 0.8 m long. */
 export const CART_HALF_LENGTH = 0.4;
 
@@ -60,7 +65,8 @@ export interface RailPush {
 
 /** One collision, as logged for the scripted checks (momentum, restitution). */
 export interface RailCollision {
-  kind: 'bumper' | 'carts';
+  /** A bumper, two carts, or a bean standing in the cart's way. */
+  kind: 'bumper' | 'carts' | 'bean';
   /** Sim time of the impact (s), solved inside the step. */
   time: number;
   /** Carts involved, west to east; masses include riders. */
@@ -145,11 +151,48 @@ export function leaveCart(cart: RailCart): void {
   cart.v = (cart.v * before) / totalMass(cart);
 }
 
+/** Something standing on the rail that carts stop against: the bean's footprint along the rail. */
+export interface RailObstacle {
+  /** West and east edges along the rail (m). */
+  lo: number;
+  hi: number;
+}
+
+/** A stretch of rail between two stops, each a bumper or a bean. */
+interface Span {
+  minX: number;
+  maxX: number;
+  west: 'bumper' | 'bean';
+  east: 'bumper' | 'bean';
+}
+
+const stopRestitution = (kind: Span['west']) => (kind === 'bumper' ? BUMPER_RESTITUTION : BEAN_STOP_RESTITUTION);
+
 /**
  * Advance the carts by `dt` from sim time `t0`, exactly. `carts` must be sorted west to east
- * (carts cannot pass each other, so the order never changes). Returns the collisions.
+ * (carts cannot pass each other, so the order never changes). An `obstacle` (the bean standing
+ * on the rail) splits the rail in two: carts on each side stop against it. Returns the
+ * collisions in time order.
  */
-export function stepRail(rail: Rail, carts: RailCart[], push: RailPush | null, t0: number, dt: number): RailCollision[] {
+export function stepRail(
+  rail: Rail,
+  carts: RailCart[],
+  push: RailPush | null,
+  t0: number,
+  dt: number,
+  obstacle: RailObstacle | null = null,
+): RailCollision[] {
+  if (!obstacle) return stepSpan({ minX: rail.minX, maxX: rail.maxX, west: 'bumper', east: 'bumper' }, carts, push, t0, dt);
+  const mid = (obstacle.lo + obstacle.hi) / 2;
+  const west = carts.filter((c) => c.x < mid);
+  const east = carts.filter((c) => c.x >= mid);
+  return [
+    ...stepSpan({ minX: rail.minX, maxX: Math.min(rail.maxX, obstacle.lo), west: 'bumper', east: 'bean' }, west, push, t0, dt),
+    ...stepSpan({ minX: Math.max(rail.minX, obstacle.hi), maxX: rail.maxX, west: 'bean', east: 'bumper' }, east, push, t0, dt),
+  ].sort((a, b) => a.time - b.time);
+}
+
+function stepSpan(rail: Span, carts: RailCart[], push: RailPush | null, t0: number, dt: number): RailCollision[] {
   const h = CART_HALF_LENGTH;
   const collisions: RailCollision[] = [];
   let elapsed = 0;
@@ -211,11 +254,13 @@ export function stepRail(rail: Rail, carts: RailCart[], push: RailPush | null, t
     if (event?.kind === 'bumper') {
       const c = (event.side < 0 ? event.g.carts[0] : event.g.carts[event.g.carts.length - 1]) as RailCart;
       c.x = event.side < 0 ? rail.minX + h : rail.maxX - h; // exactly touching
+      const stop = event.side < 0 ? rail.west : rail.east;
       const before = event.g.v;
-      const after = Math.abs(before) < CONTACT_SPEED ? 0 : -BUMPER_RESTITUTION * before;
+      const e = stopRestitution(stop);
+      const after = Math.abs(before) < CONTACT_SPEED || e === 0 ? 0 : -e * before;
       for (const k of event.g.carts) k.v = after;
-      if (after !== 0) {
-        collisions.push({ kind: 'bumper', time, carts: event.g.carts.map((k) => ({ id: k.id, mass: totalMass(k), vBefore: before, vAfter: after })) });
+      if (Math.abs(before) >= CONTACT_SPEED) {
+        collisions.push({ kind: stop, time, carts: event.g.carts.map((k) => ({ id: k.id, mass: totalMass(k), vBefore: before, vAfter: after })) });
       }
     } else if (event?.kind === 'carts') {
       const a = groups[event.i] as Group;
@@ -263,7 +308,7 @@ function pushFor(push: RailPush | null) {
  * Carts in contact that press on each other move as one body (for example the bean pushing one
  * cart into the other); a group resting against a bumper that pushes into it stays put.
  */
-function buildGroups(rail: Rail, carts: RailCart[], push: RailPush | null): Group[] {
+function buildGroups(rail: Span, carts: RailCart[], push: RailPush | null): Group[] {
   const h = CART_HALF_LENGTH;
   const p = pushFor(push);
   const alone = (c: RailCart) => regime(totalMass(c), c.v, push && push.cart === c.id ? p : null);
@@ -293,7 +338,7 @@ function buildGroups(rail: Rail, carts: RailCart[], push: RailPush | null): Grou
   });
 }
 
-function clampCarts(rail: Rail, carts: RailCart[]): void {
+function clampCarts(rail: Span, carts: RailCart[]): void {
   const h = CART_HALF_LENGTH;
   let west = rail.minX;
   for (const c of carts) {

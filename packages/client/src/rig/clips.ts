@@ -249,7 +249,11 @@ const push = (cycle: number, lean: number, bobHeight: number): Families =>
       t('body', 'rotation', keys([0, lean], [1, lean])),
       body('y', keys([0, 0], [0.5, -bobHeight], [1, 0])),
       ...step(keys([0, 9], [0.5, -9], [0.75, 0], [1, 9]), keys([0, 0], [0.5, 0], [0.75, -8], [1, 0])),
+      // Both hands reach the cart: the near arm swings forward and slides out to the body's
+      // front edge; the far arm (drawn reaching forward) slides a little further.
       t('armA', 'rotation', keys([0, -80], [1, -80])),
+      t('armA', 'x', keys([0, 14], [1, 14])),
+      t('armB', 'x', keys([0, 6], [1, 6])),
       flap(0.3),
     ],
   });

@@ -96,9 +96,14 @@ Claude draws the art as SVG; it stays Open. See `docs/DECISIONS.md`.
   x = −2.1 and 20 kg at 1.6 (the prototype's spots, centred). Carts are 0.8 × 0.4 m on the
   ground. PLACEHOLDER layout pending D2.
 - **In Planck, carts are kinematic boxes.** Each step the rail moves first; each cart body then
-  sweeps from its old to its new position during the world step, so a rolling cart shoves the
-  bean aside, then it is set exactly to the rail's position. The bean does not slow a cart it
-  is hit by (the prototype took 10% per frame); only pushing changes a cart's motion.
+  sweeps from its old to its new position during the world step, then it is set exactly to the
+  rail's position.
+- **A bean standing on the rail stops carts** (review round 1: a cart used to carry the bean
+  along at full speed). When the bean's footprint overlaps the rail band (|y − rail| < 0.45 m)
+  and it is not riding, the rail sim splits the rail at the bean's footprint [x − 0.25, x + 0.25]:
+  carts on each side stop against it with restitution 0 (the braced bean passes the momentum to
+  the ground) and the rail logs a `bean` collision. The bean is not moved. The prototype slowed
+  the cart by 10% per frame instead.
 - **Pushing:** on the ground, the bean's centre within the rail band (|y − rail| ≤ 0.2 m, so it
   touches an end, not a long side), its footprint within 0.03 m of the end, and at least 35% of
   its move direction along the rail towards the cart (the prototype's 0.35). Run pushes with
@@ -128,9 +133,14 @@ Claude draws the art as SVG; it stays Open. See `docs/DECISIONS.md`.
   bean plays `idle`.
 - **Controls hint** now includes "Action: E". No on-screen touch buttons yet (phones cannot get
   into a cart): noted as open.
-- **Known look issue:** while pushing, the bean's body overlaps the cart's end. Its drawn
-  half-width (0.5 m × depth scale, about 0.43 m by the rail) is wider than its 0.25 m footprint
-  (D18 kept the footprint). Open issue.
+- **While pushing, the bean is drawn back from its footprint** (review round 1: it overlapped
+  the cart's end). Its drawn body is wider (0.44 m to the belly × depth scale) than its 0.25 m
+  footprint, so the drawing moves back by the difference plus the lean's tip at belly height
+  (0.40 m · sin lean). Drawing only; the sim position and the shot log's sim state are unchanged
+  (the log's screen position is the drawn one). The push clip slides the arms forward so the
+  hands reach the cart.
+- **The readout moves up (1.35 m instead of 0.95 m) while the cart is ridden**, clear of the
+  bean's head.
 
 ### tools/shot
 - **`pnpm shot:check-carts`** re-checks the three cart scripts' logs: push acceleration

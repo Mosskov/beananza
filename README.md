@@ -184,7 +184,7 @@ Scripts in `tools/shot/scripts/`:
 | `hub-depth.json` | Taps to walk north of the tree (drawn behind it), then south (drawn in front), then a tap straight through the tree (target dropped after 0.35 s stuck) |
 | `hub-depth-tie.json` | The bean on the same ground row as the tree (east of the trunk, mid-jump): drawn in front, and the log says so |
 | `hub-carts-push.json` | Walk west of the 5 kg cart, push it east (two shots 0.1 s apart while it speeds up, then at the 1.9 m/s cap), let go; it rolls into the 20 kg cart |
-| `hub-carts-heavy.json` | Walk east of the 20 kg cart and push it west: the same force, a quarter of the acceleration |
+| `hub-carts-heavy.json` | Walk east of the 20 kg cart and push it west: the same 42 N gives F/m a quarter as large, so the net acceleration is 42/20 − 0.26 = 1.84 m/s² against 8.14 m/s² for the 5 kg cart |
 | `hub-carts-ride.json` | Push the 5 kg cart to the cap, E to get in (speed × 5/25), ride, E to get out (speed × 25/5) |
 
 After the three cart scripts, `pnpm shot:check-carts` recomputes from their logs the push

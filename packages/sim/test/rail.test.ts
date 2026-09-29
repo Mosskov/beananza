@@ -164,6 +164,28 @@ describe('collisions', () => {
   });
 });
 
+describe('a bean standing on the rail', () => {
+  it('stops a cart that rolls into it (restitution 0) and is logged', () => {
+    const c = cart('c', 5, 0, 1.9);
+    const hits: RailCollision[] = [];
+    for (let i = 0; i < 60; i++) hits.push(...stepRail(RAIL, [c], null, i * FIXED_DT, FIXED_DT, { lo: 1, hi: 1.5 }));
+    expect(c.v).toBe(0);
+    expect(c.x).toBe(1 - CART_HALF_LENGTH);
+    expect(hits).toHaveLength(1);
+    expect(hits[0]).toMatchObject({ kind: 'bean', carts: [{ id: 'c', vAfter: 0 }] });
+  });
+
+  it('splits the rail: carts on either side stop against it and never meet', () => {
+    const a = cart('a', 5, -2, 1.5);
+    const b = cart('b', 20, 2, -1.5);
+    run([a, b], 0);
+    for (let i = 0; i < 120; i++) stepRail(RAIL, [a, b], null, i * FIXED_DT, FIXED_DT, { lo: -0.25, hi: 0.25 });
+    expect(a.x + CART_HALF_LENGTH).toBeLessThanOrEqual(-0.25 + 1e-12);
+    expect(b.x - CART_HALF_LENGTH).toBeGreaterThanOrEqual(0.25 - 1e-12);
+    expect([a.v, b.v]).toEqual([0, 0]);
+  });
+});
+
 describe('riding', () => {
   it('hopping in gives v·m/(m+M), hopping out reverses it (momentum conserved)', () => {
     const c = cart('c', 5, 0, 1.9);

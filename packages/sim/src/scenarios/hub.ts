@@ -422,7 +422,11 @@ export function createHubScenario(options: HubOptions = {}): Scenario<HubState, 
       bean.pushing = push;
       const cartsBefore = carts.map((c) => c.x);
       if (railLayout && state.rail) {
-        const hits = stepRail(railLayout, carts, push, ticksToSeconds(state.tick), FIXED_DT);
+        // A bean standing on the rail (not riding, not the one pushing) stops carts that roll
+        // into it; pushing, it only ever touches the end it pushes away from itself.
+        const onRail = !bean.riding && Math.abs(bean.y - railY) < CART_HALF_DEPTH + HUB_BEAN_RADIUS_M;
+        const obstacle = onRail ? { lo: bean.x - HUB_BEAN_RADIUS_M, hi: bean.x + HUB_BEAN_RADIUS_M } : null;
+        const hits = stepRail(railLayout, carts, push, ticksToSeconds(state.tick), FIXED_DT, obstacle);
         if (hits.length) state.rail.collisions = [...state.rail.collisions, ...hits].slice(-COLLISION_LOG);
       }
       // Each kinematic cart body sweeps from where it was to where the rail put it, so Planck

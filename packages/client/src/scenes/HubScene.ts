@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { PIXELS_PER_METER } from '@beananza/shared';
-import { FIXED_DT, Sim, createHubScenario, type HubCommand, type HubInput, type HubState } from '@beananza/sim';
+import { FIXED_DT, HUB_BEAN_RADIUS_M, Sim, createHubScenario, type HubCommand, type HubInput, type HubState } from '@beananza/sim';
 import { prefersReducedMotion } from '../accessibility';
 import { GAME_HEIGHT, GAME_WIDTH, PALETTE, cssColor } from '../config';
 import { BeanRig, createBeanShadow } from '../rig/BeanRig';
@@ -32,6 +32,15 @@ const CANOPY_HEIGHT_M = 1.75;
 const FONT = 'system-ui, "Segoe UI", Roboto, sans-serif';
 /** Pushing a cart this heavy or heavier plays the heavy push (lean 16°, slower steps). */
 const HEAVY_PUSH_KG = 10;
+/**
+ * Where the side view's belly is, in art units in front of the feet (art/bean/side.svg). The
+ * bean's footprint (0.25 m) is narrower than its body, so while pushing the bean is drawn this
+ * much further back (scaled) than its footprint, so its belly and hands meet the cart's end
+ * instead of overlapping it. Drawing only; the sim position is unchanged.
+ */
+const SIDE_BODY_FRONT_UNITS = 44;
+/** Height of the belly above the feet (art units): the lean tips it this far times sin(lean). */
+const SIDE_BELLY_HEIGHT_UNITS = 40;
 
 interface BeanView {
   rig: BeanRig;
@@ -192,13 +201,14 @@ export class HubScene extends SimScene<HubState, HubCommand> {
     const scale = depthScale(y, this.sim.state.layout.walkable);
     const rail = this.sim.state.layout.rail;
     for (const c of this.sim.state.rail?.carts ?? []) {
-      this.carts.get(c.id)?.draw(lerp(this.prevCarts.get(c.id) ?? c.x, c.x), rail?.y ?? 0, c.v);
+      this.carts.get(c.id)?.draw(lerp(this.prevCarts.get(c.id) ?? c.x, c.x), rail?.y ?? 0, c.v, b.riding === c.id);
     }
 
     // The sim's z and the draw order are unchanged; only the drawn height is scaled (D18).
     // A rider stands on the cart floor, drawn between the back and the front of its cart.
     const riding = b.riding !== null && rail !== null;
     const feet = characterScreen(x, y, riding ? CART_FLOOR_M : z, scale);
+    if (b.pushing) feet.x -= b.pushing.dir * Math.max(0, SIDE_BODY_FRONT_UNITS * scale - m(HUB_BEAN_RADIUS_M));
     const { rig, shadow } = this.bean;
     const depth = riding ? depthKey(rail.y) + CART_RIDER_DEPTH : depthKey(y) + CHARACTER_TIE_BREAK;
     rig.root.setPosition(feet.x, feet.y).setScale(scale).setDepth(depth);
@@ -218,6 +228,11 @@ export class HubScene extends SimScene<HubState, HubCommand> {
     rig.setPartVisible('arm-far-push', b.pushing !== null);
     const pose = samplePose({ clip, t, time, view: choice.view, reducedMotion: this.reducedMotion });
     rig.applyPose(pose);
+    if (b.pushing) {
+      // The lean tips the belly forward too; keep it at the cart's end (drawing only).
+      const lean = Math.sin((pose.body.rotation * Math.PI) / 180) * SIDE_BELLY_HEIGHT_UNITS * scale;
+      rig.root.x -= b.pushing.dir * lean;
+    }
     const r = (n: number) => Math.round(n * 1e4) / 1e4;
     const { y: by, rotation, scaleX, scaleY } = pose.body;
     this.rigShown = {

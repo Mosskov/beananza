@@ -144,6 +144,7 @@ export class BeanGalleryScene extends Phaser.Scene implements TestableScene {
         mirrored,
         clip: cell.clip,
         t: cell.t,
+        time: cell.time ?? 0,
         body: Object.fromEntries(Object.entries(pose.body).map(([k, v]) => [k, r(v)])),
       })),
     };

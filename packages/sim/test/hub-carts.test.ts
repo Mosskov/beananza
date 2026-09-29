@@ -112,6 +112,24 @@ describe('hub carts', () => {
     expect(cart(side, 'light').v).toBe(0);
   });
 
+  it('a cart rolling into a bean standing on the rail stops against it; the bean is not carried', () => {
+    // The review's case: run-push the light cart west into the bumper; it bounces back east
+    // into the bean, which stands still.
+    const sim = newHub({ start: { x: LIGHT_X + 1.2, y: rail.y } });
+    sim.enqueue(move(-1, 0, true));
+    run(sim, 21);
+    sim.enqueue(move(0, 0));
+    run(sim, 240);
+    const hit = sim.state.rail!.collisions.find((c) => c.kind === 'bean');
+    expect(hit?.carts[0]).toMatchObject({ id: 'light', vAfter: 0 });
+    expect(sim.state.rail!.collisions.some((c) => c.kind === 'bumper')).toBe(true);
+    const b = sim.state.bean;
+    expect(cart(sim, 'light').v).toBe(0);
+    // Touching, within Planck's contact skin.
+    expect(Math.abs(cart(sim, 'light').x - (b.x - HUB_BEAN_RADIUS_M - CART_HALF_LENGTH))).toBeLessThan(0.01);
+    expect(b.vx).toBeCloseTo(0, 9);
+  });
+
   it('E gets into the 5 kg cart and out again; Space also gets out', () => {
     const sim = newHub({ start: { x: LIGHT_X - 0.9, y: rail.y - 0.6 } });
     sim.enqueue({ type: 'action' });

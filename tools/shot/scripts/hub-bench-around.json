@@ -12,7 +12,7 @@
     { "wait": 0.5 },
     { "shot": "going-around" },
     { "wait": 1.0 },
-    { "shot": "in-front" },
+    { "shot": "hopping-on" },
     { "wait": 1.0 },
     { "shot": "sat-from-behind" }
   ]

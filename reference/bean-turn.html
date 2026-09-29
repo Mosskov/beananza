@@ -1,0 +1,577 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Four ways to turn a bean</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Nunito:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F4E9D4; --panel:#FFF8EC; --stage:#FBF1DF; --ink:#3B2F2A; --muted:#6B5B4E;
+  --line:#E2CFAE; --accent:#B8532F; --teal:#3E8C88; --shadow:#E2CFAE;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){ --bg:#231D19; --panel:#2E2621; --ink:#F4E9D4; --muted:#CDBBA6; --line:#4A3D34; --shadow:#15110E; --accent:#E07A55; --teal:#6FC2BD; }
+}
+:root[data-theme="dark"]{ --bg:#231D19; --panel:#2E2621; --ink:#F4E9D4; --muted:#CDBBA6; --line:#4A3D34; --shadow:#15110E; --accent:#E07A55; --teal:#6FC2BD; }
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:inherit}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:'Nunito',system-ui,-apple-system,'Segoe UI',sans-serif;font-weight:700;-webkit-font-smoothing:antialiased}
+main{max-width:1160px;margin:0 auto;padding:30px 20px 56px}
+h1{font-family:'Fredoka','Nunito',system-ui,sans-serif;font-weight:600;font-size:clamp(32px,5vw,50px);line-height:1.04;letter-spacing:-.01em;margin:0 0 12px}
+.intro{max-width:60ch;color:var(--muted);font-size:17px;line-height:1.55;margin:0}
+
+.turner{display:flex;align-items:center;gap:22px;flex-wrap:wrap;margin:26px 0 24px;padding:14px 18px;background:var(--panel);border-radius:28px 28px 28px 8px;box-shadow:0 3px 0 var(--shadow)}
+.dial{width:128px;height:128px;flex:none;touch-action:none;cursor:grab;display:block}
+.dial:active{cursor:grabbing}
+.turnInfo{display:flex;flex-direction:column;gap:10px;min-width:220px;flex:1}
+.readout{font-family:'Fredoka','Nunito',sans-serif;font-weight:600;font-size:22px;line-height:1.2}
+.readout small{display:block;font-family:'Nunito',sans-serif;font-weight:700;font-size:15px;color:var(--muted);margin-top:2px}
+.controls{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+input[type=range]{flex:1;min-width:160px;accent-color:var(--accent);height:28px}
+.spin{min-height:44px;padding:0 20px;border-radius:14px;border:2px solid var(--ink);background:var(--panel);color:var(--ink);font:800 16px 'Nunito',sans-serif;cursor:pointer;box-shadow:0 3px 0 var(--shadow)}
+.spin[aria-pressed="true"]{background:var(--ink);color:var(--panel)}
+.spin:focus-visible,input[type=range]:focus-visible,.dial:focus-visible{outline:3px solid #F6C66B;outline-offset:3px}
+
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+@media (max-width:760px){.grid{grid-template-columns:minmax(0,1fr)}}
+.way{background:var(--panel);border-radius:24px;padding:12px 12px 16px;box-shadow:0 3px 0 var(--shadow);display:flex;flex-direction:column}
+.stage{position:relative;aspect-ratio:4/3;background:var(--stage);border-radius:16px;overflow:hidden}
+.stage > svg,.stage > canvas,.stage > img{position:absolute;inset:0;width:100%;height:100%;display:block}
+.stage .msg{position:absolute;inset:0;display:grid;place-items:center;padding:20px;text-align:center;color:#6B5B4E;font-size:15px}
+.way h2{font-family:'Fredoka','Nunito',sans-serif;font-weight:600;font-size:23px;margin:14px 6px 4px;line-height:1.15}
+.way .what{margin:0 6px;color:var(--muted);font-size:15.5px;line-height:1.5;max-width:52ch}
+.frames{display:flex;gap:6px;margin:12px 6px 0}
+.frames .f{flex:1;min-width:0;aspect-ratio:4/3;border-radius:9px;background:var(--stage);border:2px solid transparent;position:relative;overflow:hidden}
+.frames .f.on{border-color:var(--accent)}
+.frames .f svg,.frames .f img{position:absolute;inset:0;width:100%;height:100%}
+.frames .f .mir{position:absolute;right:3px;top:2px;font-size:11px;line-height:1;color:var(--accent);display:none}
+.frames .f.on.mirrored .mir{display:block}
+.fit{display:grid;grid-template-columns:auto 1fr;gap:4px 10px;margin:12px 6px 0;font-size:15px;line-height:1.45}
+.fit dt{color:var(--muted)}
+.fit dd{margin:0}
+.note{margin:26px 2px 0;max-width:64ch;color:var(--muted);font-size:15px;line-height:1.55}
+@media (prefers-reduced-motion: reduce){ *{animation:none !important;transition:none !important} }
+
+
+@keyframes breathe{0%,100%{transform:scale(1,1)}50%{transform:scale(1.035,.965)}}
+@keyframes blink{0%,90%,100%{transform:scaleY(1)}94%{transform:scaleY(.1)}}
+@keyframes walkbob{0%,50%,100%{transform:translateY(0) scale(1.04,.96)}25%,75%{transform:translateY(-7px) scale(.98,1.02)}}
+@keyframes waddle{0%,100%{transform:translateY(0) rotate(-5deg)}25%,75%{transform:translateY(-6px) rotate(0deg)}50%{transform:translateY(0) rotate(5deg)}}
+@keyframes lift{0%,50%,100%{transform:translateY(0)}25%{transform:translateY(-8px)}}
+@keyframes stepside{0%{transform:translate(9px,0)}50%{transform:translate(-9px,0)}75%{transform:translate(0,-8px)}100%{transform:translate(9px,0)}}
+@keyframes armswing{0%,100%{transform:rotate(-22deg)}50%{transform:rotate(22deg)}}
+@keyframes armsmall{0%,100%{transform:rotate(-10deg)}50%{transform:rotate(10deg)}}
+@keyframes flap{0%,100%{transform:rotate(-10deg)}50%{transform:rotate(12deg)}}
+@keyframes shimmer{0%,100%{opacity:.5}50%{opacity:.85}}
+@keyframes ping{0%{transform:scale(.6);opacity:1}100%{transform:scale(1.4);opacity:0}}
+.blink{transform-box:fill-box;transform-origin:50% 50%;animation:blink 4s infinite}
+.bobBody,.waddleBody{transform-box:fill-box;transform-origin:50% 100%}
+.armSwing,.armSwingB,.armSmall,.armSmallB{transform-box:fill-box;transform-origin:50% 0%}
+.flap{transform-box:fill-box;transform-origin:50% 0%}
+.idle .bobBody,.idle .waddleBody{animation:breathe 3s ease-in-out infinite}
+.idle .flap{animation:flap 2.4s ease-in-out infinite}
+.walking .bobBody{animation:walkbob .56s ease-in-out infinite}
+.walking .waddleBody{animation:waddle .56s ease-in-out infinite}
+.walking .liftA{animation:lift .56s ease-in-out infinite}
+.walking .liftB{animation:lift .56s ease-in-out infinite;animation-delay:-.28s}
+.walking .sideFootA{animation:stepside .56s linear infinite}
+.walking .sideFootB{animation:stepside .56s linear infinite;animation-delay:-.28s}
+.walking .armSwing{animation:armswing .56s ease-in-out infinite}
+.walking .armSwingB{animation:armswing .56s ease-in-out infinite;animation-delay:-.28s}
+.walking .armSmall{animation:armsmall .56s ease-in-out infinite}
+.walking .armSmallB{animation:armsmall .56s ease-in-out infinite;animation-delay:-.28s}
+.walking .flap{animation:flap .28s ease-in-out infinite}
+.shimmer{animation:shimmer 2.4s ease-in-out infinite}
+.ping{animation:ping 1s ease-out infinite}
+@keyframes pushbob{0%,100%{transform:rotate(10deg) translateY(0)}50%{transform:rotate(10deg) translateY(-3px)}}
+@keyframes pushbobH{0%,100%{transform:rotate(16deg) translateY(0)}50%{transform:rotate(17deg) translateY(-2px)}}
+@keyframes sweat{0%{transform:translate(0,0);opacity:0}20%{opacity:1}100%{transform:translate(-8px,22px);opacity:0}}
+.armSide{transform-box:fill-box;transform-origin:50% 0%}
+.walking .armSide{animation:armswing .56s ease-in-out infinite}
+.farArm,.effortFace,.sweat{display:none}
+.push .farArm{display:inline}
+.push .bobBody{animation:pushbob .45s ease-in-out infinite;transform-origin:53% 100%}
+.push .armSide{transform:rotate(-80deg)}
+.push .sideFootA{animation:stepside .45s linear infinite}
+.push .sideFootB{animation:stepside .45s linear infinite;animation-delay:-.225s}
+.push .flap{animation:flap .3s ease-in-out infinite}
+.push.heavy .bobBody{animation:pushbobH 1s ease-in-out infinite}
+.push.heavy .sideFootA{animation:stepside 1s linear infinite}
+.push.heavy .sideFootB{animation:stepside 1s linear infinite;animation-delay:-.5s}
+.push.heavy .effortFace{display:inline}
+.push.heavy .normalFace{display:none}
+.push.heavy .sweat{display:inline;animation:sweat 1.1s ease-in infinite}
+.air .bobBody,.air .waddleBody{transform:scale(.93,1.1)}
+.air .armSmall,.air .armSwing{transform:rotate(135deg)}
+.air .armSmallB,.air .armSwingB{transform:rotate(-135deg)}
+.air .armSide{transform:rotate(-150deg)}
+.air .liftA,.air .liftB{transform:translateY(-6px)}
+.air .sideFootA{transform:translate(4px,-6px)}
+.air .sideFootB{transform:translate(-4px,-5px)}
+.land .bobBody,.land .waddleBody{transform:scale(1.18,.84)}
+.armSmall,.armSmallB,.armSwing,.armSwingB,.armSide{transition:transform .12s}
+@keyframes runbob{0%,50%,100%{transform:translateY(0) rotate(8deg) scale(1.05,.95)}25%,75%{transform:translateY(-12px) rotate(8deg) scale(.96,1.05)}}
+@keyframes runwaddle{0%,100%{transform:translateY(0) rotate(-7deg) scale(1.04,.96)}25%,75%{transform:translateY(-12px) rotate(0deg) scale(.97,1.04)}50%{transform:translateY(0) rotate(7deg) scale(1.04,.96)}}
+@keyframes runstep{0%{transform:translate(14px,-2px)}40%{transform:translate(-14px,0)}70%{transform:translate(-4px,-12px)}100%{transform:translate(14px,-2px)}}
+@keyframes runlift{0%,50%,100%{transform:translateY(0)}25%{transform:translateY(-12px)}}
+@keyframes runarm{0%,100%{transform:rotate(-50deg)}50%{transform:rotate(45deg)}}
+@keyframes runarmsmall{0%,100%{transform:rotate(-20deg)}50%{transform:rotate(20deg)}}
+@keyframes runpuff{0%{transform:translate(0,0) scale(.3);opacity:.85}100%{transform:translate(-18px,-6px) scale(1.25);opacity:0}}
+.runPuff{display:none;transform-box:fill-box;transform-origin:center}
+.running .runPuff{display:inline;animation:runpuff .34s ease-out infinite}
+.running .bobBody{animation:runbob .34s ease-in-out infinite;transform-origin:53% 100%}
+.running .waddleBody{animation:runwaddle .34s ease-in-out infinite}
+.running .sideFootA{animation:runstep .34s linear infinite}
+.running .sideFootB{animation:runstep .34s linear infinite;animation-delay:-.17s}
+.running .liftA{animation:runlift .34s ease-in-out infinite}
+.running .liftB{animation:runlift .34s ease-in-out infinite;animation-delay:-.17s}
+.running .armSide,.running .armSwing{animation:runarm .34s ease-in-out infinite}
+.running .armSwingB{animation:runarm .34s ease-in-out infinite;animation-delay:-.17s}
+.running .armSmall{animation:runarmsmall .34s ease-in-out infinite}
+.running .armSmallB{animation:runarmsmall .34s ease-in-out infinite;animation-delay:-.17s}
+.running .flap{animation:flap .14s ease-in-out infinite}
+@keyframes dangle{0%,100%{transform:translateY(8px)}50%{transform:translateY(15px)}}
+@keyframes npcwave{0%,100%{transform:rotate(-150deg)}50%{transform:rotate(-112deg)}}
+@keyframes zfloat{0%{transform:translate(0,0);opacity:0}25%{opacity:1}100%{transform:translate(10px,-22px);opacity:0}}
+@keyframes pop{0%{transform:scale(.4);opacity:0}100%{transform:scale(1);opacity:1}}
+.sit .waddleBody{animation:breathe 3s ease-in-out infinite}
+.sit .liftA{animation:dangle 1.3s ease-in-out infinite}
+.sit .liftB{animation:dangle 1.3s ease-in-out infinite;animation-delay:-.65s}
+.sit .armSmall{transform:rotate(-12deg)}
+.sit .armSmallB{transform:rotate(12deg)}
+.wave .npcArm{animation:npcwave .5s ease-in-out infinite}
+.sleepEyes,.zzz{display:none}
+.dozy .blink{display:none}
+.dozy .sleepEyes{display:inline}
+.dozy .zzz{display:inline;animation:zfloat 2s ease-out infinite}
+.dozy .liftA,.dozy .liftB{animation:none;transform:translateY(12px)}
+.bubble{transform-origin:20% 100%;animation:pop .25s ease-out both}
+@media (prefers-reduced-motion: reduce){*{animation:none !important}}
+
+</style>
+</head>
+<body>
+<main>
+  <h1>Four ways to turn a bean</h1>
+  <p class="intro">The hub camera looks down at an angle, so turning something on the ground takes either extra drawings or some kind of 3D. Turn the dial, or let it spin, and watch how each approach copes. The ring under each bean shows where it should face (thin line) and what is actually drawn (marker).</p>
+
+  <section class="turner" aria-label="Turn the beans">
+    <svg class="dial" id="dial" viewBox="-70 -70 140 140" tabindex="-1" aria-hidden="true">
+      <circle cx="0" cy="0" r="60" fill="var(--stage)" stroke="var(--line)" stroke-width="3"></circle>
+      <g id="dialTicks"></g>
+      <line id="dialHand" x1="0" y1="0" x2="0" y2="46" stroke="#3B2F2A" stroke-width="5" stroke-linecap="round"></line>
+      <circle id="dialKnob" cx="0" cy="52" r="10" fill="#B8532F" stroke="#FFF8EC" stroke-width="3"></circle>
+      <circle cx="0" cy="0" r="6" fill="#3B2F2A"></circle>
+    </svg>
+    <div class="turnInfo">
+      <div class="readout" id="readout" aria-live="off">Facing 0°<small>toward you</small></div>
+      <div class="controls">
+        <input type="range" id="angle" min="0" max="359" step="1" value="0" aria-label="Facing angle in degrees">
+        <button type="button" class="spin" id="spin" aria-pressed="true">Stop spinning</button>
+      </div>
+    </div>
+  </section>
+
+  <div class="grid">
+    <article class="way">
+      <div class="stage"><svg id="s1" viewBox="-150 -178 300 225" role="img" aria-label="The drawn bean, snapping between its views"><g class="ring"></g><g id="drawnBean" class="idle"><g data-view="front">
+<g class="liftA"><ellipse cx="-18" cy="0" rx="13" ry="7" fill="#B8622F"></ellipse></g>
+<g class="liftB"><ellipse cx="18" cy="0" rx="13" ry="7" fill="#B8622F"></ellipse></g>
+<g class="waddleBody">
+<g class="armSmall"><path d="M-44 -50 q-18 8 -14 26" fill="none" stroke="#C96F42" stroke-width="10" stroke-linecap="round"></path></g>
+<g class="armSmallB"><path d="M44 -50 q18 8 14 26" fill="none" stroke="#C96F42" stroke-width="10" stroke-linecap="round"></path></g>
+<path d="M-46 -4 C-54 -46 -46 -112 0 -114 C46 -112 54 -46 46 -4 C40 6 -40 6 -46 -4 Z" fill="#E08A5B"></path>
+<ellipse cx="0" cy="-24" rx="26" ry="18" fill="#F2B48C"></ellipse>
+<path d="M-42 -54 Q0 -40 42 -54 L42 -44 Q0 -30 -42 -44 Z" fill="#F6C66B"></path>
+<g class="flap"><path d="M20 -42 L26 -20 L36 -22 L30 -44 Z" fill="#E3A93B"></path></g>
+<g class="blink"><ellipse cx="-15" cy="-80" rx="6" ry="8" fill="#2B211C"></ellipse><ellipse cx="15" cy="-80" rx="6" ry="8" fill="#2B211C"></ellipse><circle cx="-13" cy="-83" r="2.2" fill="#FFFFFF"></circle><circle cx="17" cy="-83" r="2.2" fill="#FFFFFF"></circle></g>
+<g class="sleepEyes"><path d="M-21 -80 q6 5 12 0 M9 -80 q6 5 12 0" fill="none" stroke="#2B211C" stroke-width="3" stroke-linecap="round"></path></g>
+<g class="zzz"><text x="34" y="-122" font-family="Fredoka, Nunito, sans-serif" font-weight="600" font-size="24" fill="#6B5B4E">z</text></g>
+<g class="zzz" style="animation-delay: -1s"><text x="50" y="-142" font-family="Fredoka, Nunito, sans-serif" font-weight="600" font-size="17" fill="#6B5B4E">z</text></g>
+<ellipse cx="-27" cy="-66" rx="7" ry="4" fill="#F08F7A" opacity="0.6"></ellipse><ellipse cx="27" cy="-66" rx="7" ry="4" fill="#F08F7A" opacity="0.6"></ellipse>
+<path d="M-6 -66 q6 6 12 0" fill="none" stroke="#2B211C" stroke-width="2.5" stroke-linecap="round"></path>
+<path d="M-44 -98 Q0 -112 44 -98" fill="none" stroke="#6B4A36" stroke-width="5"></path>
+<circle cx="-14" cy="-102" r="10" fill="#BFE3EA" stroke="#6B4A36" stroke-width="4"></circle><circle cx="14" cy="-102" r="10" fill="#BFE3EA" stroke="#6B4A36" stroke-width="4"></circle>
+</g>
+</g>
+<g data-view="front34" style="display:none">
+<g class="runPuff"><circle cx="-32" cy="-6" r="7" fill="#E2D2B4"></circle></g>
+<g class="runPuff" style="animation-delay: -0.17s"><circle cx="-44" cy="-12" r="5" fill="#E2D2B4"></circle></g>
+<g class="liftA"><ellipse cx="-12" cy="0" rx="13" ry="7" fill="#B8622F"></ellipse></g>
+<g class="liftB"><ellipse cx="20" cy="0" rx="12" ry="7" fill="#A3572A"></ellipse></g>
+<g class="bobBody">
+<g class="armSwingB"><path d="M40 -52 q14 10 10 26" fill="none" stroke="#B5633A" stroke-width="10" stroke-linecap="round"></path></g>
+<path d="M-46 -4 C-54 -46 -46 -112 0 -114 C46 -112 54 -46 46 -4 C40 6 -40 6 -46 -4 Z" fill="#E08A5B"></path>
+<ellipse cx="10" cy="-24" rx="24" ry="18" fill="#F2B48C"></ellipse>
+<path d="M-42 -54 Q0 -40 42 -54 L42 -44 Q0 -30 -42 -44 Z" fill="#F6C66B"></path>
+<g class="flap"><path d="M30 -42 L34 -20 L44 -23 L40 -44 Z" fill="#E3A93B"></path></g>
+<g class="blink"><ellipse cx="-4" cy="-80" rx="6" ry="8" fill="#2B211C"></ellipse><ellipse cx="24" cy="-80" rx="5" ry="7.5" fill="#2B211C"></ellipse><circle cx="-2" cy="-83" r="2.2" fill="#FFFFFF"></circle><circle cx="26" cy="-83" r="2" fill="#FFFFFF"></circle></g>
+<ellipse cx="-17" cy="-66" rx="7" ry="4" fill="#F08F7A" opacity="0.6"></ellipse><ellipse cx="35" cy="-66" rx="5" ry="3.5" fill="#F08F7A" opacity="0.6"></ellipse>
+<path d="M5 -66 q6 6 12 0" fill="none" stroke="#2B211C" stroke-width="2.5" stroke-linecap="round"></path>
+<path d="M-44 -98 Q4 -112 46 -96" fill="none" stroke="#6B4A36" stroke-width="5"></path>
+<circle cx="-4" cy="-102" r="10" fill="#BFE3EA" stroke="#6B4A36" stroke-width="4"></circle><ellipse cx="24" cy="-102" rx="8" ry="10" fill="#BFE3EA" stroke="#6B4A36" stroke-width="4"></ellipse>
+<g class="armSwing"><path d="M-42 -50 q-16 10 -12 26" fill="none" stroke="#C96F42" stroke-width="10" stroke-linecap="round"></path></g>
+</g>
+</g>
+<g data-view="side" style="display:none">
+<g class="runPuff"><circle cx="-34" cy="-2" r="7" fill="#E2D2B4"></circle></g>
+<g class="runPuff" style="animation-delay: -0.17s"><circle cx="-46" cy="-8" r="5" fill="#E2D2B4"></circle></g>
+<g class="sideFootB"><ellipse cx="-2" cy="0" rx="13" ry="7" fill="#A3572A"></ellipse></g>
+<g class="bobBody">
+<path class="farArm" d="M-2 -60 q22 -8 46 -4" fill="none" stroke="#B5633A" stroke-width="10" stroke-linecap="round"></path>
+<g class="flap" style="transform-origin: 100% 0%"><path d="M-36 -50 L-60 -40 L-56 -30 L-34 -42 Z" fill="#E3A93B"></path></g>
+<path d="M-40 -4 C-48 -46 -42 -112 2 -114 C46 -112 52 -46 44 -4 C38 6 -34 6 -40 -4 Z" fill="#E08A5B"></path>
+<ellipse cx="22" cy="-24" rx="18" ry="18" fill="#F2B48C"></ellipse>
+<path d="M-42 -54 Q2 -42 46 -54 L46 -44 Q2 -32 -42 -44 Z" fill="#F6C66B"></path>
+<g class="normalFace">
+<g class="blink"><ellipse cx="25" cy="-80" rx="5.5" ry="8" fill="#2B211C"></ellipse><circle cx="27" cy="-83" r="2" fill="#FFFFFF"></circle></g>
+<ellipse cx="35" cy="-66" rx="5" ry="3.5" fill="#F08F7A" opacity="0.6"></ellipse>
+<path d="M37 -66 q4 4 8 0" fill="none" stroke="#2B211C" stroke-width="2.5" stroke-linecap="round"></path>
+</g>
+<g class="effortFace">
+<path d="M20 -84 l9 4 l-9 4" fill="none" stroke="#2B211C" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"></path>
+<ellipse cx="34" cy="-66" rx="7" ry="4.5" fill="#F08F7A" opacity="0.8"></ellipse>
+<rect x="34" y="-71" width="11" height="6" rx="1.5" fill="#FFFFFF" stroke="#2B211C" stroke-width="1.5"></rect>
+</g>
+<path d="M-42 -96 Q-8 -110 20 -105" fill="none" stroke="#6B4A36" stroke-width="5"></path>
+<ellipse cx="27" cy="-103" rx="7" ry="10" fill="#BFE3EA" stroke="#6B4A36" stroke-width="4"></ellipse>
+<g class="sweat"><path d="M-30 -104 C-27 -99 -25 -96 -25 -93 A5 5 0 0 1 -35 -93 C-35 -96 -33 -99 -30 -104 Z" fill="#86BCCB"></path></g>
+<g class="armSide"><path d="M2 -50 q10 12 4 28" fill="none" stroke="#C96F42" stroke-width="10" stroke-linecap="round"></path></g>
+</g>
+<g class="sideFootA"><ellipse cx="12" cy="0" rx="13" ry="7" fill="#B8622F"></ellipse></g>
+</g>
+<g data-view="back34" style="display:none">
+<g class="runPuff"><circle cx="-32" cy="4" r="7" fill="#E2D2B4"></circle></g>
+<g class="runPuff" style="animation-delay: -0.17s"><circle cx="-44" cy="8" r="5" fill="#E2D2B4"></circle></g>
+<g class="liftA"><ellipse cx="-16" cy="0" rx="13" ry="7" fill="#B8622F"></ellipse></g>
+<g class="liftB"><ellipse cx="14" cy="0" rx="12" ry="7" fill="#A3572A"></ellipse></g>
+<g class="bobBody">
+<g class="armSwingB"><path d="M42 -50 q16 8 12 26" fill="none" stroke="#B5633A" stroke-width="10" stroke-linecap="round"></path></g>
+<path d="M-46 -4 C-54 -46 -46 -112 0 -114 C46 -112 54 -46 46 -4 C40 6 -40 6 -46 -4 Z" fill="#E08A5B"></path>
+<ellipse cx="43" cy="-102" rx="3.5" ry="8" fill="#BFE3EA" stroke="#6B4A36" stroke-width="3"></ellipse>
+<path d="M-46 -96 Q-4 -108 42 -102" fill="none" stroke="#6B4A36" stroke-width="5"></path>
+<rect x="-16" y="-108" width="12" height="9" rx="2" fill="#8A5C3C"></rect>
+<path d="M-42 -54 Q0 -40 42 -54 L42 -44 Q0 -30 -42 -44 Z" fill="#F6C66B"></path>
+<g class="flap"><path d="M-30 -46 L-40 -20 L-30 -18 L-22 -44 Z" fill="#E3A93B"></path></g>
+<g class="armSwing"><path d="M-44 -50 q-18 8 -14 26" fill="none" stroke="#C96F42" stroke-width="10" stroke-linecap="round"></path></g>
+</g>
+</g>
+<g data-view="back" style="display:none">
+<g class="liftA"><ellipse cx="-18" cy="0" rx="13" ry="7" fill="#B8622F"></ellipse></g>
+<g class="liftB"><ellipse cx="18" cy="0" rx="13" ry="7" fill="#B8622F"></ellipse></g>
+<g class="waddleBody">
+<g class="armSmall"><path d="M-44 -50 q-18 8 -14 26" fill="none" stroke="#C96F42" stroke-width="10" stroke-linecap="round"></path></g>
+<g class="armSmallB"><path d="M44 -50 q18 8 14 26" fill="none" stroke="#C96F42" stroke-width="10" stroke-linecap="round"></path></g>
+<path d="M-46 -4 C-54 -46 -46 -112 0 -114 C46 -112 54 -46 46 -4 C40 6 -40 6 -46 -4 Z" fill="#E08A5B"></path>
+<path d="M-44 -98 Q0 -108 44 -98" fill="none" stroke="#6B4A36" stroke-width="5"></path>
+<rect x="-6" y="-108" width="12" height="9" rx="2" fill="#8A5C3C"></rect>
+<path d="M-42 -54 Q0 -40 42 -54 L42 -44 Q0 -30 -42 -44 Z" fill="#F6C66B"></path>
+<g class="flap"><path d="M-22 -46 L-30 -20 L-20 -18 L-14 -44 Z" fill="#E3A93B"></path></g>
+</g>
+</g></g></svg></div>
+      <h2>Drawn views</h2>
+      <p class="what">Five hand-drawn views, mirrored to cover eight directions. The bean snaps between them in 45° steps.</p>
+      <div class="frames" id="frames1"></div>
+      <dl class="fit"><dt>Good for</dt><dd>Characters and anything with a face.</dd><dt>Watch out</dt><dd>Every new prop needs five drawings, and nothing exists between the steps.</dd></dl>
+    </article>
+
+    <article class="way">
+      <div class="stage"><svg id="s2" viewBox="-150 -178 300 225" role="img" aria-label="The bean built from flat shapes, turning smoothly"><g class="ring"></g><g id="paperBean"></g></svg></div>
+      <h2>Paper 3D in code</h2>
+      <p class="what">Built from simple flat shapes that the game redraws at any angle. This is how the catapult works today.</p>
+      <dl class="fit"><dt>Good for</dt><dd>Boxy props that must turn freely, like the catapult or carts.</dd><dt>Watch out</dt><dd>Round characters come out faceted.</dd></dl>
+    </article>
+
+    <article class="way">
+      <div class="stage" id="stage3"><svg viewBox="-150 -178 300 225" aria-hidden="true"><g class="ring"></g></svg><img id="pre" alt="The pre-rendered bean, snapping between eight captured angles"></div>
+      <h2>Pre-rendered from 3D</h2>
+      <p class="what">One 3D model, captured from eight angles into images ahead of time. It snaps just like the drawn views.</p>
+      <div class="frames" id="frames3"></div>
+      <dl class="fit"><dt>Good for</dt><dd>Lots of props that should all look consistent.</dd><dt>Watch out</dt><dd>Needs 3D modelling, and more angles means more images to store.</dd></dl>
+    </article>
+
+    <article class="way">
+      <div class="stage" id="stage4"><svg viewBox="-150 -178 300 225" aria-hidden="true"><g class="ring"></g></svg></div>
+      <h2>Live 3D</h2>
+      <p class="what">The same model rendered in real time with flat, toon-style shading. It turns smoothly to any angle.</p>
+      <dl class="fit"><dt>Good for</dt><dd>Smooth turning, with lighting and shadows for free.</dd><dt>Watch out</dt><dd>The biggest change to the pipeline, and the hardest to keep looking hand-drawn.</dd></dl>
+    </article>
+  </div>
+
+  <p class="note">The 3D beans are a quick approximation of the drawing, made to judge how each approach turns, not as final art.</p>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(function () {
+  'use strict';
+  const PHI = 28 * Math.PI / 180, CP = Math.cos(PHI), SP = Math.sin(PHI), SCALE = 0.94, RING = 84;
+  const reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const state = { angle: 20, spin: !reduced };
+  const NS = 'http://www.w3.org/2000/svg';
+  const $ = function (id) { return document.getElementById(id); };
+
+  // ---------- shared: direction words, snapping, turntable rings ----------
+  const WORDS = ['toward you', 'toward you and right', 'right', 'away and right', 'away', 'away and left', 'left', 'toward you and left'];
+  function sector(a) { return Math.round(a / 45) % 8; }
+  function groundPt(a, r) { const t = a * Math.PI / 180; return [r * Math.sin(t), r * Math.cos(t) * SP]; }
+  function ringMarkup() {
+    let m = '<ellipse cx="0" cy="0" rx="' + RING + '" ry="' + (RING * SP).toFixed(1) + '" fill="none" stroke="#E2CFAE" stroke-width="2.5"></ellipse>';
+    for (let i = 0; i < 8; i++) { const a = groundPt(i * 45, RING - 6), b = groundPt(i * 45, RING + 6); m += '<line x1="' + a[0].toFixed(1) + '" y1="' + a[1].toFixed(1) + '" x2="' + b[0].toFixed(1) + '" y2="' + b[1].toFixed(1) + '" stroke="#D6C29C" stroke-width="2.5" stroke-linecap="round"></line>'; }
+    m += '<ellipse cx="0" cy="0" rx="46" ry="11" fill="#3B2F2A" opacity="0.13"></ellipse>';
+    m += '<line class="trueLine" x1="0" y1="0" x2="0" y2="0" stroke="#3E8C88" stroke-width="2" stroke-linecap="round"></line><circle class="trueDot" r="3.5" fill="#3E8C88"></circle>';
+    m += '<path class="shown" d="M0 0" fill="#B8532F"></path>';
+    return m;
+  }
+  const rings = Array.prototype.slice.call(document.querySelectorAll('.ring'));
+  rings.forEach(function (g) { g.innerHTML = ringMarkup(); });
+  function setRing(g, trueA, shownA) {
+    const e = groundPt(trueA, RING + 12);
+    const l = g.querySelector('.trueLine'); l.setAttribute('x2', e[0].toFixed(1)); l.setAttribute('y2', e[1].toFixed(1));
+    const d = g.querySelector('.trueDot'); d.setAttribute('cx', e[0].toFixed(1)); d.setAttribute('cy', e[1].toFixed(1));
+    const tip = groundPt(shownA, RING + 4), l1 = groundPt(shownA - 7, RING - 10), l2 = groundPt(shownA + 7, RING - 10);
+    g.querySelector('.shown').setAttribute('d', 'M' + tip[0].toFixed(1) + ' ' + tip[1].toFixed(1) + ' L' + l1[0].toFixed(1) + ' ' + l1[1].toFixed(1) + ' L' + l2[0].toFixed(1) + ' ' + l2[1].toFixed(1) + ' Z');
+  }
+
+  // ---------- 1: drawn views ----------
+  const VIEW = [['front', false], ['front34', false], ['side', false], ['back34', false], ['back', false], ['back34', true], ['side', true], ['front34', true]];
+  const drawn = $('drawnBean'), viewGroups = Array.prototype.slice.call(drawn.querySelectorAll('[data-view]'));
+  const frames1 = $('frames1'), NAMES = ['front', 'front34', 'side', 'back34', 'back'];
+  NAMES.forEach(function (n) {
+    const g = viewGroups.filter(function (v) { return v.getAttribute('data-view') === n; })[0];
+    const f = document.createElement('div'); f.className = 'f'; f.setAttribute('data-view', n);
+    f.innerHTML = '<svg viewBox="-70 -150 140 160" aria-hidden="true"><g class="idleThumb">' + g.innerHTML + '</g></svg><span class="mir" aria-hidden="true">⇆</span>';
+    frames1.appendChild(f);
+  });
+  let lastSec1 = -1;
+  function draw1(a) {
+    const s = sector(a);
+    setRing(rings[0], a, s * 45);
+    if (s === lastSec1) return; lastSec1 = s;
+    const v = VIEW[s];
+    viewGroups.forEach(function (g) { g.style.display = g.getAttribute('data-view') === v[0] ? '' : 'none'; });
+    drawn.setAttribute('transform', v[1] ? 'scale(-1 1)' : '');
+    Array.prototype.forEach.call(frames1.children, function (f) { const on = f.getAttribute('data-view') === v[0]; f.classList.toggle('on', on); f.classList.toggle('mirrored', on && v[1]); });
+  }
+
+  // ---------- 2: paper 3D (flat shapes, drawn with SVG) ----------
+  const PROFILE = [[0, 0], [28, 1], [40, 6], [46, 20], [47, 36], [45, 56], [40, 76], [32, 94], [20, 108], [0, 114]];
+  function rAt(y) { for (let i = 0; i < PROFILE.length - 1; i++) { const a = PROFILE[i], b = PROFILE[i + 1]; if (y >= a[1] && y <= b[1]) { const t = (y - a[1]) / ((b[1] - a[1]) || 1); return a[0] + (b[0] - a[0]) * t; } } return 0; }
+  function sub(a, b) { return [a[0] - b[0], a[1] - b[1], a[2] - b[2]]; }
+  function cross(a, b) { return [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]]; }
+  function norm(a) { const l = Math.hypot(a[0], a[1], a[2]) || 1; return [a[0] / l, a[1] / l, a[2] / l]; }
+  function centroid(pts) { const c = [0, 0, 0]; pts.forEach(function (p) { c[0] += p[0]; c[1] += p[1]; c[2] += p[2]; }); return [c[0] / pts.length, c[1] / pts.length, c[2] / pts.length]; }
+  const items = [];
+  function face(pts, col, opts) {
+    const c = centroid(pts); let n = norm(cross(sub(pts[1], pts[0]), sub(pts[2], pts[0])));
+    const out = sub(c, [0, c[1], 0]);
+    if (opts && opts.normal) n = opts.normal;
+    else if (n[0] * out[0] + n[2] * out[2] < 0 && !(opts && opts.keepN)) n = [-n[0], -n[1], -n[2]];
+    items.push({ pts: pts, n: n, col: col, flat: !!(opts && opts.flat), stroke: opts && opts.stroke, sw: opts && opts.sw, line: !!(opts && opts.line), bias: (opts && opts.bias) || 0 });
+  }
+  const SEG = 12, OFF = Math.PI / SEG;
+  function ringPts(y, r) { const a = []; for (let j = 0; j < SEG; j++) { const t = j * 2 * Math.PI / SEG + OFF; a.push([r * Math.sin(t), y, r * Math.cos(t)]); } return a; }
+  const rings3 = PROFILE.slice(1, -1).map(function (p) { return ringPts(p[1], p[0]); });
+  for (let i = 0; i < rings3.length - 1; i++) for (let j = 0; j < SEG; j++) {
+    const a = rings3[i][j], b = rings3[i][(j + 1) % SEG], c = rings3[i + 1][(j + 1) % SEG], d = rings3[i + 1][j];
+    const cen = centroid([a, b, c, d]), ang = Math.atan2(cen[0], cen[2]);
+    const belly = Math.cos(ang) > 0.78 && cen[1] > 10 && cen[1] < 58;
+    face([a, b, c, d], belly ? '#F2B48C' : '#E08A5B');
+  }
+  for (let j = 0; j < SEG; j++) {
+    const r0 = rings3[0], rn = rings3[rings3.length - 1];
+    face([[0, 0, 0], r0[(j + 1) % SEG], r0[j]], '#C96F42');
+    face([[0, 114, 0], rn[j], rn[(j + 1) % SEG]], '#E08A5B');
+  }
+  function band(y0, y1, extra, col) {
+    const A = ringPts(y0, rAt(y0) + extra), B = ringPts(y1, rAt(y1) + extra);
+    for (let j = 0; j < SEG; j++) face([A[j], A[(j + 1) % SEG], B[(j + 1) % SEG], B[j]], col);
+  }
+  band(54, 64, 2.5, '#F6C66B');
+  band(97, 103, 1.8, '#6B4A36');
+  face([[13, 52, 46], [23, 52, 43], [26, 30, 43], [16, 30, 46]], '#E3A93B', { normal: norm([0.3, 0, 1]) });
+  function decal(cx, cy, rx, ry, col, stroke, sw, bias) {
+    const z = Math.sqrt(Math.max(0, Math.pow(rAt(cy), 2) - cx * cx)) + 1.2, n = norm([cx, 0, z]);
+    const u = norm([n[2], 0, -n[0]]), pts = [];
+    for (let k = 0; k < 10; k++) { const t = k / 10 * Math.PI * 2; pts.push([cx + Math.cos(t) * rx * u[0], cy + Math.sin(t) * ry, z + Math.cos(t) * rx * u[2]]); }
+    face(pts, col, { normal: n, flat: true, stroke: stroke, sw: sw, bias: bias || 0.5 });
+  }
+  decal(-15, 80, 5.5, 7, '#2B211C'); decal(15, 80, 5.5, 7, '#2B211C');
+  decal(-13, 82.5, 1.8, 1.8, '#FFFFFF', null, 0, 1); decal(17, 82.5, 1.8, 1.8, '#FFFFFF', null, 0, 1);
+  decal(-27, 67, 6, 3.5, '#F08F7A'); decal(27, 67, 6, 3.5, '#F08F7A');
+  decal(-12, 101, 8.5, 8.5, '#BFE3EA', '#6B4A36', 3, 1.2); decal(12, 101, 8.5, 8.5, '#BFE3EA', '#6B4A36', 3, 1.2);
+  (function () {
+    const pts = []; for (let k = 0; k <= 6; k++) { const x = -6 + k * 2, y = 72 - Math.sin(k / 6 * Math.PI) * 3.5; pts.push([x, y, Math.sqrt(Math.pow(rAt(y), 2) - x * x) + 1.2]); }
+    face(pts, 'none', { normal: [0, 0, 1], flat: true, stroke: '#3B2F2A', sw: 2.4, line: true, bias: 0.6 });
+  })();
+  function box(cx, cy, cz, sx, sy, sz, rz, col) {
+    const c = Math.cos(rz), s = Math.sin(rz);
+    const P = function (x, y, z) { const X = x * c - y * s, Y = x * s + y * c; return [cx + X, cy + Y, cz + z]; };
+    const x = sx / 2, y = sy / 2, z = sz / 2;
+    const v = [P(-x, -y, -z), P(x, -y, -z), P(x, y, -z), P(-x, y, -z), P(-x, -y, z), P(x, -y, z), P(x, y, z), P(-x, y, z)];
+    const F = [[4, 5, 6, 7, [0, 0, 1]], [1, 0, 3, 2, [0, 0, -1]], [5, 1, 2, 6, [1, 0, 0]], [0, 4, 7, 3, [-1, 0, 0]], [7, 6, 2, 3, [0, 1, 0]], [0, 1, 5, 4, [0, -1, 0]]];
+    F.forEach(function (f) { const nn = f[4], N = [nn[0] * c - nn[1] * s, nn[0] * s + nn[1] * c, nn[2]]; face([v[f[0]], v[f[1]], v[f[2]], v[f[3]]], col, { normal: N }); });
+  }
+  box(-49, 42, 0, 8, 24, 9, -0.35, '#C96F42'); box(49, 42, 0, 8, 24, 9, 0.35, '#C96F42');
+  box(-18, 3, 12, 20, 6, 18, 0, '#B8622F'); box(18, 3, 12, 20, 6, 18, 0, '#B8622F');
+  function hexShift(hex, f) {
+    const n = parseInt(hex.slice(1), 16), r = n >> 16, g = (n >> 8) & 255, b = n & 255;
+    const m = function (v) { return Math.max(0, Math.min(255, Math.round(f > 0 ? v + (255 - v) * f : v * (1 + f)))); };
+    return '#' + ((1 << 24) + (m(r) << 16) + (m(g) << 8) + m(b)).toString(16).slice(1);
+  }
+  const LIGHT = norm([-0.45, 0.75, 0.5]);
+  const paper = $('paperBean');
+  function draw2(a) {
+    setRing(rings[1], a, a);
+    const th = a * Math.PI / 180, c = Math.cos(th), s = Math.sin(th);
+    const vis = [];
+    items.forEach(function (it) {
+      const n = it.n, nx = n[0] * c + n[2] * s, nz = -n[0] * s + n[2] * c, ny = n[1];
+      if (nz * CP + ny * SP <= 0.02) return;
+      let depth = 0; const pts = it.pts.map(function (p) {
+        const x1 = (p[0] * c + p[2] * s) * SCALE, z1 = (-p[0] * s + p[2] * c) * SCALE, y = p[1] * SCALE;
+        depth += z1 * CP + y * SP; return [x1, -y * CP + z1 * SP];
+      });
+      depth = depth / pts.length + it.bias;
+      let fill = it.col;
+      if (!it.flat && fill !== 'none') { const l = nx * LIGHT[0] + ny * LIGHT[1] + nz * LIGHT[2]; fill = l > 0.62 ? hexShift(fill, 0.12) : l > 0.12 ? fill : hexShift(fill, -0.14); }
+      vis.push({ d: depth, pts: pts, fill: fill, it: it });
+    });
+    vis.sort(function (p, q) { return p.d - q.d; });
+    let html = '';
+    vis.forEach(function (v) {
+      const pts = v.pts.map(function (p) { return p[0].toFixed(1) + ',' + p[1].toFixed(1); }).join(' ');
+      if (v.it.line) html += '<polyline points="' + pts + '" fill="none" stroke="' + v.it.stroke + '" stroke-width="' + v.it.sw + '" stroke-linecap="round"></polyline>';
+      else if (v.it.stroke) html += '<polygon points="' + pts + '" fill="' + v.fill + '" stroke="' + v.it.stroke + '" stroke-width="' + v.it.sw + '" stroke-linejoin="round"></polygon>';
+      else html += '<polygon points="' + pts + '" fill="' + v.fill + '" stroke="' + (v.it.flat ? v.fill : hexShift(v.fill, -0.2)) + '" stroke-width="' + (v.it.flat ? 0.4 : 0.7) + '" stroke-linejoin="round"></polygon>';
+    });
+    paper.innerHTML = html;
+  }
+
+  // ---------- 3 + 4: a 3D bean (Three.js) ----------
+  let live = null, preUrls = null;
+  const stage3 = $('stage3'), stage4 = $('stage4'), pre = $('pre'), frames3 = $('frames3');
+  function msg(stage, text) { const d = document.createElement('div'); d.className = 'msg'; d.textContent = text; stage.appendChild(d); }
+  function makeBean(T, grad) {
+    const g = new T.Group();
+    const toon = function (hex) { return new T.MeshToonMaterial({ color: hex, gradientMap: grad }); };
+    const flat = function (hex) { return new T.MeshBasicMaterial({ color: hex }); };
+    const prof = PROFILE.map(function (p) { return new T.Vector2(Math.max(0.01, p[0]), p[1]); });
+    const bodyGeo = new T.LatheGeometry(prof, 40);
+    const body = new T.Mesh(bodyGeo, toon(0xE08A5B)); g.add(body);
+    const hull = new T.Mesh(bodyGeo, new T.MeshBasicMaterial({ color: 0x8A4A2A, side: T.BackSide })); hull.scale.set(1.03, 1.012, 1.03); g.add(hull);
+    const add = function (geo, mat, x, y, z, sx, sy, sz, rx, ry, rz) { const m = new T.Mesh(geo, mat); m.position.set(x, y, z); m.scale.set(sx || 1, sy || 1, sz || 1); m.rotation.set(rx || 0, ry || 0, rz || 0); g.add(m); return m; };
+    const sphere = new T.SphereGeometry(1, 24, 16);
+    add(sphere, toon(0xF2B48C), 0, 34, 41, 23, 21, 8);
+    [-1, 1].forEach(function (sd) {
+      const ez = Math.sqrt(rAt(80) * rAt(80) - 225) + 0.5;
+      add(sphere, flat(0x2B211C), sd * 15, 80, ez, 5.2, 7, 3);
+      add(sphere, flat(0xFFFFFF), sd * 15 + 2, 82.5, ez + 2.4, 1.8, 1.8, 1);
+      add(sphere, flat(0xF08F7A), sd * 27, 67, Math.sqrt(rAt(67) * rAt(67) - 729) + 0.2, 6, 3.4, 2);
+      add(sphere, toon(0xC96F42), sd * 49, 42, 0, 7, 14, 7.5, 0, 0, sd * 0.35);
+      add(sphere, toon(0xB8622F), sd * 18, 3, 12, 12, 5.5, 15);
+      const lz = Math.sqrt(rAt(101) * rAt(101) - 144);
+      add(new T.TorusGeometry(8, 2.4, 10, 28), flat(0x6B4A36), sd * 12, 101, lz + 1, 1, 1, 1, 0, sd * 0.4, 0);
+      add(new T.CircleGeometry(7, 24), new T.MeshBasicMaterial({ color: 0xBFE3EA, transparent: true, opacity: 0.9 }), sd * 12, 101, lz + 0.8, 1, 1, 1, 0, sd * 0.4, 0);
+    });
+    add(new T.TorusGeometry(rAt(100) + 1.2, 2, 8, 48), flat(0x6B4A36), 0, 100, 0, 1, 1, 1, Math.PI / 2, 0, 0);
+    add(new T.TorusGeometry(rAt(59) + 1.2, 3.6, 10, 48), toon(0xF6C66B), 0, 59, 0, 1, 1, 1, Math.PI / 2, 0, 0);
+    add(new T.BoxGeometry(9, 20, 4), toon(0xE3A93B), 18, 42, 44, 1, 1, 1, 0.05, 0.35, 0.18);
+    add(new T.TorusGeometry(6, 1.3, 6, 16, Math.PI), flat(0x3B2F2A), 0, 74, Math.sqrt(rAt(72) * rAt(72)) - 1, 1, 1, 1, 0, 0, Math.PI);
+    g.scale.set(SCALE, SCALE, SCALE);
+    return g;
+  }
+  function makeScene(T, grad) {
+    const scene = new T.Scene();
+    scene.add(new T.AmbientLight(0xffffff, 0.5));
+    const sun = new T.DirectionalLight(0xffffff, 0.52); sun.position.set(-0.45, 0.75, 0.5); scene.add(sun);
+    const bean = makeBean(T, grad); scene.add(bean);
+    const cam = new T.OrthographicCamera(-150, 150, 178, -47, -1000, 1000);
+    cam.rotation.x = -PHI;
+    return { scene: scene, bean: bean, cam: cam };
+  }
+  function setup3D() {
+    const T = window.THREE;
+    if (!T) { msg(stage3, 'The 3D library could not load, so this view is unavailable.'); msg(stage4, 'The 3D library could not load, so this view is unavailable.'); return; }
+    let grad;
+    try {
+      grad = new T.DataTexture(new Uint8Array([140, 200, 255]), 3, 1, T.LuminanceFormat);
+      grad.minFilter = grad.magFilter = T.NearestFilter; grad.generateMipmaps = false; grad.needsUpdate = true;
+      // 3: capture eight angles into images
+      const cap = new T.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });
+      cap.setPixelRatio(1); cap.setSize(640, 480, false); cap.setClearColor(0x000000, 0);
+      const sc = makeScene(T, grad);
+      preUrls = [];
+      for (let i = 0; i < 8; i++) { sc.bean.rotation.y = i * Math.PI / 4; cap.render(sc.scene, sc.cam); preUrls.push(cap.domElement.toDataURL('image/png')); }
+      cap.dispose(); if (cap.forceContextLoss) cap.forceContextLoss();
+      preUrls.forEach(function (u, i) { const f = document.createElement('div'); f.className = 'f'; f.innerHTML = '<img alt="" src="' + u + '">'; frames3.appendChild(f); });
+      // 4: live renderer
+      const r = new T.WebGLRenderer({ antialias: true, alpha: true });
+      r.setClearColor(0x000000, 0); r.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
+      stage4.appendChild(r.domElement);
+      const lv = makeScene(T, grad);
+      live = { r: r, sc: lv };
+      const fit = function () { const w = stage4.clientWidth, h = stage4.clientHeight; if (w && h) r.setSize(w, h, false); draw4(state.angle, true); };
+      if (window.ResizeObserver) new ResizeObserver(fit).observe(stage4); else window.addEventListener('resize', fit);
+      fit();
+    } catch (e) {
+      msg(stage3, 'This browser cannot show 3D here, so this view is unavailable.');
+      msg(stage4, 'This browser cannot show 3D here, so this view is unavailable.');
+    }
+  }
+  let lastSec3 = -1, last4 = null;
+  function draw3(a) {
+    const s = sector(a);
+    setRing(rings[2], a, s * 45);
+    if (!preUrls || s === lastSec3) return; lastSec3 = s;
+    pre.src = preUrls[s];
+    Array.prototype.forEach.call(frames3.children, function (f, i) { f.classList.toggle('on', i === s); });
+  }
+  function draw4(a, force) {
+    setRing(rings[3], a, a);
+    if (!live || (!force && last4 === a)) return; last4 = a;
+    live.sc.bean.rotation.y = a * Math.PI / 180;
+    live.r.render(live.sc.scene, live.sc.cam);
+  }
+
+  // ---------- controls ----------
+  const dial = $('dial'), hand = $('dialHand'), knob = $('dialKnob'), range = $('angle'), readout = $('readout'), spinBtn = $('spin');
+  (function () { let m = ''; for (let i = 0; i < 8; i++) { const t = i * Math.PI / 4, big = i % 2 === 0; m += '<line x1="' + (Math.sin(t) * (big ? 44 : 48)).toFixed(1) + '" y1="' + (Math.cos(t) * (big ? 44 : 48)).toFixed(1) + '" x2="' + (Math.sin(t) * 56).toFixed(1) + '" y2="' + (Math.cos(t) * 56).toFixed(1) + '" stroke="var(--line)" stroke-width="' + (big ? 4 : 2.5) + '" stroke-linecap="round"></line>'; } $('dialTicks').innerHTML = m; })();
+  function render() {
+    const a = state.angle, t = a * Math.PI / 180;
+    hand.setAttribute('x2', (Math.sin(t) * 42).toFixed(1)); hand.setAttribute('y2', (Math.cos(t) * 42).toFixed(1));
+    knob.setAttribute('cx', (Math.sin(t) * 52).toFixed(1)); knob.setAttribute('cy', (Math.cos(t) * 52).toFixed(1));
+    const deg = Math.round(a) % 360;
+    if (+range.value !== deg) range.value = deg;
+    readout.innerHTML = 'Facing ' + deg + '°<small>' + WORDS[sector(a)] + '</small>';
+    draw1(a); draw2(a); draw3(a); draw4(a);
+  }
+  function setAngle(a) { state.angle = ((a % 360) + 360) % 360; render(); }
+  function setSpin(on) { state.spin = on; spinBtn.setAttribute('aria-pressed', String(on)); spinBtn.textContent = on ? 'Stop spinning' : 'Spin'; }
+  spinBtn.addEventListener('click', function () { setSpin(!state.spin); });
+  range.addEventListener('input', function () { setSpin(false); setAngle(+range.value); });
+  let dragging = false;
+  function fromPointer(ev) { const r = dial.getBoundingClientRect(); const dx = ev.clientX - (r.left + r.width / 2), dy = ev.clientY - (r.top + r.height / 2); setAngle(Math.atan2(dx, dy) * 180 / Math.PI); }
+  dial.addEventListener('pointerdown', function (ev) { dragging = true; setSpin(false); dial.setPointerCapture(ev.pointerId); fromPointer(ev); });
+  dial.addEventListener('pointermove', function (ev) { if (dragging) fromPointer(ev); });
+  dial.addEventListener('pointerup', function () { dragging = false; });
+  dial.addEventListener('pointercancel', function () { dragging = false; });
+  let lastT = 0;
+  function loop(t) {
+    const dt = lastT ? Math.min(0.05, (t - lastT) / 1000) : 0; lastT = t;
+    if (state.spin && dt > 0) setAngle(state.angle + 40 * dt);
+    requestAnimationFrame(loop);
+  }
+  setSpin(state.spin);
+  setup3D();
+  render();
+  requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>

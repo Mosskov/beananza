@@ -1,0 +1,15 @@
+node_modules/
+dist/
+*.tsbuildinfo
+.vite/
+coverage/
+
+# tools/shot output (evidence worth keeping is copied into docs/)
+artifacts/
+
+# Local handover archive and drop folder
+*.zip
+inbox/
+
+.DS_Store
+Thumbs.db

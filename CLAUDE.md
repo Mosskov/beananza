@@ -23,7 +23,7 @@ and at home.
 - `docs/TOPICS.md`: design topics backlog
 - `prompts/M0-first-session.md`: the prepared prompt for the first build session
 - `reference/`: the showcase page and the bean rotation comparison (open in a browser). Behavior reference only; never port their code.
-- `art/`: the bean and prop SVGs the game loads by part id (see `art/README.md`), plus reference art (body forms, the Heavy Baron) and the palette.
+- `art/`: the bean, cosmetic and prop SVGs the game loads by part id, with anchors and pivots in the files (see `art/README.md`), plus reference art (body forms, the Heavy Baron) and the palette.
 
 ## Proposed stack (not yet confirmed, see DECISIONS.md)
 - TypeScript everywhere, pnpm workspaces monorepo
@@ -76,9 +76,10 @@ art/
 ## Commands
 Details in `README.md`.
 - `pnpm install`, then once `pnpm shot:install` (Playwright Chromium)
-- `pnpm dev`: game at http://localhost:5180/?scene=<name> (`hub` is the default; also `bean`, `drop`, `empty`; `&paused=1` starts paused)
+- `pnpm dev`: game at http://localhost:5180/?scene=<name> (`hub` is the default; also `bean`, `looks`, `drop`, `empty`; `&paused=1` starts paused; `&look=blue,spots,bow,glasses` sets the bean's look)
 - `pnpm check`: typecheck, lint, tests and build (`pnpm test`, `pnpm typecheck`, `pnpm lint`, `pnpm build`)
 - `pnpm shot --all` or `pnpm shot --scene drop --t 1.0`: PNG plus JSON log in `artifacts/shots/`.
+  Checks on the logs: `pnpm shot:check-carts`, `pnpm shot:check-looks`, `pnpm shot:compare-states <old evidence folder>`.
   Look at the screenshot and the log before claiming a scene works or looks right.
 - New scenes register in `packages/client/src/scenes/registry.ts` under their `?scene=` name.
 - Routine choices go in `docs/ASSUMPTIONS.md`; current state in `docs/STATUS.md`.

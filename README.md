@@ -157,6 +157,7 @@ Scripts in `tools/shot/scripts/`:
 | `hub-walk.json` | Hold → for 1.0 s (2.4 m), Shift + A for 1.0 s (4.2 m back), ↑ + → for 0.5 s |
 | `hub-jump.json` | Space: apex at 0.4 s, landed at 1.0 s; then a jump while holding D (air control) |
 | `hub-depth.json` | Taps to walk north of the tree (drawn behind it), then south (drawn in front), then a tap straight through the tree (target dropped after 0.35 s stuck) |
+| `hub-depth-tie.json` | The bean on the same ground row as the tree (east of the trunk, mid-jump): drawn in front, and the log says so |
 
 Hub shot logs add a `view` block: the bean's screen position (feet, in viewport pixels),
 depth scale and draw depth, and for each prop whether the bean is drawn `behind` it or

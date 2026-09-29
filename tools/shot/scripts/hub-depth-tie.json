@@ -1,0 +1,12 @@
+{
+  "scene": "hub",
+  "steps": [
+    { "tap": [910, 390] },
+    { "wait": 2.5 },
+    { "tap": [910, 290] },
+    { "wait": 1.0 },
+    { "press": "Space" },
+    { "wait": 0.4 },
+    { "shot": "same-row-as-prop" }
+  ]
+}

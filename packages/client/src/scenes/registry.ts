@@ -1,3 +1,4 @@
+import { DropScene } from './DropScene';
 import { EmptyScene } from './EmptyScene';
 import type { TestableScene } from './TestableScene';
 
@@ -9,6 +10,7 @@ export type SceneClass = new () => TestableScene;
  */
 export const SCENES: Readonly<Record<string, SceneClass>> = {
   empty: EmptyScene,
+  drop: DropScene,
 };
 
 export const DEFAULT_SCENE = 'empty';

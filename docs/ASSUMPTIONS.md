@@ -3,6 +3,73 @@
 Routine choices made while building, logged so they can be reviewed and reversed. None of them
 changes a decision in `docs/DECISIONS.md`. Newest milestone first.
 
+## M1 session 2 (bean rig v0, carts on a rail), 2026-09-29
+
+### Decisions confirmed at the start of the session
+D3 (parts rig in our own code, clips as data, no Spine), D12 for characters (5 views mirrored
+to 8; asymmetric parts drawn for the mirrored directions), D4 for the carts (exact 1D sim,
+kinematic Planck bodies for the bean's collisions), D18 (bean 1.14 m, 20 kg, drawn jump height
+scaled by depth), D19 (cart numbers in SI) and D20 (default scene `hub`). D13 records that
+Claude draws the art as SVG; it stays Open. See `docs/DECISIONS.md`.
+
+### Bean art and rig (`packages/client/src/rig/`)
+- **The SVGs in `art/bean/` are loaded as they are** (Vite `?raw` imports), split by top-level
+  `<g id>`. A small regex parser (not DOMParser) so the same code runs in the art-contract test
+  under Node. The contract: flat groups, required parts per view, `-left` drawings for
+  asymmetric parts (`art/README.md`).
+- **Asymmetric parts:** a part is asymmetric when a `-left` file has it. v0 has two: the scarf
+  tail and the eyes. The eye highlights "stay on the light side by rule" was implemented as two
+  small `-left` eye drawings rather than code: simpler, and the same mechanism as the tail. A
+  test checks every highlight sits right of its pupil and the tail stays on the bean's left.
+- **The `-left` drawings are authored as seen on screen**; inside the flipped view the rig
+  places them at the mirrored pivot and flips them back, so their motion (rotation, offsets)
+  still mirrors like every other part. `data-after` sets their draw order.
+- **Pivots by rule** until the files carry pivot markers: arms and the scarf tail rotate about
+  the first point of their path, feet about their ellipse centre, eyes about the mean eye
+  centre, everything else about (0, 0).
+- **Rasterized once at boot** (before the game starts) at 2 texture px per art unit, each part
+  cropped to its pixels. Phaser draws images; nothing is redrawn per frame. The shadow part of
+  `front.svg` is the ground shadow for every view.
+- **Hidden by default:** the goggles (earned; catapult later) and the side view's pushing arm.
+- **Rig structure:** root (position, depth scale) → flip (mirroring) → one container per view
+  combination (built lazily, shown one at a time) → segments. Consecutive body parts share one
+  container with the body transform (bob, lean, squash about the feet); feet sit outside it, so
+  they stay on the ground and the SVG draw order is kept.
+- **Three animation families:** front/back, the ¾ views, side. Slots `footA/footB/armA/armB`
+  map to left/right or near/far parts per view.
+- **Clips** port the prototype's keyframes and timings (walk 0.56 s, run 0.34 s, idle breathe
+  3 s, blink 4 s, land 0.13 s). CSS ease-in-out is approximated by smoothstep; side-view steps
+  are linear, as in the prototype. Keys are fractions of the cycle; a track may have its own
+  period (scarf flap) and a half-cycle offset (the other foot or arm).
+- **Clip choice from sim state only:** airborne and rising → `jump` (t since take-off);
+  airborne and falling → `fall` (t since the apex, −vz/g); within 0.13 s after the exact
+  touchdown → `land`; else `run` above 3.3 m/s (halfway between walk and run speeds), `walk`
+  above 0.05 m/s, else `idle`. The sim leaves the ground on the jump command, so the crouch
+  plays as a squash in the first moments after take-off, not before it.
+- **Animation time** is sim time, interpolated like positions: `sim.time − (1 − α)·dt`.
+  Looping clips run on the absolute sim time, so switching clips can jump in phase (not
+  blended). Blinking is an overlay on every clip.
+- **Reduced motion** (`prefers-reduced-motion`, read once when a scene starts): tracks marked
+  as body motion are dropped: bob, squash and stretch, breathing and the waddle. The run lean,
+  arm and foot poses, the scarf flap and blinking stay. The prototype stopped every animation;
+  keeping small limb motion keeps walking readable.
+- **No dust puffs, sweat or effort face yet**, and no push clip (see the carts section).
+
+### Hub with the rig
+- **Drawn height is `z · depthScale`** (D18): a jump is always about 0.67 of the bean's drawn
+  height. The sim's z and the draw order are unchanged.
+- **The shot log's `view.bean.rig`** gives the view, mirroring, clip, clip time and the pose's
+  body transform.
+
+### Gallery scene `bean`
+- A tool scene with no sim: 32 poses at fixed clip times, so it is deterministic without
+  stepping. It shows **labels** because it is for reviewers, not players (D17 is about game
+  scenes). Under reduced motion it says so in the corner.
+
+### tools/shot
+- **`--reduced-motion`** sets Playwright's `reducedMotion: 'reduce'` and writes to
+  `<out>/reduced-motion/`, so it never overwrites the normal shots. Logs carry `reducedMotion`.
+
 ## M1 session 1 (tools/shot scripts, hub plaza, movement), 2026-09-29
 
 ### Decisions confirmed at the start of the session

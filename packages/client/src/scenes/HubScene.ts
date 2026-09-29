@@ -1,9 +1,13 @@
 import Phaser from 'phaser';
 import { PIXELS_PER_METER } from '@beananza/shared';
-import { Sim, createHubScenario, type HubCommand, type HubInput, type HubState } from '@beananza/sim';
+import { FIXED_DT, Sim, createHubScenario, type HubCommand, type HubInput, type HubState } from '@beananza/sim';
+import { prefersReducedMotion } from '../accessibility';
 import { GAME_HEIGHT, GAME_WIDTH, PALETTE, cssColor } from '../config';
+import { BeanRig, createBeanShadow } from '../rig/BeanRig';
+import { chooseClip, samplePose } from '../rig/player';
+import { viewForFacing } from '../rig/views';
 import { SimScene } from './SimScene';
-import { depthKey, depthScale, groundFromScreen, toScreen } from './hub-view';
+import { characterScreen, depthKey, depthScale, groundFromScreen, toScreen } from './hub-view';
 
 const m = (meters: number) => meters * PIXELS_PER_METER;
 
@@ -18,13 +22,6 @@ const GROUND_DEPTH = -1e6;
 const CHARACTER_TIE_BREAK = 0.5;
 const UI_DEPTH = 1e6;
 
-// PLACEHOLDER art: a bean-ish ellipse with a belly and eyes until the parts rig (D3) exists.
-// Size at scale 1, in metres; the depth scale shrinks it towards the back.
-const BEAN_WIDTH_M = 0.62;
-const BEAN_HEIGHT_M = 0.8;
-const BEAN_COLOR = 0xe8a33d;
-const BEAN_BELLY = 0xf6d49a;
-
 // PLACEHOLDER art: a round tree (trunk plus canopy) standing on the prop footprint.
 const TRUNK_WIDTH_M = 0.2;
 const TRUNK_HEIGHT_M = 1.35;
@@ -34,10 +31,18 @@ const CANOPY_HEIGHT_M = 1.75;
 const FONT = 'system-ui, "Segoe UI", Roboto, sans-serif';
 
 interface BeanView {
-  root: Phaser.GameObjects.Container;
-  body: Phaser.GameObjects.Container;
-  eyes: Phaser.GameObjects.Container;
-  shadow: Phaser.GameObjects.Ellipse;
+  rig: BeanRig;
+  shadow: Phaser.GameObjects.Container;
+}
+
+/** What the rig showed last frame, for the shot logs. */
+interface RigShown {
+  view: string;
+  mirrored: boolean;
+  clip: string;
+  clipT: number;
+  /** Body transform of the pose (art units, degrees): bob y, lean or waddle, squash. */
+  body: { y: number; rotation: number; scaleX: number; scaleY: number };
 }
 
 /**
@@ -50,6 +55,8 @@ export class HubScene extends SimScene<HubState, HubCommand> {
   private prev = { x: 0, y: 0, z: 0 };
   private keys!: Record<'up' | 'down' | 'left' | 'right' | 'w' | 'a' | 's' | 'd' | 'shift', Phaser.Input.Keyboard.Key>;
   private sentInput: HubInput = { x: 0, y: 0, run: false };
+  private reducedMotion = false;
+  private rigShown: RigShown | null = null;
 
   constructor() {
     super({ key: 'hub' });
@@ -68,7 +75,8 @@ export class HubScene extends SimScene<HubState, HubCommand> {
       root.setPosition(at.x, at.y).setDepth(depthKey(prop.y));
       this.props.set(prop.id, root);
     }
-    this.bean = this.drawBean();
+    this.reducedMotion = prefersReducedMotion();
+    this.bean = { rig: new BeanRig(this), shadow: createBeanShadow(this).setDepth(GROUND_DEPTH + 1) };
 
     const center = toScreen(VIEW_CENTER.x, VIEW_CENTER.y);
     this.cameras.main.centerOn(center.x, center.y);
@@ -113,22 +121,6 @@ export class HubScene extends SimScene<HubState, HubCommand> {
       .setStrokeStyle(4, PALETTE.ink, 0.8);
     const highlight = this.add.circle(-m(0.22), -m(CANOPY_HEIGHT_M + 0.22), m(0.22), 0x78ad66);
     return this.add.container(0, 0, [shadow, trunk, canopy, highlight]);
-  }
-
-  private drawBean(): BeanView {
-    const w = m(BEAN_WIDTH_M);
-    const h = m(BEAN_HEIGHT_M);
-    const shadow = this.add.ellipse(0, 0, w * 0.9, w * 0.3, PALETTE.ink, 0.22).setDepth(GROUND_DEPTH + 1);
-    const outline = this.add.ellipse(0, -h / 2, w, h, BEAN_COLOR).setStrokeStyle(4, PALETTE.ink, 1);
-    const belly = this.add.ellipse(0, -h * 0.34, w * 0.62, h * 0.46, BEAN_BELLY);
-    const eyeY = -h * 0.66;
-    const eyes = this.add.container(0, 0, [
-      this.add.ellipse(-w * 0.14, eyeY, 9, 13, PALETTE.ink),
-      this.add.ellipse(w * 0.14, eyeY, 9, 13, PALETTE.ink),
-    ]);
-    const body = this.add.container(0, 0, [outline, belly, eyes]);
-    const root = this.add.container(0, 0, [body]);
-    return { root, body, eyes, shadow };
   }
 
   private setUpInput(): void {
@@ -184,16 +176,32 @@ export class HubScene extends SimScene<HubState, HubCommand> {
     const z = lerp(this.prev.z, b.z);
     const scale = depthScale(y, this.sim.state.layout.walkable);
 
-    const feet = toScreen(x, y, z);
-    this.bean.root.setPosition(feet.x, feet.y).setScale(scale).setDepth(depthKey(y) + CHARACTER_TIE_BREAK);
+    // The sim's z and the draw order are unchanged; only the drawn height is scaled (D18).
+    const feet = characterScreen(x, y, z, scale);
+    const { rig, shadow } = this.bean;
+    rig.root.setPosition(feet.x, feet.y).setScale(scale).setDepth(depthKey(y) + CHARACTER_TIE_BREAK);
     const ground = toScreen(x, y);
     // The shadow stays on the ground and shrinks as the bean rises.
     const lift = Math.max(0, 1 - z / 1.5);
-    this.bean.shadow.setPosition(ground.x, ground.y).setScale(scale * (0.55 + 0.45 * lift));
+    shadow.setPosition(ground.x, ground.y).setScale(scale * (0.55 + 0.45 * lift));
 
-    // PLACEHOLDER facing: eyes shift towards the movement direction and hide when facing away.
-    this.bean.eyes.setX(b.facingX * m(BEAN_WIDTH_M) * 0.16);
-    this.bean.eyes.setVisible(b.facingY < 0.5);
+    // Animation runs on sim time (interpolated like the positions), never on wall-clock time,
+    // so paused and scripted shots are deterministic. Idle keeps the last facing.
+    const time = this.sim.time - (1 - alpha) * FIXED_DT;
+    const choice = viewForFacing(b.facingX, b.facingY);
+    const { clip, t } = chooseClip(b, time, this.sim.state.gravity);
+    rig.setView(choice);
+    const pose = samplePose({ clip, t, time, view: choice.view, reducedMotion: this.reducedMotion });
+    rig.applyPose(pose);
+    const r = (n: number) => Math.round(n * 1e4) / 1e4;
+    const { y: by, rotation, scaleX, scaleY } = pose.body;
+    this.rigShown = {
+      view: choice.view,
+      mirrored: choice.mirrored,
+      clip,
+      clipT: r(t),
+      body: { y: r(by), rotation: r(rotation), scaleX: r(scaleX), scaleY: r(scaleY) },
+    };
   }
 
   override debugState(): unknown {
@@ -203,11 +211,13 @@ export class HubScene extends SimScene<HubState, HubCommand> {
       x: Math.round((o.x - cam.scrollX) * 10) / 10,
       y: Math.round((o.y - cam.scrollY) * 10) / 10,
     });
-    const beanDepth = this.bean.root.depth;
+    const beanRoot = this.bean.rig.root;
+    const beanDepth = beanRoot.depth;
     return {
       ...base,
       view: {
-        bean: { screen: onScreen(this.bean.root), scale: this.bean.root.scaleX, depth: beanDepth },
+        bean: { screen: onScreen(beanRoot), scale: beanRoot.scaleX, depth: beanDepth, rig: this.rigShown },
+        reducedMotion: this.reducedMotion,
         props: [...this.props].map(([id, root]) => ({
           id,
           screen: onScreen(root),

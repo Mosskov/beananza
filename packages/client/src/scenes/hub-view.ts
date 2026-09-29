@@ -10,6 +10,14 @@ export function toScreen(x: number, y: number, z = 0): { x: number; y: number } 
   return { x: x * PIXELS_PER_METER, y: -(y + z) * PIXELS_PER_METER };
 }
 
+/**
+ * Where a character's feet draw: its height z shrinks with the same depth scale as its body
+ * (D18), so a jump is always the same share of the character's drawn height.
+ */
+export function characterScreen(x: number, y: number, z: number, scale: number): { x: number; y: number } {
+  return toScreen(x, y, z * scale);
+}
+
 /** Inverse of `toScreen` for a point on the ground (z = 0), e.g. a tap. */
 export function groundFromScreen(sx: number, sy: number): { x: number; y: number } {
   return { x: sx / PIXELS_PER_METER, y: -sy / PIXELS_PER_METER };

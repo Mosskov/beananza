@@ -3,7 +3,7 @@
 A browser game that teaches high school physics through play. This repo is early in
 **Milestone 1**: a TypeScript workspace, a pure fixed-step sim, a Phaser client that renders it,
 a screenshot and scripted-playthrough tool used to verify every scene, and a first hub plaza
-where a placeholder bean walks, runs and jumps.
+where the bean (a rig built from the drawn parts in `art/bean/`) walks, runs and jumps.
 
 Start with `CLAUDE.md` and `docs/` (design, decisions, implementation notes). Only what
 `docs/DECISIONS.md` marks as confirmed is approved; everything else is a proposal. Current
@@ -30,19 +30,25 @@ package it names.
 ## Run the game
 
 ```sh
-pnpm dev               # http://localhost:5180/
+pnpm dev               # http://localhost:5180/ (opens the hub)
 ```
 
 Pick a scene with `?scene=<name>`:
 
 | Scene | URL | What it shows |
 |---|---|---|
-| `empty` (default) | http://localhost:5180/?scene=empty | Background only; proves the client boots |
+| `empty` | http://localhost:5180/?scene=empty | Background only; proves the client boots |
 | `drop` | http://localhost:5180/?scene=drop | A 1 kg and a 10 kg ball released from 10 m, with a timer. R or tap: drop again |
-| `hub` | http://localhost:5180/?scene=hub | The hub plaza in ¾ top-down view, with one tree to walk behind and in front of. Arrows or WASD move, Shift runs, Space jumps, tap or click walks to a spot. Placeholder art |
+| `hub` (default) | http://localhost:5180/?scene=hub | The hub plaza in ¾ top-down view, with one tree to walk behind and in front of. Arrows or WASD move, Shift runs, Space jumps, tap or click walks to a spot. The bean is the parts rig; the plaza is placeholder art |
+| `bean` | http://localhost:5180/?scene=bean | Rig gallery for review: the 8 directions, then walk, run, jump, fall, land, breathing and a blink at fixed clip times (labelled; no sim) |
 
 `&paused=1` starts the scene's sim paused at t = 0 (tools/shot uses this to step to an exact time).
-An unknown scene name logs a console error listing the registered scenes.
+An unknown scene name logs a console error listing the registered scenes. The bean art is
+checked against the art contract and rasterized before any scene starts; broken art is a boot
+error.
+
+The game follows `prefers-reduced-motion`: the bean loses its bob, squash, stretch, breathing
+and waddle, but still changes pose (see `docs/ASSUMPTIONS.md`, M1 session 2).
 
 Production build: `pnpm build` (output in `packages/client/dist`), then `pnpm preview`
 (http://localhost:4180/).
@@ -70,8 +76,17 @@ Key tests (in `packages/sim/test/`):
   `Math.random`. It also type-checks the sim against the ES library only. Planck.js is the one
   allowed third-party import.
 
-Also: `packages/client/test/hub-view.test.ts` (hub projection, depth scale and draw order) and
-`tools/shot/test/script.test.ts` (script validation).
+Also, in `packages/client/test/`:
+- `hub-view.test.ts`: hub projection, depth scale, drawn jump height and draw order.
+- `views.test.ts`: the facing-to-view mapping (5 views mirrored to 8), every row and boundary of
+  the table in `docs/DESIGN.md` §6, starting from the sim's facing.
+- `bean-art.test.ts`: the art contract for `art/bean/*.svg` (required parts, flat groups,
+  facing-left drawings for asymmetric parts, the scarf tail on the bean's left in all 8
+  directions, eye highlights on the light side, pivots).
+- `player.test.ts`: clip data and timings, the rig player, reduced motion, and choosing the clip
+  from sim state.
+
+And `tools/shot/test/script.test.ts` (script validation).
 
 ## tools/shot
 
@@ -98,6 +113,9 @@ pnpm shot --help                                 # all options
 - **Scenes without a sim** (like `empty`) ignore `--t`: they are shot live and the log says so.
 - **Exit code:** non-zero if any shot has a console error, page error or failed request, or never
   becomes ready. Warnings are logged but do not fail the run.
+- **Reduced motion:** `--reduced-motion` runs the page with `prefers-reduced-motion: reduce`
+  and writes to `artifacts/shots/reduced-motion/` (works with scenes and scripts). Compare
+  `pnpm shot --scene bean` with `pnpm shot --scene bean --reduced-motion`.
 - **GPU:** by default it uses Chromium's new headless mode, which renders WebGL on the GPU when
   there is one. `--software-gl` uses the headless shell with SwiftShader (no GPU); that mode logs
   "GPU stall due to ReadPixels" warnings for WebGL canvases. Headless fps is informational only.
@@ -160,8 +178,9 @@ Scripts in `tools/shot/scripts/`:
 | `hub-depth-tie.json` | The bean on the same ground row as the tree (east of the trunk, mid-jump): drawn in front, and the log says so |
 
 Hub shot logs add a `view` block: the bean's screen position (feet, in viewport pixels),
-depth scale and draw depth, and for each prop whether the bean is drawn `behind` it or
-`in front`.
+depth scale and draw depth, the rig (`view`, `mirrored`, `clip`, clip time and the pose's body
+transform), `reducedMotion`, and for each prop whether the bean is drawn `behind` it or
+`in front`. The `bean` gallery's log lists every cell's view, clip, time and body transform.
 
 The contract between the game and the tool is `packages/shared/src/test-api.ts`.
 
@@ -173,7 +192,9 @@ packages/
   sim/      fixed 60 Hz sim in SI units (m, kg, s), seeded RNG; pure TS, no Phaser/DOM.
             Side views: +Y up. Hub: ground plane x east, y north, plus height z (Planck.js
             for hub collisions)
-  client/   Vite + Phaser: scenes render sim state; input becomes sim commands
+  client/   Vite + Phaser: scenes render sim state; input becomes sim commands.
+            src/rig/: bean art contract, facing-to-view mapping, clips as data, rig player,
+            and the Phaser rig
 tools/
   shot/     Playwright screenshot and log tool
 docs/       design, decisions, implementation notes, assumptions, status

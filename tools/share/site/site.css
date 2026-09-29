@@ -276,6 +276,51 @@ section { scroll-margin-top: 3rem; }
 .decision dt { font: 600 0.95rem var(--display); color: var(--label); margin-top: 0.5rem; }
 .decision dd { margin: 0; }
 .decision details[open] summary { border-bottom: 1px dashed var(--card-shadow); }
+.decision-count { display: block; font: 400 0.85rem var(--body); color: var(--ink-soft); }
+.decision-count[hidden] { display: none; }
+
+/* Comments: handwritten heading, plain readable text, one form per open decision. */
+.comments { margin: 0 1rem 1rem 4.95rem; padding-top: 0.75rem; border-top: 1px dashed var(--card-shadow); max-width: 44rem; }
+.comments[hidden] { display: none; }
+@media (max-width: 34rem) { .comments { margin-left: 1rem; } }
+.comments h4 { font: 500 1.5rem/1.2 var(--hand); color: var(--label); margin: 0 0 0.5rem; }
+.comment-list { list-style: none; padding: 0; margin: 0 0 0.75rem; display: grid; gap: 0.75rem; }
+.comment-list li { background: var(--cream); border-radius: 10px; padding: 0.6rem 0.8rem; border-left: 4px solid var(--water); }
+.comment-head { margin: 0 0 0.2rem; font-size: 0.95rem; }
+.comment-head time { color: var(--ink-soft); margin-left: 0.25rem; }
+.comment-body { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+.comment-empty { color: var(--ink-soft); font-style: italic; }
+.comment-empty[hidden] { display: none; }
+.comment-form { display: grid; gap: 0.6rem; }
+.comment-form label { display: grid; gap: 0.2rem; font: 600 0.95rem var(--display); color: var(--ink); }
+.comment-form input, .comment-form textarea {
+  font: 400 1rem/1.5 var(--body);
+  color: var(--ink);
+  background: #fff;
+  border: 2px solid var(--ink-soft);
+  border-radius: 8px;
+  padding: 0.5rem 0.65rem;
+  min-height: 44px;
+  width: 100%;
+}
+.comment-form input { max-width: 22rem; }
+.comment-form textarea { resize: vertical; }
+.comment-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem 1rem; }
+.comment-actions button {
+  font: 600 1rem var(--display);
+  color: #fff;
+  background: var(--action);
+  border: 0;
+  border-radius: 999px;
+  padding: 0.6rem 1.3rem;
+  min-height: 44px;
+  cursor: pointer;
+  box-shadow: 0 4px 0 var(--action-shadow);
+}
+.comment-actions button:active { transform: translateY(2px); box-shadow: 0 2px 0 var(--action-shadow); }
+.comment-actions button:disabled { opacity: 0.6; cursor: progress; }
+.comment-status { margin: 0; color: var(--grass-deep); font-weight: 700; }
+.comment-status.error { color: var(--action-shadow); }
 
 /* Developers */
 .report { max-width: 52rem; margin-bottom: 1.5rem; background: var(--paper); border: 2px solid var(--ink); border-radius: 14px; box-shadow: 0 5px 0 var(--card-shadow); }

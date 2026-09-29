@@ -40,6 +40,14 @@ open decisions are a later step. D11 has a note only and stays Open.
   an early exit. No `SITE_PASSWORD` secret means 503 for everyone (fail closed). The Worker's
   own responses are `no-store` and `noindex`. Tested with Vitest in Node; `wrangler dev` is not
   used (its `workerd` runtime is not installed).
+- **Comments (step 3):** Cloudflare D1 (`beananza-comments`, created in region EEUR), read and
+  written only by the Worker after the password check. Open decisions take new comments;
+  closed ones keep theirs visible. A name is required (free text, up to 60 characters; the
+  audience is adult coworkers) and remembered in the browser's localStorage; comments are plain
+  text up to 2000 characters, shown with textContent. No Turnstile: only people with the
+  password can reach the form. Cross-site posting is blocked by requiring JSON and a matching
+  Origin. No editing or deleting by visitors (no accounts); comments are listed and removed with
+  wrangler (README). `pnpm share:deploy` applies pending migrations before deploying.
 - **Response headers** (`tools/share/site/_headers`): `X-Robots-Tag: noindex`, `nosniff`,
   `Referrer-Policy: no-referrer`, and a year of private, immutable caching for `play/assets/*`
   (content-hashed names; private because the site is behind a password).

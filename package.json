@@ -23,8 +23,10 @@
     "share": "pnpm --filter @beananza/share share",
     "share:preview": "pnpm --filter @beananza/share preview",
     "share:dry-run": "pnpm share && pnpm --filter @beananza/share cf-check",
-    "share:deploy": "pnpm share && pnpm --filter @beananza/share cf-deploy",
-    "share:password": "pnpm --filter @beananza/share cf-password"
+    "share:deploy": "pnpm share && pnpm share:migrate && pnpm --filter @beananza/share cf-deploy",
+    "share:password": "pnpm --filter @beananza/share cf-password",
+    "share:migrate": "pnpm --filter @beananza/share cf-migrate",
+    "share:comments": "pnpm --filter @beananza/share cf-comments"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",

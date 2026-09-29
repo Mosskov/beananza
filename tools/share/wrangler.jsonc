@@ -13,6 +13,16 @@
     // Every request goes through the password check first, the game's files included.
     "run_worker_first": true
   },
+  // Comments on decisions (worker/comments.ts). Schema in migrations/; apply with
+  // `pnpm share:migrate`, list comments with `pnpm share:comments`.
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "beananza-comments",
+      "database_id": "535d8c1b-ed27-430f-8b94-224b8c296fba",
+      "migrations_dir": "migrations"
+    }
+  ],
   // Served at beananza.<account subdomain>.workers.dev; no per-version preview URLs.
   "workers_dev": true,
   "preview_urls": false

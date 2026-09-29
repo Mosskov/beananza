@@ -10,6 +10,8 @@
     "cf-deploy": "wrangler deploy",
     "cf-check": "wrangler deploy --dry-run",
     "cf-password": "wrangler secret put SITE_PASSWORD",
+    "cf-migrate": "wrangler d1 migrations apply beananza-comments --remote",
+    "cf-comments": "wrangler d1 execute beananza-comments --remote --command \"SELECT id, decision, name, created_at, body FROM comments ORDER BY id\"",
     "typecheck": "tsc -p tsconfig.json"
   },
   "dependencies": {

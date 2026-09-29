@@ -70,6 +70,73 @@ Claude draws the art as SVG; it stays Open. See `docs/DECISIONS.md`.
 - **`--reduced-motion`** sets Playwright's `reducedMotion: 'reduce'` and writes to
   `<out>/reduced-motion/`, so it never overwrites the normal shots. Logs carry `reducedMotion`.
 
+### Carts: rail sim (`packages/sim/src/rail.ts`)
+- **Event-driven exact integration.** Between events each cart (or group of carts pressed
+  together) has a constant acceleration, so x + v·t + ½·a·t² is exact. Events solved in the
+  step, earliest first: reaching the push cap, stopping, a bumper hit, two carts meeting (time
+  of impact from the quadratic gap). At most 32 events per step; beyond that the step only
+  clamps positions (never reached in tests).
+- **Rolling friction always acts**, including while pushing (D19): net push acceleration is
+  F/m − 0.26 m/s². It is a constant deceleration, the same for every mass (μ_r ≈ 0.0265). A
+  cart at rest feels none. At the cap the push exactly balances friction and the speed holds.
+- **Pushing against the motion** slows the cart with push and friction together. If F/m were
+  below 0.26 the push could not start the cart (not the case for these masses).
+- **Carts pressed together move as one body** (the bean pushes one into the other): combined
+  mass, one push, one cap. Bumpers stop a group pushed into them.
+- **Collisions:** instantaneous impulses. Bumpers v' = −0.45·v; carts use the 1D restitution
+  formula with e = 0.5 and conserve momentum exactly. Closing speeds under 1e-6 m/s end in
+  contact (no bounce), so bounces cannot chatter. Carts are exactly touching after an impact.
+  The prototype's visual bounce above 0.45 m/s is not drawn yet.
+- **Riding** conserves momentum with the bean at rest along the rail: getting in
+  v' = v·m/(m+20), getting out v' = v·(m+20)/m (the bean hops off without carrying momentum,
+  as in the prototype). The 5 kg cart is the only one that can be ridden.
+
+### Carts in the hub (`packages/sim/src/scenarios/hub.ts`)
+- **Layout:** rail at y = −2.1 m from x = −3.68 to 3.68 (the prototype's 736 px), 5 kg cart at
+  x = −2.1 and 20 kg at 1.6 (the prototype's spots, centred). Carts are 0.8 × 0.4 m on the
+  ground. PLACEHOLDER layout pending D2.
+- **In Planck, carts are kinematic boxes.** Each step the rail moves first; each cart body then
+  sweeps from its old to its new position during the world step, so a rolling cart shoves the
+  bean aside, then it is set exactly to the rail's position. The bean does not slow a cart it
+  is hit by (the prototype took 10% per frame); only pushing changes a cart's motion.
+- **Pushing:** on the ground, the bean's centre within the rail band (|y − rail| ≤ 0.2 m, so it
+  touches an end, not a long side), its footprint within 0.03 m of the end, and at least 35% of
+  its move direction along the rail towards the cart (the prototype's 0.35). Run pushes with
+  63 N. From the north or south the box simply blocks the bean. While pushing, the bean's
+  facing is forced along the rail (side view) and it is kept against the cart's end, moving at
+  the cart's speed; tap targets do not count as stuck while pushing.
+- **E (`action`)** gets in within 1.2 m of the light cart's centre (on the ground; the
+  prototype used 2.2 m) and gets out. **Space** gets out instead of jumping while riding.
+  Getting in is instant (no hop animation yet). While riding, movement input is ignored, the
+  bean follows the cart, and its Planck body is inactive (set from the state every step).
+  Getting out puts the bean 0.5 m south of the rail at the cart's x.
+- **The state keeps the last 16 collisions** (`state.rail.collisions`) with masses, velocities
+  before and after, and the solved impact time, for the scripted checks.
+
+### Carts in the client
+- **PLACEHOLDER art** (marked in `hub-carts.ts`): a wooden cart on two wheels that roll without
+  slipping, rocks in the 20 kg cart, rails, sleepers and bumpers drawn flat on the ground.
+  Carts draw at a fixed size like the tree (props are not depth-scaled).
+- **Speed readout** above each cart: |v| with two decimals and "m/s" (a measurement readout,
+  D17). No mass labels (no labels on interactables); the rocks show which cart is heavy. The
+  shot log lists each cart's readout next to the speed it should show.
+- **Riding draw order:** cart back, then the bean standing on the cart floor (0.1 m up), then
+  the cart front, which hides the bean's feet. The shadow hides while riding.
+- **Push clips** (DESIGN.md §6): side view, lean 10° (light) or 16° (a cart of 10 kg or more),
+  both arms forward (the side view's far arm shows), steps every 0.45 s or 1 s. The lean stays
+  under reduced motion; the small bob goes. No effort face or sweat drop yet. While riding the
+  bean plays `idle`.
+- **Controls hint** now includes "Action: E". No on-screen touch buttons yet (phones cannot get
+  into a cart): noted as open.
+- **Known look issue:** while pushing, the bean's body overlaps the cart's end. Its drawn
+  half-width (0.5 m × depth scale, about 0.43 m by the rail) is wider than its 0.25 m footprint
+  (D18 kept the footprint). Open issue.
+
+### tools/shot
+- **`pnpm shot:check-carts`** re-checks the three cart scripts' logs: push acceleration
+  (F/m − 0.26), the cap, momentum and restitution of the logged collision, riding speeds and
+  every readout.
+
 ## M1 session 1 (tools/shot scripts, hub plaza, movement), 2026-09-29
 
 ### Decisions confirmed at the start of the session

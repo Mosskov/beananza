@@ -7,6 +7,7 @@ import { BeanRig, createBeanShadow } from '../rig/BeanRig';
 import { chooseClip, samplePose } from '../rig/player';
 import { viewForFacing } from '../rig/views';
 import { SimScene } from './SimScene';
+import { CART_FLOOR_M, CART_RIDER_DEPTH, CartView, drawRail, speedReadout } from './hub-carts';
 import { characterScreen, depthKey, depthScale, groundFromScreen, toScreen } from './hub-view';
 
 const m = (meters: number) => meters * PIXELS_PER_METER;
@@ -29,6 +30,8 @@ const CANOPY_RADIUS_M = 0.72;
 const CANOPY_HEIGHT_M = 1.75;
 
 const FONT = 'system-ui, "Segoe UI", Roboto, sans-serif';
+/** Pushing a cart this heavy or heavier plays the heavy push (lean 16°, slower steps). */
+const HEAVY_PUSH_KG = 10;
 
 interface BeanView {
   rig: BeanRig;
@@ -47,7 +50,8 @@ interface RigShown {
 
 /**
  * The hub plaza (D1: ¾ top-down). Walk with arrows or WASD, run with Shift, jump with Space,
- * or tap a spot to walk there. The scene only draws sim state and turns input into commands.
+ * or tap a spot to walk there. Walk into a cart's end to push it; E gets in or out of the
+ * light cart. The scene only draws sim state and turns input into commands.
  */
 export class HubScene extends SimScene<HubState, HubCommand> {
   private bean!: BeanView;
@@ -57,6 +61,8 @@ export class HubScene extends SimScene<HubState, HubCommand> {
   private sentInput: HubInput = { x: 0, y: 0, run: false };
   private reducedMotion = false;
   private rigShown: RigShown | null = null;
+  private carts = new Map<string, CartView>();
+  private prevCarts = new Map<string, number>();
 
   constructor() {
     super({ key: 'hub' });
@@ -75,6 +81,12 @@ export class HubScene extends SimScene<HubState, HubCommand> {
       root.setPosition(at.x, at.y).setDepth(depthKey(prop.y));
       this.props.set(prop.id, root);
     }
+    if (layout.rail) {
+      drawRail(this, layout.rail, GROUND_DEPTH + 0.5);
+      for (const c of layout.rail.carts) {
+        this.carts.set(c.id, new CartView(this, c.id, !c.ridable, GROUND_DEPTH + 1, UI_DEPTH - 1));
+      }
+    }
     this.reducedMotion = prefersReducedMotion();
     this.bean = { rig: new BeanRig(this), shadow: createBeanShadow(this).setDepth(GROUND_DEPTH + 1) };
 
@@ -83,7 +95,7 @@ export class HubScene extends SimScene<HubState, HubCommand> {
 
     // Controls hint only (allowed by the no-text rule). PLACEHOLDER UI font and style.
     this.add
-      .text(GAME_WIDTH - 20, GAME_HEIGHT - 16, 'Move: arrows or WASD   Run: Shift   Jump: Space', {
+      .text(GAME_WIDTH - 20, GAME_HEIGHT - 16, 'Move: arrows or WASD   Run: Shift   Jump: Space   Action: E', {
         fontFamily: FONT,
         fontSize: '18px',
         color: cssColor(PALETTE.inkSecondary),
@@ -93,8 +105,7 @@ export class HubScene extends SimScene<HubState, HubCommand> {
       .setDepth(UI_DEPTH);
 
     this.setUpInput();
-    const b = this.sim.state.bean;
-    this.prev = { x: b.x, y: b.y, z: b.z };
+    this.beforeStep();
   }
 
   private drawGround(): void {
@@ -135,6 +146,9 @@ export class HubScene extends SimScene<HubState, HubCommand> {
     kb.on('keydown-SPACE', (event: KeyboardEvent) => {
       if (!event.repeat) this.sim.enqueue({ type: 'jump' });
     });
+    kb.on('keydown-E', (event: KeyboardEvent) => {
+      if (!event.repeat) this.sim.enqueue({ type: 'action' });
+    });
     kb.on(Phaser.Input.Keyboard.Events.ANY_KEY_DOWN, () => this.syncHeldInput());
     kb.on(Phaser.Input.Keyboard.Events.ANY_KEY_UP, () => this.syncHeldInput());
 
@@ -166,6 +180,7 @@ export class HubScene extends SimScene<HubState, HubCommand> {
   protected override beforeStep(): void {
     const b = this.sim.state.bean;
     this.prev = { x: b.x, y: b.y, z: b.z };
+    for (const c of this.sim.state.rail?.carts ?? []) this.prevCarts.set(c.id, c.x);
   }
 
   protected drawState(alpha: number): void {
@@ -175,22 +190,32 @@ export class HubScene extends SimScene<HubState, HubCommand> {
     const y = lerp(this.prev.y, b.y);
     const z = lerp(this.prev.z, b.z);
     const scale = depthScale(y, this.sim.state.layout.walkable);
+    const rail = this.sim.state.layout.rail;
+    for (const c of this.sim.state.rail?.carts ?? []) {
+      this.carts.get(c.id)?.draw(lerp(this.prevCarts.get(c.id) ?? c.x, c.x), rail?.y ?? 0, c.v);
+    }
 
     // The sim's z and the draw order are unchanged; only the drawn height is scaled (D18).
-    const feet = characterScreen(x, y, z, scale);
+    // A rider stands on the cart floor, drawn between the back and the front of its cart.
+    const riding = b.riding !== null && rail !== null;
+    const feet = characterScreen(x, y, riding ? CART_FLOOR_M : z, scale);
     const { rig, shadow } = this.bean;
-    rig.root.setPosition(feet.x, feet.y).setScale(scale).setDepth(depthKey(y) + CHARACTER_TIE_BREAK);
+    const depth = riding ? depthKey(rail.y) + CART_RIDER_DEPTH : depthKey(y) + CHARACTER_TIE_BREAK;
+    rig.root.setPosition(feet.x, feet.y).setScale(scale).setDepth(depth);
     const ground = toScreen(x, y);
     // The shadow stays on the ground and shrinks as the bean rises.
     const lift = Math.max(0, 1 - z / 1.5);
-    shadow.setPosition(ground.x, ground.y).setScale(scale * (0.55 + 0.45 * lift));
+    shadow.setPosition(ground.x, ground.y).setScale(scale * (0.55 + 0.45 * lift)).setVisible(!riding);
 
     // Animation runs on sim time (interpolated like the positions), never on wall-clock time,
     // so paused and scripted shots are deterministic. Idle keeps the last facing.
     const time = this.sim.time - (1 - alpha) * FIXED_DT;
     const choice = viewForFacing(b.facingX, b.facingY);
-    const { clip, t } = chooseClip(b, time, this.sim.state.gravity);
+    const pushedCart = b.pushing ? this.sim.state.rail?.carts.find((c) => c.id === b.pushing?.cart) : undefined;
+    const heavy = (pushedCart?.mass ?? 0) >= HEAVY_PUSH_KG;
+    const { clip, t } = chooseClip(b, time, this.sim.state.gravity, heavy);
     rig.setView(choice);
+    rig.setPartVisible('arm-far-push', b.pushing !== null);
     const pose = samplePose({ clip, t, time, view: choice.view, reducedMotion: this.reducedMotion });
     rig.applyPose(pose);
     const r = (n: number) => Math.round(n * 1e4) / 1e4;
@@ -218,6 +243,17 @@ export class HubScene extends SimScene<HubState, HubCommand> {
       view: {
         bean: { screen: onScreen(beanRoot), scale: beanRoot.scaleX, depth: beanDepth, rig: this.rigShown },
         reducedMotion: this.reducedMotion,
+        carts: (this.sim.state.rail?.carts ?? []).map((c) => {
+          const view = this.carts.get(c.id);
+          return {
+            id: c.id,
+            mass: c.mass + c.riderMass,
+            v: c.v,
+            readout: view?.readout.text ?? null,
+            expectedReadout: speedReadout(c.v),
+            screen: view ? { x: Math.round((view.screen.x - cam.scrollX) * 10) / 10, y: Math.round((view.screen.y - cam.scrollY) * 10) / 10 } : null,
+          };
+        }),
         props: [...this.props].map(([id, root]) => ({
           id,
           screen: onScreen(root),

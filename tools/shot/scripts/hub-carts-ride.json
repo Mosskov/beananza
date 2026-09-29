@@ -1,0 +1,21 @@
+{
+  "scene": "hub",
+  "steps": [
+    { "tap": [310, 520] },
+    { "wait": 1.0 },
+    { "keyDown": "ArrowRight" },
+    { "wait": 0.6 },
+    { "shot": "at-cap" },
+    { "press": "KeyE" },
+    { "wait": 0.0167 },
+    { "shot": "got-in" },
+    { "keyUp": "ArrowRight" },
+    { "wait": 0.5 },
+    { "shot": "riding" },
+    { "press": "KeyE" },
+    { "wait": 0.0167 },
+    { "shot": "got-out" },
+    { "wait": 0.5 },
+    { "shot": "rolling-on" }
+  ]
+}

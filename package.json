@@ -16,7 +16,8 @@
     "test:watch": "vitest",
     "shot": "pnpm --filter @beananza/shot shot",
     "shot:install": "pnpm --filter @beananza/shot install-browser",
-    "check": "pnpm typecheck && pnpm lint && pnpm test && pnpm build"
+    "check": "pnpm typecheck && pnpm lint && pnpm test && pnpm build",
+    "shot:check-carts": "pnpm --filter @beananza/shot check-carts"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",

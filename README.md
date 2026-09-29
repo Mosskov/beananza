@@ -3,7 +3,8 @@
 A browser game that teaches high school physics through play. This repo is early in
 **Milestone 1**: a TypeScript workspace, a pure fixed-step sim, a Phaser client that renders it,
 a screenshot and scripted-playthrough tool used to verify every scene, and a first hub plaza
-where the bean (a rig built from the drawn parts in `art/bean/`) walks, runs and jumps.
+where the bean (a rig built from the drawn parts in `art/bean/`) walks, runs, jumps and pushes
+or rides carts on a rail.
 
 Start with `CLAUDE.md` and `docs/` (design, decisions, implementation notes). Only what
 `docs/DECISIONS.md` marks as confirmed is approved; everything else is a proposal. Current
@@ -39,7 +40,7 @@ Pick a scene with `?scene=<name>`:
 |---|---|---|
 | `empty` | http://localhost:5180/?scene=empty | Background only; proves the client boots |
 | `drop` | http://localhost:5180/?scene=drop | A 1 kg and a 10 kg ball released from 10 m, with a timer. R or tap: drop again |
-| `hub` (default) | http://localhost:5180/?scene=hub | The hub plaza in ¾ top-down view, with one tree to walk behind and in front of. Arrows or WASD move, Shift runs, Space jumps, tap or click walks to a spot. The bean is the parts rig; the plaza is placeholder art |
+| `hub` (default) | http://localhost:5180/?scene=hub | The hub plaza in ¾ top-down view, with one tree to walk behind and in front of, and a rail with a 5 kg and a 20 kg cart (speed shown in m/s). Arrows or WASD move, Shift runs, Space jumps, tap or click walks to a spot. Walk into a cart's end to push it (Shift pushes harder); E gets in or out of the 5 kg cart, Space also gets out. The bean is the parts rig; the plaza and carts are placeholder art |
 | `bean` | http://localhost:5180/?scene=bean | Rig gallery for review: the 8 directions, then walk, run, jump, fall, land, breathing and a blink at fixed clip times (labelled; no sim) |
 
 `&paused=1` starts the scene's sim paused at t = 0 (tools/shot uses this to step to an exact time).
@@ -71,6 +72,12 @@ Key tests (in `packages/sim/test/`):
   air time 2·v₀/g ≈ 0.791 s under 9.81 m/s², air control, walkable bounds and the prop, tap
   targets (arrive, clamp, cancel after 0.35 s stuck), and 10,000-step determinism with
   scripted input.
+- `rail.test.ts`: carts on the rail: push acceleration F/m − 0.26 m/s² up to the cap (walking
+  and running), rolling friction, bumper (0.45) and cart-to-cart (0.5) restitution, momentum
+  conservation, the impact time, riding (v·m/(m+M) and back), and 10,000-step determinism.
+- `hub-carts.test.ts`: carts in the hub: pushing only from a cart's end (blocked from north and
+  south), E and Space to get in and out, riding speeds, a push into the other cart, and
+  10,000-step determinism with scripted pushes, rides and jumps.
 - `boundary.test.ts`: fails if `packages/sim` (or the `shared` code it uses) imports Phaser,
   client code, Node or network modules, or touches DOM globals, `Date`, `performance` or
   `Math.random`. It also type-checks the sim against the ES library only. Planck.js is the one
@@ -176,11 +183,21 @@ Scripts in `tools/shot/scripts/`:
 | `hub-jump.json` | Space: apex at 0.4 s, landed at 1.0 s; then a jump while holding D (air control) |
 | `hub-depth.json` | Taps to walk north of the tree (drawn behind it), then south (drawn in front), then a tap straight through the tree (target dropped after 0.35 s stuck) |
 | `hub-depth-tie.json` | The bean on the same ground row as the tree (east of the trunk, mid-jump): drawn in front, and the log says so |
+| `hub-carts-push.json` | Walk west of the 5 kg cart, push it east (two shots 0.1 s apart while it speeds up, then at the 1.9 m/s cap), let go; it rolls into the 20 kg cart |
+| `hub-carts-heavy.json` | Walk east of the 20 kg cart and push it west: the same force, a quarter of the acceleration |
+| `hub-carts-ride.json` | Push the 5 kg cart to the cap, E to get in (speed × 5/25), ride, E to get out (speed × 25/5) |
+
+After the three cart scripts, `pnpm shot:check-carts` recomputes from their logs the push
+accelerations (F/m − 0.26 m/s²), the cap, momentum and restitution of the collision, the riding
+speeds and every speed readout, and exits non-zero on any mismatch.
 
 Hub shot logs add a `view` block: the bean's screen position (feet, in viewport pixels),
 depth scale and draw depth, the rig (`view`, `mirrored`, `clip`, clip time and the pose's body
 transform), `reducedMotion`, and for each prop whether the bean is drawn `behind` it or
 `in front`. The `bean` gallery's log lists every cell's view, clip, time and body transform.
+The hub state carries `bean.pushing`, `bean.riding` and `rail` (each cart's mass, position and
+velocity, and the last 16 collisions with the velocities before and after); the `view` block
+adds each cart's readout text.
 
 The contract between the game and the tool is `packages/shared/src/test-api.ts`.
 

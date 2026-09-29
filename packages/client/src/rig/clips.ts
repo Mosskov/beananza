@@ -48,7 +48,7 @@ export interface Clip {
   tracks: Track[];
 }
 
-export const CLIP_NAMES = ['idle', 'walk', 'run', 'jump', 'fall', 'land'] as const;
+export const CLIP_NAMES = ['idle', 'walk', 'run', 'jump', 'fall', 'land', 'push', 'pushHeavy'] as const;
 export type ClipName = (typeof CLIP_NAMES)[number];
 
 // Small builders so the data reads like the prototype's keyframes.
@@ -236,6 +236,24 @@ const LAND_CLIPS: Families = {
   side: { duration: LAND_DURATION, loop: false, tracks: [...LAND_BODY, t('armA', 'rotation', keys([0, -60], [1, 0]))] },
 };
 
+/**
+ * Pushing a cart (always the side view): lean into it, both arms forward (the far arm shows),
+ * short steps. Heavy (the 20 kg cart) leans more and steps slower (pushbob, pushbobH).
+ */
+const push = (cycle: number, lean: number, bobHeight: number): Families =>
+  same({
+    duration: cycle,
+    loop: true,
+    tracks: [
+      // The lean is a pose (kept under reduced motion); the small bob is motion.
+      t('body', 'rotation', keys([0, lean], [1, lean])),
+      body('y', keys([0, 0], [0.5, -bobHeight], [1, 0])),
+      ...step(keys([0, 9], [0.5, -9], [0.75, 0], [1, 9]), keys([0, 0], [0.5, 0], [0.75, -8], [1, 0])),
+      t('armA', 'rotation', keys([0, -80], [1, -80])),
+      flap(0.3),
+    ],
+  });
+
 export const CLIPS: Readonly<Record<ClipName, Families>> = {
   idle: IDLE,
   walk: WALK_CLIPS,
@@ -243,6 +261,8 @@ export const CLIPS: Readonly<Record<ClipName, Families>> = {
   jump: JUMP_CLIPS,
   fall: FALL_CLIPS,
   land: LAND_CLIPS,
+  push: push(0.45, 10, 3),
+  pushHeavy: push(1, 16, 2),
 };
 
 /** Blinking plays on top of every clip: every 4 s, eyes squeeze to 10% for a moment. */

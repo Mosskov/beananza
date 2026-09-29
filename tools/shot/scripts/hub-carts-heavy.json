@@ -1,0 +1,20 @@
+{
+  "scene": "hub",
+  "steps": [
+    { "tap": [960, 410] },
+    { "wait": 2.5 },
+    { "tap": [960, 520] },
+    { "wait": 0.6 },
+    { "shot": "east-of-heavy-cart" },
+    { "keyDown": "ArrowLeft" },
+    { "wait": 0.5 },
+    { "shot": "pushing-a" },
+    { "wait": 0.3 },
+    { "shot": "pushing-b" },
+    { "wait": 1.0 },
+    { "shot": "at-cap" },
+    { "keyUp": "ArrowLeft" },
+    { "wait": 0.5 },
+    { "shot": "coasting" }
+  ]
+}

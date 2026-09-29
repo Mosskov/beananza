@@ -1,0 +1,23 @@
+{
+  "scene": "hub",
+  "steps": [
+    { "tap": [310, 520] },
+    { "wait": 1.0 },
+    { "shot": "west-of-light-cart" },
+    { "keyDown": "ArrowRight" },
+    { "wait": 0.3 },
+    { "shot": "pushing-a" },
+    { "wait": 0.1 },
+    { "shot": "pushing-b" },
+    { "wait": 0.2 },
+    { "shot": "at-cap" },
+    { "wait": 0.4 },
+    { "keyUp": "ArrowRight" },
+    { "wait": 0.5 },
+    { "shot": "coasting" },
+    { "wait": 1.5 },
+    { "shot": "after-collision" },
+    { "wait": 3.0 },
+    { "shot": "later" }
+  ]
+}

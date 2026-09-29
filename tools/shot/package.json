@@ -7,7 +7,8 @@
   "scripts": {
     "shot": "tsx src/shot.ts",
     "install-browser": "playwright install chromium",
-    "typecheck": "tsc -p tsconfig.json"
+    "typecheck": "tsc -p tsconfig.json",
+    "check-carts": "tsx src/check-carts.ts"
   },
   "dependencies": {
     "@beananza/shared": "workspace:*",

@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-70 -152 140 168" width="280" height="336">
+  <!-- Face "glasses" (D25): round frames over the eyes (no strap, so they are never mistaken for the
+       earned goggles). One flat group per view that shows the face, in that view's frame. Symmetric
+       shapes around the eyes, so the mirrored views mirror them onto the mirrored eyes. -->
+  <g id="front">
+    <circle cx="-15" cy="-80" r="10.5" fill="#FFFFFF" fill-opacity="0.18" stroke="#3B2F2A" stroke-width="2.5"/>
+    <circle cx="15" cy="-80" r="10.5" fill="#FFFFFF" fill-opacity="0.18" stroke="#3B2F2A" stroke-width="2.5"/>
+    <path d="M-4.5 -81 Q0 -85 4.5 -81 M-25.5 -82 L-40 -86 M25.5 -82 L40 -86" fill="none" stroke="#3B2F2A" stroke-width="2.5" stroke-linecap="round"/>
+  </g>
+  <g id="front-34">
+    <circle cx="-4" cy="-80" r="10.5" fill="#FFFFFF" fill-opacity="0.18" stroke="#3B2F2A" stroke-width="2.5"/>
+    <ellipse cx="24" cy="-80" rx="8.5" ry="10.5" fill="#FFFFFF" fill-opacity="0.18" stroke="#3B2F2A" stroke-width="2.5"/>
+    <path d="M6.5 -81 Q11 -85 15.5 -81 M-14.5 -82 L-36 -88" fill="none" stroke="#3B2F2A" stroke-width="2.5" stroke-linecap="round"/>
+  </g>
+  <g id="side">
+    <ellipse cx="25" cy="-80" rx="7.5" ry="10.5" fill="#FFFFFF" fill-opacity="0.18" stroke="#3B2F2A" stroke-width="2.5"/>
+    <path d="M17.5 -82 L-6 -86" fill="none" stroke="#3B2F2A" stroke-width="2.5" stroke-linecap="round"/>
+  </g>
+</svg>

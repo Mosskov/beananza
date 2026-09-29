@@ -179,7 +179,8 @@ describe('hub bounds and props', () => {
   ];
 
   it.each(directions)('running %s for 10 s stays inside the walkable area', (_name, dx, dy) => {
-    const sim = newHub({ start: { x: -3, y: -1 } });
+    // Only the edges matter here: the plaza without its bench (running north would meet it).
+    const sim = newHub({ layout: { ...DEFAULT_PLAZA, benches: [] }, start: { x: -3, y: -1 } });
     sim.enqueue(move(dx, dy, true));
     for (let i = 0; i < steps(10); i++) {
       sim.step();

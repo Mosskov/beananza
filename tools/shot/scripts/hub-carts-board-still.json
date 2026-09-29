@@ -4,7 +4,9 @@
     { "tap": [430, 570] },
     { "wait": 1.2 },
     { "press": "KeyE" },
-    { "wait": 0.0167 },
+    { "wait": 0.3 },
+    { "shot": "hopping-in" },
+    { "wait": 0.4 },
     { "shot": "in-still-cart" }
   ]
 }

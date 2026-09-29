@@ -12,6 +12,7 @@ import {
   BOOT_ERROR_KEY,
   READY_FLAG,
   TEST_API_KEY,
+  URL_PARAM_LOOK,
   URL_PARAM_PAUSED,
   URL_PARAM_SCENE,
 } from '@beananza/shared';
@@ -19,6 +20,9 @@ import { SIM_HZ } from '@beananza/sim';
 import { describeStep, parseScript, scriptOutputNames, waitSteps, type ShotScript } from './script';
 
 const REPO = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
+
+/** A look's output folder name: its ids joined by hyphens (`blue-spots-bow-glasses`). */
+const lookFolder = (look: string) => look.split(',').map((id) => id.trim().toLowerCase()).filter(Boolean).join('-');
 const CLIENT = join(REPO, 'packages/client');
 const APP_MARKER = '<meta name="application-name" content="beananza"';
 
@@ -36,6 +40,8 @@ interface Options {
   headed: boolean;
   softwareGl: boolean;
   reducedMotion: boolean;
+  /** The bean's look (`?look=`), or null for the default. */
+  look: string | null;
   timeoutMs: number;
 }
 
@@ -72,6 +78,8 @@ interface ShotLog {
   glRenderer: string | null;
   /** The page ran with prefers-reduced-motion: reduce (--reduced-motion). */
   reducedMotion: boolean;
+  /** The bean's look (--look), or null for the default. */
+  look: string | null;
   server: ServerMode;
   console: { errors: number; warnings: number; entries: ConsoleEntry[] };
   fps: FpsSample | null;
@@ -105,6 +113,7 @@ interface ScriptShotLog {
   browser: string;
   glRenderer: string | null;
   reducedMotion: boolean;
+  look: string | null;
   server: ServerMode;
   /** Every non-shot step run so far, in order. */
   inputs: ScriptInputLog[];
@@ -138,6 +147,8 @@ function printHelp(): void {
                    new headless mode, which uses the GPU when there is one.
   --reduced-motion Emulate prefers-reduced-motion: reduce. Output goes to
                    <out>/reduced-motion/ so it never overwrites the normal shots.
+  --look <ids>     The bean's look, e.g. blue,spots,bow,glasses (?look=, D25). Output goes
+                   to <out>/look-<ids>/ so it never overwrites the normal shots.
 
 Writes <out>/<scene>[_t<time>].png and .json; a script writes
 <out>/<script name>/<shot name>.png and .json, plus run.json. Exits non-zero if any shot has a console
@@ -161,6 +172,7 @@ function parseOptions(): Options | null {
       headed: { type: 'boolean', default: false },
       'software-gl': { type: 'boolean', default: false },
       'reduced-motion': { type: 'boolean', default: false },
+      look: { type: 'string' },
       help: { type: 'boolean', short: 'h', default: false },
     },
     allowPositionals: false,
@@ -186,7 +198,8 @@ function parseOptions(): Options | null {
     // from tools/shot, so the working directory says nothing useful).
     scripts: scripts.map((f) => resolve(REPO, f)),
     times: times && times.length > 0 ? times : [undefined],
-    outDir: values['reduced-motion'] ? resolve(REPO, values.out, 'reduced-motion') : resolve(REPO, values.out),
+    outDir: resolve(REPO, values.out, ...(values.look ? [`look-${lookFolder(values.look)}`] : []), ...(values['reduced-motion'] ? ['reduced-motion'] : [])),
+    look: values.look ?? null,
     port: num('port', values.port),
     baseUrl: values.url,
     fpsMs: num('fps-ms', values['fps-ms']),
@@ -336,6 +349,7 @@ async function shoot(
   const url = new URL(baseUrl);
   url.searchParams.set(URL_PARAM_SCENE, scene);
   if (t !== undefined) url.searchParams.set(URL_PARAM_PAUSED, '1');
+  if (opts.look) url.searchParams.set(URL_PARAM_LOOK, opts.look);
 
   const { context, page, entries } = await openPage(browser, opts);
 
@@ -354,6 +368,7 @@ async function shoot(
     browser: `chromium ${browser.version()}${opts.softwareGl ? ' (headless shell)' : ''}`,
     glRenderer: null,
     reducedMotion: opts.reducedMotion,
+    look: opts.look,
     server: serverMode,
     console: { errors: 0, warnings: 0, entries },
     fps: null,
@@ -430,6 +445,7 @@ async function runScript(
   const url = new URL(baseUrl);
   url.searchParams.set(URL_PARAM_SCENE, script.scene);
   url.searchParams.set(URL_PARAM_PAUSED, '1');
+  if (opts.look) url.searchParams.set(URL_PARAM_LOOK, opts.look);
   const { context, page, entries } = await openPage(browser, opts);
   const git = gitInfo();
   const browserName = `chromium ${browser.version()}${opts.softwareGl ? ' (headless shell)' : ''}`;
@@ -466,6 +482,7 @@ async function runScript(
           browser: browserName,
           glRenderer,
           reducedMotion: opts.reducedMotion,
+          look: opts.look,
           server: serverMode,
           inputs: [...inputs],
           console: consoleSummary(entries),

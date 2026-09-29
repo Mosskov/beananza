@@ -163,3 +163,38 @@ export function compileDiagnostics(
   });
   return { options: parsed.options, messages };
 }
+
+/** Names a module exports at top level (declarations with `export`). */
+export function exportedNames(source: string): string[] {
+  const sf = ts.createSourceFile('exports.ts', source, ts.ScriptTarget.ES2022, true, ts.ScriptKind.TS);
+  const names: string[] = [];
+  for (const st of sf.statements) {
+    const exported = ts.canHaveModifiers(st) && (ts.getModifiers(st) ?? []).some((m) => m.kind === ts.SyntaxKind.ExportKeyword);
+    if (!exported) continue;
+    if (ts.isVariableStatement(st)) {
+      for (const d of st.declarationList.declarations) if (ts.isIdentifier(d.name)) names.push(d.name.text);
+    } else if ((ts.isFunctionDeclaration(st) || ts.isInterfaceDeclaration(st) || ts.isTypeAliasDeclaration(st) || ts.isClassDeclaration(st)) && st.name) {
+      names.push(st.name.text);
+    }
+  }
+  return names;
+}
+
+/** Every use of one of `names` as an identifier in `source` (imports, types, values). */
+export function findNameUses(fileName: string, source: string, names: ReadonlySet<string>): Violation[] {
+  const sf = ts.createSourceFile(fileName, source, ts.ScriptTarget.ES2022, true, ts.ScriptKind.TS);
+  const out: Violation[] = [];
+  const visit = (node: ts.Node) => {
+    if (ts.isIdentifier(node) && names.has(node.text)) {
+      const { line } = sf.getLineAndCharacterOfPosition(node.getStart(sf));
+      out.push({ file: fileName, line: line + 1, message: `uses the cosmetic look (${node.text})` });
+    }
+    if (ts.isStringLiteral(node) && /(^|\/)look$/.test(node.text)) {
+      const { line } = sf.getLineAndCharacterOfPosition(node.getStart(sf));
+      out.push({ file: fileName, line: line + 1, message: `imports the look module (${node.text})` });
+    }
+    ts.forEachChild(node, visit);
+  };
+  visit(sf);
+  return out;
+}

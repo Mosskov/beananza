@@ -1,0 +1,68 @@
+{
+  "ok": true,
+  "error": null,
+  "script": "tools/shot/scripts/hub-depth.json",
+  "scene": "hub",
+  "url": "http://localhost:5181/?scene=hub&paused=1",
+  "git": {
+    "commit": "cc37453",
+    "dirty": false
+  },
+  "inputs": [
+    {
+      "step": 0,
+      "action": "tap [860,230]",
+      "simTime": 0
+    },
+    {
+      "step": 1,
+      "action": "wait 2.5",
+      "simTime": 0
+    },
+    {
+      "step": 3,
+      "action": "tap [740,230]",
+      "simTime": 2.5
+    },
+    {
+      "step": 4,
+      "action": "wait 0.75",
+      "simTime": 2.5
+    },
+    {
+      "step": 5,
+      "action": "tap [740,360]",
+      "simTime": 3.25
+    },
+    {
+      "step": 6,
+      "action": "wait 0.75",
+      "simTime": 3.25
+    },
+    {
+      "step": 7,
+      "action": "tap [860,360]",
+      "simTime": 4
+    },
+    {
+      "step": 8,
+      "action": "wait 0.75",
+      "simTime": 4
+    },
+    {
+      "step": 10,
+      "action": "tap [860,60]",
+      "simTime": 4.75
+    },
+    {
+      "step": 11,
+      "action": "wait 2",
+      "simTime": 4.75
+    }
+  ],
+  "console": {
+    "errors": 0,
+    "warnings": 0,
+    "entries": []
+  }
+}

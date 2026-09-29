@@ -1,8 +1,32 @@
 import { BoxShape, ChainShape, CircleShape, World, type Body } from 'planck';
-import type { Scenario, SimStateBase } from '../sim';
-import { FIXED_DT, SIM_HZ, ticksToSeconds } from '../time';
+import type { Scenario } from '../sim';
+import { FIXED_DT, ticksToSeconds } from '../time';
 import { EARTH_GRAVITY } from '../constants';
-import { CART_HALF_LENGTH, boardCart, leaveCart, stepRail, type Rail, type RailCart, type RailCollision, type RailPush } from '../rail';
+import { CART_HALF_LENGTH, stepRail } from '../rail';
+import { benchInteraction } from '../interactions/bench';
+import { cartInteraction } from '../interactions/cart';
+import type { HubInteraction, HubStep } from '../interactions/types';
+import {
+  CART_HALF_DEPTH,
+  DEFAULT_PLAZA,
+  HUB_BEAN_RADIUS_M,
+  HUB_JUMP_SPEED,
+  HUB_RUN_SPEED,
+  HUB_STUCK_STEPS,
+  HUB_WALK_SPEED,
+  actUsesPlanck,
+  actWalks,
+  clampTarget,
+  type HubBean,
+  type HubCommand,
+  type HubOptions,
+  type HubRailState,
+  type HubState,
+  type PlazaLayout,
+  type RailLayout,
+} from './hub-world';
+
+export * from './hub-world';
 
 /**
  * The hub plaza, seen from ¾ top-down (D1). Coordinates (D15): the ground plane is x east and
@@ -14,45 +38,20 @@ import { CART_HALF_LENGTH, boardCart, leaveCart, stepRail, type Rail, type RailC
  * exactly, the same way as the drop, so a timed jump gives textbook numbers (D16).
  *
  * Carts on the east-west rail move in the exact 1D rail sim (`rail.ts`, D4, D19). In Planck
- * they are only kinematic boxes, so the bean bumps into them. The bean pushes a cart by walking
- * into one of its ends (DESIGN.md §7); E (the `action` command) gets in or out of the cart that
- * can be ridden, and Space also gets out.
+ * they are only kinematic boxes, so the bean bumps into them.
+ *
+ * What the bean does with things (pushing a cart, riding one) is its interaction state,
+ * `bean.act` (D21), owned by one module per interaction (`../interactions/`). This file runs
+ * the world and calls the modules in a fixed order.
  */
 
-// Prototype movement, re-derived at 100 px = 1 m (docs/IMPLEMENTATION.md §6).
-export const HUB_WALK_SPEED = 2.4; // m/s (240 px/s)
-export const HUB_RUN_SPEED = 4.2; // m/s (420 px/s)
-/** Jump apex (m): the prototype's 480²/(2·1500) px = 76.8 px, kept under real gravity (D16). */
-export const HUB_JUMP_APEX_M = 0.768;
-/** Take-off speed that reaches the apex under real gravity: √(2·g·h) ≈ 3.882 m/s. */
-export const HUB_JUMP_SPEED = Math.sqrt(2 * EARTH_GRAVITY * HUB_JUMP_APEX_M);
-/** A tap target is dropped after this many blocked steps in a row (0.35 s). */
-export const HUB_STUCK_STEPS = Math.round(0.35 * SIM_HZ);
+/** The interaction modules, in the order they are offered commands and run. */
+const INTERACTIONS: readonly HubInteraction[] = [cartInteraction, benchInteraction];
+
+const ownerOf = (kind: HubBean['act']['kind']) => INTERACTIONS.find((m) => m.acts.includes(kind));
+
 /** A step counts as blocked if it made less than this share of the intended progress. */
 const STUCK_PROGRESS = 0.25;
-/**
- * Footprint radius of every bean body form (cosmetics never change the collider).
- * PLACEHOLDER value until the rig exists; about the width of the prototype bean's feet.
- */
-export const HUB_BEAN_RADIUS_M = 0.25;
-/** The bean's mass (D18): what riding adds to a cart. */
-export const HUB_BEAN_MASS_KG = 20;
-/** Half a cart's north-south size (m): its footprint on the ground is 0.8 × 0.4 m. */
-export const CART_HALF_DEPTH = 0.2;
-/** The bean pushes when its footprint is this close to a cart's end (m); Planck keeps a skin. */
-const PUSH_REACH_M = 0.03;
-/** A move pushes when at least this share of its direction points along the rail at the cart. */
-const PUSH_MIN_ALONG = 0.35;
-/** E gets into the ridable cart from up to this far from its centre (m). */
-export const BOARD_REACH_M = 1.2;
-/**
- * A rider faces the way the cart travels above this speed (m/s) and turns back to face the
- * camera below RIDE_FACE_FRONT_SPEED; in between it keeps its facing, so it never flickers.
- */
-export const RIDE_FACE_TRAVEL_SPEED = 0.3;
-export const RIDE_FACE_FRONT_SPEED = 0.1;
-/** Getting out puts the bean this far south of the rail's centre line (m). */
-const EXIT_OFFSET_M = CART_HALF_DEPTH + HUB_BEAN_RADIUS_M + 0.05;
 /** Collisions kept in the state for logs and checks. */
 const COLLISION_LOG = 16;
 /** Closer than this to a tap target counts as arrived (m). */
@@ -63,163 +62,6 @@ const ARRIVE_EPSILON = 1e-6;
  * a corner or a prop, and that should not have to wait out the stuck timer.
  */
 const ARRIVE_BLOCKED_M = 0.02;
-
-export interface Rect {
-  minX: number;
-  maxX: number;
-  minY: number;
-  maxY: number;
-}
-
-/** A solid prop, as its footprint on the ground: a box centred on (x, y). */
-export interface PropFootprint {
-  id: string;
-  x: number;
-  y: number;
-  /** Half the east-west size (m). */
-  halfWidth: number;
-  /** Half the north-south size (m). */
-  halfDepth: number;
-}
-
-export interface CartSpec {
-  id: string;
-  /** The cart's own mass (kg). */
-  mass: number;
-  /** Starting centre along the rail (m). */
-  x: number;
-  /** Whether the bean can get in (the other one is loaded with rocks). */
-  ridable: boolean;
-}
-
-/** A straight east-west rail with bumpers at both ends, and the carts on it. */
-export interface RailLayout extends Rail {
-  /** West to east. */
-  carts: CartSpec[];
-}
-
-export interface PlazaLayout {
-  /** Where the bean's centre and footprint may go. */
-  walkable: Rect;
-  props: PropFootprint[];
-  /** Where the bean starts. */
-  start: { x: number; y: number };
-  rail: RailLayout | null;
-}
-
-/**
- * The first plaza: one open rectangle and one prop to walk behind and in front of.
- * PLACEHOLDER layout until D2 (hub layout) is designed.
- */
-export const DEFAULT_PLAZA: PlazaLayout = {
-  walkable: { minX: -5.8, maxX: 5.8, minY: -3, maxY: 2 },
-  props: [{ id: 'tree', x: 2.2, y: 0.2, halfWidth: 0.25, halfDepth: 0.2 }],
-  start: { x: -2.5, y: -0.8 },
-  // The prototype's rail (7.36 m) and cart spots, centred on x = 0. PLACEHOLDER layout (D2).
-  rail: {
-    y: -2.1,
-    minX: -3.68,
-    maxX: 3.68,
-    carts: [
-      { id: 'light', mass: 5, x: -2.1, ridable: true },
-      { id: 'heavy', mass: 20, x: 1.6, ridable: false },
-    ],
-  },
-};
-
-export interface HubJump {
-  /** Sim time of take-off (s). */
-  startedAt: number;
-  /** Exact time of touchdown (s), or null while in the air. */
-  landedAt: number | null;
-  /** Highest z reached at a step (m). */
-  peakZ: number;
-}
-
-export interface HubBean {
-  /** Ground position (m): x east, y north. */
-  x: number;
-  y: number;
-  /** Height above the ground (m). */
-  z: number;
-  /** Ground velocity after collisions (m/s). */
-  vx: number;
-  vy: number;
-  /** Vertical velocity (m/s). */
-  vz: number;
-  grounded: boolean;
-  /** Unit vector of the last ground movement direction; kept while idle. */
-  facingX: number;
-  facingY: number;
-  /** Tap-to-move target, already clamped to the walkable area. */
-  target: { x: number; y: number } | null;
-  /** Consecutive steps the bean made too little progress towards its target. */
-  stuckSteps: number;
-  /** Jumps taken so far. */
-  jumps: number;
-  lastJump: HubJump | null;
-  /** Id of the cart the bean rides in, or null. */
-  riding: string | null;
-  /** The push the bean gave a cart this step, or null. */
-  pushing: RailPush | null;
-}
-
-export interface HubRailState {
-  /** West to east, in the layout's order. `riderMass` is the bean while it rides. */
-  carts: RailCart[];
-  /** The last collisions, oldest first (at most 16). */
-  collisions: RailCollision[];
-}
-
-/** Held movement input: direction (each axis −1..1, north is +y) and whether Run is held. */
-export interface HubInput {
-  x: number;
-  y: number;
-  run: boolean;
-}
-
-export interface HubState extends SimStateBase {
-  /**
-   * The plaza, for reading. The Planck world is built from it once, when the scenario is
-   * created; changing it here later does not move any walls.
-   */
-  readonly layout: PlazaLayout;
-  gravity: number;
-  input: HubInput;
-  bean: HubBean;
-  rail: HubRailState | null;
-}
-
-export type HubCommand =
-  /** Held direction and Run (from keys or a stick). (0, 0) means no direction held. */
-  | { type: 'move'; x: number; y: number; run: boolean }
-  /** Walk (or run, if Run is held) to a point on the ground. Clamped to the walkable area. */
-  | { type: 'moveTo'; x: number; y: number }
-  /** Jump, if on the ground. In a cart: get out. */
-  | { type: 'jump' }
-  /** E, the context action: get into the ridable cart when near it, or get out of it. */
-  | { type: 'action' };
-
-export interface HubOptions {
-  layout?: PlazaLayout;
-  /** Overrides the layout's start position (tests). */
-  start?: { x: number; y: number };
-  gravity?: number;
-}
-
-const clamp = (v: number, lo: number, hi: number) => Math.min(Math.max(v, lo), hi);
-
-/** The walkable area shrunk by the bean's radius: where its centre can be. */
-function centreArea(walkable: Rect): Rect {
-  const r = HUB_BEAN_RADIUS_M;
-  return { minX: walkable.minX + r, maxX: walkable.maxX - r, minY: walkable.minY + r, maxY: walkable.maxY - r };
-}
-
-/** Clamp a tap target so the bean's centre can reach it. */
-export function clampTarget(walkable: Rect, x: number, y: number): { x: number; y: number } {
-  const area = centreArea(walkable);
-  return { x: clamp(x, area.minX, area.maxX), y: clamp(y, area.minY, area.maxY) };
-}
 
 /**
  * The Planck world for a layout. The sim state stays authoritative and plain JSON: every step
@@ -242,7 +84,8 @@ function buildWorld(layout: PlazaLayout): { world: World; bean: Body; carts: Map
     ),
     { friction: 0 },
   );
-  for (const prop of layout.props) {
+  // Props and benches are solid footprints.
+  for (const prop of [...layout.props, ...layout.benches]) {
     const body = world.createBody({ position: { x: prop.x, y: prop.y } });
     body.createFixture(new BoxShape(prop.halfWidth, prop.halfDepth), { friction: 0 });
   }
@@ -294,31 +137,13 @@ function initialBean(start: { x: number; y: number }): HubBean {
     stuckSteps: 0,
     jumps: 0,
     lastJump: null,
-    riding: null,
-    pushing: null,
+    act: { kind: 'free' },
   };
 }
 
 function initialRail(rail: RailLayout | null): HubRailState | null {
   if (!rail) return null;
-  return { carts: rail.carts.map((c) => ({ id: c.id, mass: c.mass, riderMass: 0, x: c.x, v: 0 })), collisions: [] };
-}
-
-/**
- * The cart the bean pushes this step, if any: on the ground, inside the rail's band (so it
- * touches an end, not a long side), against that end, and moving towards the cart along the
- * rail. Coming from the north or south, the cart's footprint just blocks the bean.
- */
-function findPush(bean: HubBean, rail: RailLayout, carts: RailCart[], vx: number, vy: number, run: boolean): RailPush | null {
-  const speed = Math.hypot(vx, vy);
-  if (!bean.grounded || speed === 0 || Math.abs(bean.y - rail.y) > CART_HALF_DEPTH) return null;
-  for (const c of carts) {
-    const side = bean.x < c.x ? -1 : 1;
-    const gap = Math.abs(bean.x - c.x) - (CART_HALF_LENGTH + HUB_BEAN_RADIUS_M);
-    if (gap > PUSH_REACH_M || (-side * vx) / speed < PUSH_MIN_ALONG) continue;
-    return { cart: c.id, dir: side < 0 ? 1 : -1, run };
-  }
-  return null;
+  return { carts: rail.carts.map((c) => ({ id: c.id, mass: c.mass, riderMass: 0, x: c.x, v: 0 })), collisions: [], riders: [] };
 }
 
 /** One scenario instance per Sim: it owns that sim's Planck world. */
@@ -327,35 +152,6 @@ export function createHubScenario(options: HubOptions = {}): Scenario<HubState, 
   if (options.start) layout.start = { ...options.start };
   const gravity = options.gravity ?? EARTH_GRAVITY;
   const { world, bean: body, carts: cartBodies } = buildWorld(layout);
-
-  /** Hop out to the south of the rail; the cart keeps the momentum (v·(m+M)/m). */
-  const getOut = (state: HubState) => {
-    const bean = state.bean;
-    const cart = state.rail?.carts.find((c) => c.id === bean.riding);
-    bean.riding = null;
-    if (!cart || !state.layout.rail) return;
-    leaveCart(cart);
-    const exit = clampTarget(state.layout.walkable, cart.x, state.layout.rail.y - EXIT_OFFSET_M);
-    bean.x = exit.x;
-    bean.y = exit.y;
-    bean.vx = 0;
-    bean.vy = 0;
-  };
-  /** Hop into the ridable cart if it is near (v·m/(m+M)). */
-  const getIn = (state: HubState) => {
-    const bean = state.bean;
-    const rail = state.layout.rail;
-    if (!rail || !state.rail || !bean.grounded) return;
-    for (const spec of rail.carts) {
-      const cart = state.rail.carts.find((c) => c.id === spec.id);
-      if (!spec.ridable || !cart || Math.hypot(bean.x - cart.x, bean.y - rail.y) > BOARD_REACH_M) continue;
-      boardCart(cart, HUB_BEAN_MASS_KG);
-      bean.riding = cart.id;
-      bean.target = null;
-      bean.stuckSteps = 0;
-      return;
-    }
-  };
 
   return {
     name: 'hub',
@@ -368,18 +164,17 @@ export function createHubScenario(options: HubOptions = {}): Scenario<HubState, 
     }),
     step(state, commands) {
       const bean = state.bean;
+      const step: HubStep = { state, time: ticksToSeconds(state.tick) };
       for (const c of commands) {
         // Commands will one day arrive over the network: drop any with non-finite numbers.
         if ((c.type === 'move' || c.type === 'moveTo') && !(Number.isFinite(c.x) && Number.isFinite(c.y))) continue;
+        if (c.type === 'use' && typeof c.id !== 'string') continue;
+        if (INTERACTIONS.some((m) => m.command(step, c))) continue;
         if (c.type === 'move') {
           state.input = { x: c.x, y: c.y, run: c.run };
         } else if (c.type === 'moveTo') {
           bean.target = clampTarget(state.layout.walkable, c.x, c.y);
           bean.stuckSteps = 0;
-        } else if ((c.type === 'jump' || c.type === 'action') && bean.riding) {
-          getOut(state);
-        } else if (c.type === 'action') {
-          getIn(state);
         } else if (c.type === 'jump' && bean.grounded) {
           bean.grounded = false;
           bean.vz = HUB_JUMP_SPEED;
@@ -414,23 +209,26 @@ export function createHubScenario(options: HubOptions = {}): Scenario<HubState, 
           vy = (dy / targetDistance) * v;
         }
       }
-      if (bean.riding) {
+      // An interaction that holds the bean (riding, a hop) takes it off its feet.
+      if (!actWalks(bean.act)) {
         vx = 0;
         vy = 0;
         bean.target = null;
       }
+      for (const m of INTERACTIONS) m.drive?.(step, { vx, vy });
+      const act = bean.act;
+      const walks = actWalks(act);
 
       // Carts first, in the exact 1D rail sim, with the bean's push if it walks into an end.
       const railLayout = state.layout.rail;
       const railY = railLayout?.y ?? 0;
       const carts = state.rail?.carts ?? [];
-      const push = railLayout && !bean.riding ? findPush(bean, railLayout, carts, vx, vy, state.input.run) : null;
-      bean.pushing = push;
+      const push = act.kind === 'pushing' ? { cart: act.cart, dir: act.dir, run: act.run } : null;
       const cartsBefore = carts.map((c) => c.x);
       if (railLayout && state.rail) {
         // A bean standing on the rail (not riding, not the one pushing) stops carts that roll
         // into it; pushing, it only ever touches the end it pushes away from itself.
-        const onRail = !bean.riding && Math.abs(bean.y - railY) < CART_HALF_DEPTH + HUB_BEAN_RADIUS_M;
+        const onRail = walks && Math.abs(bean.y - railY) < CART_HALF_DEPTH + HUB_BEAN_RADIUS_M;
         const obstacle = onRail ? { lo: bean.x - HUB_BEAN_RADIUS_M, hi: bean.x + HUB_BEAN_RADIUS_M } : null;
         const hits = stepRail(railLayout, carts, push, ticksToSeconds(state.tick), FIXED_DT, obstacle);
         if (hits.length) state.rail.collisions = [...state.rail.collisions, ...hits].slice(-COLLISION_LOG);
@@ -443,52 +241,35 @@ export function createHubScenario(options: HubOptions = {}): Scenario<HubState, 
         cartBodies.get(c.id)?.setLinearVelocity({ x: (c.x - from) / FIXED_DT, y: 0 });
       });
 
-      const pushed = push ? carts.find((c) => c.id === push.cart) : undefined;
-      if (push) {
-        // Pushing forces the side view (DESIGN.md §6).
-        bean.facingX = push.dir;
-        bean.facingY = 0;
-      } else if (vx !== 0 || vy !== 0) {
-        const len = Math.hypot(vx, vy);
-        bean.facingX = vx / len;
-        bean.facingY = vy / len;
-      }
-
-      // Ground motion and collisions (Planck), from the state. A rider does not collide.
-      body.setActive(!bean.riding);
+      // Ground motion and collisions (Planck), from the state, only while the bean walks
+      // freely. Every other act (pushing, riding, hops) places the bean itself.
+      const usesPlanck = actUsesPlanck(act);
+      body.setActive(usesPlanck);
       body.setTransform({ x: bean.x, y: bean.y }, 0);
-      body.setLinearVelocity(pushed ? { x: pushed.v, y: 0 } : { x: vx, y: vy });
+      body.setLinearVelocity({ x: vx, y: vy });
       body.setAwake(true);
       world.step(FIXED_DT, 8, 3);
       for (const c of carts) {
         cartBodies.get(c.id)?.setTransform({ x: c.x, y: railY }, 0);
         cartBodies.get(c.id)?.setLinearVelocity({ x: 0, y: 0 });
       }
-      const ridden = bean.riding ? carts.find((c) => c.id === bean.riding) : undefined;
-      if (ridden) {
-        bean.x = ridden.x;
-        bean.y = railY;
-        bean.vx = ridden.v;
-        bean.vy = 0;
-        if (Math.abs(ridden.v) > RIDE_FACE_TRAVEL_SPEED) {
-          bean.facingX = Math.sign(ridden.v);
-          bean.facingY = 0;
-        } else if (Math.abs(ridden.v) < RIDE_FACE_FRONT_SPEED) {
-          bean.facingX = 0;
-          bean.facingY = -1;
-        }
-      } else if (pushed && push) {
-        // The bean keeps against the end it pushes, moving with the cart.
-        bean.x = pushed.x - push.dir * (CART_HALF_LENGTH + HUB_BEAN_RADIUS_M);
-        bean.vx = pushed.v;
-        bean.vy = 0;
-      } else {
+      if (usesPlanck) {
         const p = body.getPosition();
         const v = body.getLinearVelocity();
         bean.x = p.x;
         bean.y = p.y;
         bean.vx = v.x;
         bean.vy = v.y;
+      }
+      const owner = ownerOf(act.kind);
+      owner?.place(step);
+
+      // Facing: the act's own rule, or else the direction of ground movement (kept while idle).
+      const moving = vx !== 0 || vy !== 0;
+      const facing = owner?.facing(step) ?? (moving ? { x: vx / Math.hypot(vx, vy), y: vy / Math.hypot(vx, vy) } : null);
+      if (facing) {
+        bean.facingX = facing.x;
+        bean.facingY = facing.y;
       }
 
       // Tap target: arrived, making progress, or stuck.
@@ -508,7 +289,8 @@ export function createHubScenario(options: HubOptions = {}): Scenario<HubState, 
         }
       }
 
-      stepHeight(bean, state.gravity, state.tick);
+      if (actWalks(bean.act)) stepHeight(bean, state.gravity, state.tick);
+      for (const m of INTERACTIONS) m.settle?.(step);
     },
   };
 }
@@ -517,6 +299,7 @@ function structuredCloneLayout(layout: PlazaLayout): PlazaLayout {
   return {
     walkable: { ...layout.walkable },
     props: layout.props.map((p) => ({ ...p })),
+    benches: layout.benches.map((b) => ({ ...b, seats: b.seats.map((q) => ({ ...q })) })),
     start: { ...layout.start },
     rail: layout.rail ? { ...layout.rail, carts: layout.rail.carts.map((c) => ({ ...c })) } : null,
   };

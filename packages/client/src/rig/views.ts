@@ -45,18 +45,21 @@ export function viewForFacing(facingX: number, facingY: number): ViewChoice {
   return { view: south ? 'front-34' : 'back-34', mirrored: abs > 90 };
 }
 
-/** Rig slots the animation clips drive, and which drawn part fills each slot in each view. */
-export const SLOTS = ['body', 'footA', 'footB', 'armA', 'armB', 'eyes', 'tail'] as const;
+/**
+ * Rig slots the animation clips drive, and which drawn part fills each slot in each view. `fx`
+ * is an effect drawn with the bean (the doze "z"); views without that part skip it.
+ */
+export const SLOTS = ['body', 'footA', 'footB', 'armA', 'armB', 'eyes', 'tail', 'fx'] as const;
 export type Slot = (typeof SLOTS)[number];
 
 type PartSlot = Exclude<Slot, 'body'>;
 
 export const SLOT_PARTS: Readonly<Record<BeanView, Readonly<Record<PartSlot, string>>>> = {
-  front: { footA: 'foot-left', footB: 'foot-right', armA: 'arm-left', armB: 'arm-right', eyes: 'eyes', tail: 'scarf-tail' },
-  back: { footA: 'foot-left', footB: 'foot-right', armA: 'arm-left', armB: 'arm-right', eyes: 'eyes', tail: 'scarf-tail' },
-  'front-34': { footA: 'foot-near', footB: 'foot-far', armA: 'arm-near', armB: 'arm-far', eyes: 'eyes', tail: 'scarf-tail' },
-  'back-34': { footA: 'foot-near', footB: 'foot-far', armA: 'arm-near', armB: 'arm-far', eyes: 'eyes', tail: 'scarf-tail' },
-  side: { footA: 'foot-near', footB: 'foot-far', armA: 'arm-near', armB: 'arm-far-push', eyes: 'eyes', tail: 'scarf-tail' },
+  front: { footA: 'foot-left', footB: 'foot-right', armA: 'arm-left', armB: 'arm-right', eyes: 'eyes', tail: 'scarf-tail', fx: 'doze-z' },
+  back: { footA: 'foot-left', footB: 'foot-right', armA: 'arm-left', armB: 'arm-right', eyes: 'eyes', tail: 'scarf-tail', fx: 'doze-z' },
+  'front-34': { footA: 'foot-near', footB: 'foot-far', armA: 'arm-near', armB: 'arm-far', eyes: 'eyes', tail: 'scarf-tail', fx: 'doze-z' },
+  'back-34': { footA: 'foot-near', footB: 'foot-far', armA: 'arm-near', armB: 'arm-far', eyes: 'eyes', tail: 'scarf-tail', fx: 'doze-z' },
+  side: { footA: 'foot-near', footB: 'foot-far', armA: 'arm-near', armB: 'arm-far-push', eyes: 'eyes', tail: 'scarf-tail', fx: 'doze-z' },
 };
 
 /** Parts every view must have (the art contract checks this). */
@@ -68,8 +71,23 @@ export const REQUIRED_PARTS: Readonly<Record<BeanView, readonly string[]>> = {
   side: ['shadow', 'foot-near', 'foot-far', 'arm-near', 'arm-far-push', 'body', 'belly', 'scarf', 'scarf-tail', 'eyes', 'mouth'],
 };
 
-/** Hidden unless something turns them on: earned goggles (catapult), the far arm (pushing). */
-export const HIDDEN_BY_DEFAULT: ReadonlySet<string> = new Set(['headwear-goggles', 'arm-far-push']);
+/**
+ * Anchors every view must have (D22): `headwear` at the top of the body; in the side view,
+ * `lean`, the point whose forward tip the pushing stand-off adds.
+ */
+export const REQUIRED_ANCHORS: Readonly<Record<BeanView, readonly string[]>> = {
+  front: ['headwear'],
+  'front-34': ['headwear'],
+  side: ['headwear', 'lean'],
+  'back-34': ['headwear'],
+  back: ['headwear'],
+};
+
+/**
+ * Hidden unless something turns them on: earned goggles (catapult), the far arm (pushing), the
+ * closed eyes and the "z" (dozing).
+ */
+export const HIDDEN_BY_DEFAULT: ReadonlySet<string> = new Set(['headwear-goggles', 'arm-far-push', 'eyes-sleep', 'doze-z']);
 
 /** Feet stay on the ground; every other part moves with the body (bob, squash, lean). */
 export function isGroundPart(partId: string): boolean {

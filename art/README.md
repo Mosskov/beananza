@@ -19,30 +19,71 @@ exploration) and are not loaded yet.
   and then it needs one in every mirrored view that has it. `data-after="<part id>"` places
   it in the draw order (for example the scarf tail in front of the body when facing left).
 - The game loads these files as they are, by part id (D3). Parts must be flat top-level
-  `<g id>` groups (no nesting). Pivots are derived by rule until the files carry pivot markers:
-  arms and the scarf tail rotate about the first point of their path, feet about their ellipse
-  centre, eyes about the mean eye centre, everything else about (0, 0). The checks live in
-  `packages/client/src/rig/bean-contract.ts` and `packages/client/test/bean-art.test.ts`.
+  `<g id>` groups (no nesting). The checks live in `packages/client/src/rig/bean-contract.ts`
+  and `packages/client/test/bean-art.test.ts`.
+- **Pivots (D22):** a part that rotates or scales about its own point carries
+  `data-pivot="x y"` on its `<g>`: arms at the shoulder, feet and eyes at their centre, the
+  scarf tail at the knot (and prop wheels at the hub). The contract requires it on `arm-…`,
+  `foot-…`, `wheel-…`, `scarf-tail` and `eyes`; every other part pivots at (0, 0).
+- **Anchors (D22):** named points the game places things at, in one reserved group per file
+  that is never drawn: `<g id="anchors" display="none"><circle id="anchor-<name>" cx="…" cy="…" r="0"/></g>`.
+  Every view has `anchor-headwear` (the top of the body, checked within 1 unit); the side view
+  also has `anchor-lean` (the point whose forward tip the pushing stand-off adds). The `-left`
+  files have no anchors: mirrored views mirror their base view's. Anchors must lie inside the
+  viewBox.
+- `front.svg` also has `eyes-sleep` (closed eyes) and `doze-z` (a drawn "z", not text), hidden
+  unless the bean dozes on the bench; seated beans always face the camera, so only the front
+  view needs them.
+- **Customization (D25), composed at load time, never per combination:**
+  - **Colours:** the bean is drawn in orange key colours (body `#E08A5B`, arm `#C96F42`, foot
+    `#B8622F`, belly `#F2B48C`, and the side and ¾ views' far foot `#A3572A` and far arm
+    `#B5633A`). The game swaps them for another palette colour before rasterizing; the far shades
+    keep orange's per-channel ratio to the foot and arm. Anything else (scarf, eyes, cheeks) keeps
+    its colour. Cream, the one very light colour, gets a soft outline on the body.
+  - `patterns/spots.svg`: one flat group per view (`front`, `front-34`, `side`, `back-34`,
+    `back`), in that view's frame, in the arm key colour. The game clips each group to that
+    view's `body` when rasterizing, so spots may run over the edge.
+  - `headwear/sprout.svg`, `bear-ears.svg`, `bow.svg`: one flat group per view, drawn with the
+    origin at that view's `anchor-headwear`. `data-layer="behind"` puts a group behind the body.
+    A piece that is not symmetric (the bow, on the bean's left) also has `front-34-left`,
+    `side-left` and `back-34-left` groups, drawn as seen on screen with the origin at the
+    mirrored anchor, so it never jumps sides. Bear ears use the body and belly key colours.
+  - `faces/glasses.svg`: groups for the views that show the eyes (`front`, `front-34`, `side`),
+    in the view's frame, drawn after the eyes.
+  - Checks: `packages/client/src/rig/looks.ts` and `packages/client/test/looks.test.ts`.
 - `forms.svg`: the four body forms (Bean, Mochi, Gumdrop, Pill) with each form's eye-line y.
   All forms are cosmetic and share one collider.
 
 ## Props (`props/`)
 Props that never turn are drawn once, as seen in the hub's ¾ view (D12), by the same rules as the
 bean: 100 units = 1 m, origin (0, 0) on the ground (under the middle of the prop's footprint),
-flat top-level `<g id>` parts, soft shadows. Colours come from the palette below where it has them;
+flat top-level `<g id>` parts, soft shadows, and `data-pivot` and anchors as for the bean. Colours come from the palette below where it has them;
 the tree's greens (`#5F9150`, `#6A9C5A`, `#86B874`) are new. The game loads them by part id
 (`packages/client/src/art/props.ts`; checks in `packages/client/test/prop-art.test.ts`).
 - `tree.svg`: `shadow`, `trunk`, `canopy`. The sim's footprint is 0.5 × 0.4 m.
 - `cart.svg`: the mine cart, 0.8 m long, rim 0.48 m high. Its origin is the point on the near
   rail below the cart's centre (the game places it 0.1 m south of the rail's centre line). `shadow`; `back` and `rocks` (only
   the loaded 20 kg cart), drawn behind a rider; `front`, `wheel-west` and `wheel-east`, drawn in
-  front of a rider. Wheels roll about their hub (the centre of their first circle), radius 9.
+  front of a rider. Wheels roll about their hub (`data-pivot`), radius 9. Anchors: `floor`
+  (where a rider stands: the rail's centre line, 10 units north of the origin, plus the sim's
+  cart floor height of 0.1 m; a test checks they agree) and `rim-west`, `rim-east`,
+  `base-east`, `base-west` (the corners of the front: below the rim a rider only shows inside
+  them).
+
+- `bench.svg`: the plaza bench, 1.6 m long, seen from the south with its backrest on the north
+  side; origin in the middle of its 1.6 × 0.45 m footprint. `shadow`, `back` (backrest and back
+  legs), `seat` (seat top, front edge and front legs). A seated bean draws in front of all of it.
+  Anchors `seat-west` and `seat-east`: where a seated bean's feet point sits, 0.30 m up and
+  0.15 m south of the centre line, 0.4 m either side (the sim's bench layout; a test checks they
+  agree).
 
 ## Boss (`baron/`), parked
 - `heavy-baron.svg`: The Heavy Baron in his smug default expression.
 - **Known issue:** the sash runs into the mouth and off the edge of the body, and the "1 t" medal sits on the mouth. A corrected version (sash lowered and clipped to the body, medal moved up onto the sash near the left shoulder) is in the "The Heavy Baron" section of `reference/showcase.html`. This SVG still has the original.
 
 ## Palette
+New colours used by props and cosmetics (not in the tables below): the tree's greens, the
+bench's wood uses the cart's browns, and the bow (`#D94F6B`, knot `#B23A55`).
 UI and world:
 | Use | Hex |
 |---|---|

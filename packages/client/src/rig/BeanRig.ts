@@ -1,7 +1,9 @@
 import Phaser from 'phaser';
 import { ART_RESOLUTION, partImage } from '../art/raster';
-import { SHADOW_TEXTURE, addBeanTextures, beanArt } from './bean-art';
+import { DEFAULT_LOOK, type BeanLook } from '@beananza/shared';
+import { SHADOW_TEXTURE, addBeanTextures, beanArt, textureKey } from './bean-art';
 import { viewKey, type RigView } from './bean-contract';
+import { lookParts } from './looks';
 import type { Pose } from './player';
 import type { Point } from './svg-parts';
 import { SLOTS, SLOT_PARTS, isGroundPart, screenReach, type Slot, type ViewChoice } from './views';
@@ -11,6 +13,8 @@ interface PartImage {
   pivot: Point;
   /** Drawn as seen on screen inside a mirrored view: counter-flipped. */
   screenSpace: boolean;
+  /** Top of the drawing (art units, the view's frame). */
+  top: number;
 }
 
 interface BuiltView {
@@ -36,7 +40,9 @@ export function createBeanShadow(scene: Phaser.Scene): Phaser.GameObjects.Contai
 /**
  * A bean built from its drawn parts (D3), animated by poses from the rig player. The root is
  * at the ground point between the feet in art units (1 unit = 1 px at scale 1): the scene sets
- * its position, depth and scale. The rig mirrors itself for the mirrored views (D12).
+ * its position, depth and scale. The rig mirrors itself for the mirrored views (D12). Its look
+ * (colour, pattern, headwear, face; D25) picks the textures and adds the cosmetic parts; the
+ * look's colour must have been loaded (`loadBeanArt`).
  */
 export class BeanRig {
   readonly root: Phaser.GameObjects.Container;
@@ -45,7 +51,10 @@ export class BeanRig {
   private current: BuiltView | null = null;
   private choice: ViewChoice = { view: 'front', mirrored: false };
 
-  constructor(private readonly scene: Phaser.Scene) {
+  constructor(
+    private readonly scene: Phaser.Scene,
+    readonly look: BeanLook = DEFAULT_LOOK,
+  ) {
     addBeanTextures(scene.textures);
     this.flip = scene.add.container(0, 0);
     this.root = scene.add.container(0, 0, [this.flip]);
@@ -79,9 +88,11 @@ export class BeanRig {
     const bodySegments: Phaser.GameObjects.Container[] = [];
     let segment: Phaser.GameObjects.Container | null = null;
     let segmentIsBody = false;
-    for (const part of spec.parts) {
-      const tex = beanArt().textures.get(`bean:${part.source}:${part.id}`);
-      if (!tex) throw new Error(`No texture for ${part.source}:${part.id}.`);
+    const art = beanArt();
+    for (const part of lookParts(spec.parts, art.cosmetics, this.look, spec.view, spec.mirrored)) {
+      const key = textureKey(part.keyed ? this.look.colour : null, part.source, part.id);
+      const tex = art.textures.get(key);
+      if (!tex) throw new Error(`No texture ${key} (is the colour "${this.look.colour}" loaded?).`);
       const onBody = !isGroundPart(part.id);
       if (!segment || segmentIsBody !== onBody) {
         segment = this.scene.add.container(0, 0);
@@ -94,7 +105,7 @@ export class BeanRig {
         .setVisible(!part.hiddenByDefault);
       if (part.screenSpace) image.setScale(-1 / ART_RESOLUTION, 1 / ART_RESOLUTION);
       segment.add(image);
-      parts.set(part.id, { image, pivot: part.pivot, screenSpace: part.screenSpace });
+      parts.set(part.id, { image, pivot: part.pivot, screenSpace: part.screenSpace, top: tex.bounds.y });
     }
     return { container, bodySegments, parts };
   }
@@ -105,9 +116,19 @@ export class BeanRig {
    */
   bodySpan(): { west: number; east: number } {
     const { view, mirrored } = this.choice;
-    const tex = beanArt().textures.get(`bean:${view}:body`);
+    const tex = beanArt().textures.get(textureKey(this.look.colour, view, 'body'));
     if (!tex) return { west: 0, east: 0 };
     return screenReach(tex.bounds.x, tex.bounds.x + tex.bounds.w, mirrored);
+  }
+
+  /**
+   * The highest point of the visible drawing in the current view (art units above the feet, as
+   * a negative y), headwear included: what a label above the bean must clear. Ignores the pose.
+   */
+  drawnTop(): number {
+    let top = 0;
+    for (const p of this.current?.parts.values() ?? []) if (p.image.visible) top = Math.min(top, p.top);
+    return top;
   }
 
   /** Show or hide a part in every view, e.g. goggles or the pushing arm. */

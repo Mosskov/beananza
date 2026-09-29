@@ -1,5 +1,239 @@
 # Status
 
+## M1, session 3: interaction states, the bench, customization basics (2026-09-29)
+
+All three slices are built, tested and reviewed. Priya came along with the bench, after
+customization, as agreed. Every check below was run and looked at in this session. Evidence is in
+`docs/status/m1-s3/`, shot at `cc37453` with a clean tree.
+
+**Baseline:** M1 session 2 still passed at the start:
+- `pnpm check` passed its 177 tests.
+- All 4 scenes and 9 scripts (37 shots) had 0 console errors.
+- `shot:check-carts` passed.
+
+**Another session** (`beananza-85`) committed an art fix to the same tree during this session:
+`a6f56c2`, which redrew the side view's belly and put the back ¾ near arm and foot on the correct side. I kept its positions when I added the pivots and anchors.
+
+### Decisions confirmed
+
+All are recorded in `docs/DECISIONS.md`:
+- **D21, interaction states:**
+  - `bean.act` is one plain-JSON state per bean.
+  - One sim module per interaction.
+  - Timers are whole ticks.
+  - The client draws each state from one table.
+- **D22, anchors and pivots:** named points in the SVGs, plus `data-pivot`. D13 stays Open.
+- **D23, cart hop:**
+  - in: a 0.12 s crouch, then a hop of 0.32 s + 0.111 s per metre, with a 0.30 m + 0.3/m arc;
+  - out: 0.38 s, with a 0.40 m arc;
+  - the rider is clipped below the rim.
+- **D24, bench and sitting:**
+  - at (−3.6, 1.2) m, 1.6 × 0.45 m, seat 0.30 m high;
+  - tap it or press E to walk over and sit (0.35 s hop);
+  - the bean dozes after 5 s, and any movement input stands it up;
+  - Priya greets the bean.
+- **D25, customization basics:**
+  - 10 colours, spots, sprout, bear ears, the bow and glasses;
+  - picked with `?look=`;
+  - the look never enters the sim.
+- **D7 and D18 notes:** Bean only this session (D7 stays Open); the footprint stays 0.25 m.
+
+### What was built
+
+| Area | What |
+|---|---|
+| Interaction states (`packages/sim/src/interactions/`) | **`bean.act`** replaces `bean.riding` and `bean.pushing`. Its kinds: `free`, `pushing`, `boarding`, `riding`, `leaving`, `approaching`, `seating`, `sitting`, `standing`.<br>**Module interface:** `command`, `drive`, `place`, `facing`, `settle`, run in a fixed order.<br>**Files:** `cart.ts`, `bench.ts`, and `hop.ts` (tick-timed hops; the arc is a parabola that uses only exactly specified arithmetic).<br>**`hub.ts`** keeps the world (rail, Planck, height).<br>**Refactor parity:** proven at `10201d1`; see Test results. |
+| Presentation (`packages/client/src/scenes/hub-presentation.ts`) | One row per act kind: clip, part overrides, placement (ground, cart, seat), shadow, cart stand-off, the cart in use, and the flat hop height for reduced motion.<br>`HubScene` has no per-case drawing code left. |
+| Anchors and pivots (D22) | `data-pivot` on every part that rotates, with the values the old rules gave.<br>Anchors: `headwear` (every view), `lean` (side), the cart's `floor` and front corners, the bench's `seat-west`/`seat-east`.<br>The contract checks anchors at boot and in tests.<br>`CART_FLOOR_M` moved to the sim; a test checks the art agrees with it. |
+| Cart hop (D23) | The crouch, hop in and hop out are sim states.<br>Momentum applies at touchdown and take-off and is logged in `rail.riders`.<br>Below the rim the rider shows only inside the cart's front (a Phaser 4 mask filter built from the cart's anchors), once it is over the cart.<br>The readout of the cart in use stays above the bean's head, headwear included. |
+| Bench (D24) | **Art:** `art/props/bench.svg`, drawn once, solid in the sim.<br>**Getting there:** tap it (engine bounds) or press E within 1.3 m of a free seat's stand spot. From behind or beside the bench the bean walks round it via waypoints (added in review round 1).<br>**Hops:** 0.35 s on and 0.30 s off, arc 0.26 m.<br>**Seated:** `sit` clip (feet 8–15 units, 1.3 s swing); `doze` after 5 s (closed eyes, a drawn "z"); any movement, E or Space stands it up.<br>**Reduced motion:** no arc, feet still, the "z" does not move. |
+| Priya | The sim keeps the east seat `taken`. The client draws Priya (blue) there. For 2.4 s after the bean sits down next to her she waves and says "Hi!"; this comes from the bean's `sitting.since`, not new sim state. |
+| Customization (D25) | **Data:** `shared/src/look.ts` (the sim can't use it).<br>**Colours:** 10, as key-colour swaps before rasterizing, one texture set per colour in use; far shades derived; cream gets an outline.<br>**Pieces:**<br>• `art/bean/patterns/spots.svg`, clipped to each view's body<br>• `headwear/sprout.svg`, `bear-ears.svg` and `bow.svg` at each view's anchor; the bow has `-left` drawings<br>• `faces/glasses.svg`<br>**Picking:** `?look=` on any scene; no in-game wardrobe yet.<br>**`looks` gallery scene:** each piece on all 8 directions, and all 10 colours. |
+| Scenes and scripts | **New scene:** `looks`.<br>**`bean` gallery:** a sit and doze row.<br>**New scripts:** `hub-bench`, `hub-bench-depth`, `hub-bench-around`.<br>**Retimed:** `hub-carts-ride` and `hub-carts-board-still`, for the hop. |
+| tools/shot | `--look <ids>` (writes to `<out>/look-<ids>/`).<br>`pnpm shot:compare-states <old evidence>`: sim-state parity with documented renames; skips live shots.<br>`pnpm shot:check-looks`: the hub scripts in 3 other looks against the default.<br>`shot:check-carts` now checks riding from the logged touchdown and take-off. |
+| Docs | README (scenes, `?look=`, tests, scripts, checks, logs); `art/README.md` (anchors, pivots, bench, cosmetics, colour keys); ASSUMPTIONS "M1 session 3"; the CLAUDE.md commands. |
+
+**The session's commits,** oldest first:
+- `36b02eb` the confirmed decisions
+- `10201d1` interaction states
+- `bef4ef6` and `2b09dee` anchors and pivots
+- `6eeb91a` the cart hop
+- `5b44b96` the bench
+- `95c1aa8` customization
+- `c223b32` Priya
+- `8c03478` CLAUDE.md
+- `8a6cd04` and `cc37453` the review fixes
+- then this status.
+
+### Test results
+
+**`pnpm check`** exits 0 at `cc37453`: 239 tests in 18 files pass (177 at the start), and so do typecheck, lint and the build. The new tests:
+- **`hub-cart-hops.test.ts`:**
+  - hop timing in ticks, the arc at every step, landing exactly at the end tick;
+  - sideways or front facing when hopping in, hop out;
+  - E, Space and taps ignored mid-hop;
+  - restoring a mid-hop snapshot into a fresh scenario gives identical results.
+- **`hub-bench.test.ts`:**
+  - the layout, solid footprint and stand spots;
+  - E within 1.3 m, the seating hop step by step;
+  - E out of reach;
+  - taps from anywhere, including 5 starts behind and beside the bench;
+  - taken seats and Priya's seat;
+  - standing up on a held key, E, Space or a tap (with its target walked to afterwards);
+  - input ignored mid-hop, cancelling and getting stuck;
+  - a mid-hop snapshot, and 10,000-step determinism.
+- **`hub-carts.test.ts`:** now waits for the hop, and adds "E next to the 20 kg cart does not reach past it".
+- **`looks.test.ts`:**
+  - `?look=` parsing and the colour swaps;
+  - the cosmetic contract, including rejecting broken art;
+  - patterns clipped to the body, headwear at the anchors;
+  - the bow on the bean's left in every direction;
+  - all 160 looks × 8 directions keep every drawn part and place each piece.
+- **`hub-presentation.test.ts`:** every row of the table, including the doze after 5 s and the in-cart placement only when over the cart.
+- **`classmates.test.ts`:** Priya's seat, and the 2.4 s greeting window.
+- **`bean-art.test.ts` and `prop-art.test.ts`:**
+  - every `data-pivot` equals the rule it replaced;
+  - the anchors, and that the cart floor and bench seats agree with the sim;
+  - broken markup is rejected.
+- **`player.test.ts`:** `sit`, `doze`, `wave`, and reduced motion's `still` values.
+- **`boundary.test.ts`:** the sim may not use anything from `shared/src/look.ts`, with a fixture that proves the check can fail.
+
+**Refactor parity** (`docs/status/m1-s3/compare-states-m1-s2.txt`):
+- **At `10201d1`:** all 36 stepped session 2 sim states are identical to fresh runs, apart from the rename `bean.riding`/`bean.pushing` → `bean.act`. The reviewer reproduced this in a separate clone.
+- **Before the refactor,** I also recorded 2,760 states from 11 seeded random playthroughs. They matched exactly after it.
+- **At `cc37453`:** the same comparison shows exactly 5 differences. All come from the deliberate hop (D23), in `hub-carts-board-still/in-still-cart` and in `hub-carts-ride` `got-in`, `riding`, `got-out` and `rolling-on`: tick, bean x and z, act, facing, cart x and v, and `rail.riders`. The added fields `rail.riders` and `layout.benches` are mapped, as documented in `tools/shot/src/compare-states.ts`.
+
+**Cart numbers** (`check-carts.txt`):
+- push acceleration 8.14 and 1.84 m/s², cap 1.9 m/s;
+- collision momentum difference 0, e = 0.5;
+- riding in: 1.7657 m/s at touchdown (the cap minus 0.26 m/s² for 0.517 s of coasting) becomes 0.3531 (×5/25);
+- riding out: 0.2231 m/s becomes 1.1157 (×25/5).
+
+**Cosmetics never touch the sim** (`check-looks.txt`):
+- `blue,spots,bow,glasses`, `cream,sprout` and `violet,spots,bear-ears,glasses` each give 53 of 53 stepped hub states identical to the default look.
+- The static proof is the boundary test.
+
+### Screenshot results
+
+I looked at every PNG named here at `cc37453`. Every shot has 0 console errors and 0 warnings, except the 4 known software-GL ReadPixels warnings.
+
+| Evidence (`docs/status/m1-s3/`) | What the image and log show |
+|---|---|
+| `hub.png` | The plaza with the bench and Priya on its east seat, the bean, the carts at 0.00 m/s, the tree |
+| `hub-carts-ride/*.png` | crouch → hop-up (jump clip, not masked) → hop-down (fall clip, masked, in the cart) → got-in (landing squash, clipped to the cart front) → riding (facing east at 0.22 m/s) → hopping-out → got-out |
+| `hub-carts-board-still/*.png` | Mid-hop, then a rider in the still cart facing the camera |
+| `reduced-motion/hub-carts-ride/*.png` | The same states with no arc: the log's `drawnZ` is 0.0375 m against the sim's 0.50 m at hop-up |
+| `hub-bench/*.png` | Walking over; hopping on; "Hi!" and Priya's wave at 0.37 s and 1.07 s after sitting; no greeting at 2.67 s; dozing at 5.5 s (closed eyes, a "z"); standing up on →; walking off |
+| `hub-bench-depth/*.png` | On the bench's row: drawn in front. North of it: behind (backrest over the bean). South of it: in front. E: sits. The log's `props[].bean` agrees each time. |
+| `hub-bench-around/*.png` | From behind the bench, a tap: the bean walks round its west end, hops on and sits next to Priya |
+| `reduced-motion/hub-bench/*.png` | The feet hold at 12/12 (normally 8–15 alternating). The hop is drawn with no arc (log `drawnZ` 0.1 against 0.33 at hop-on). The "z" and Priya's raised arm hold still. |
+| `bean.png` | The session 2 rows, plus sit at 4 phases and doze at 4 times |
+| `looks.png`, `looks-greyscale.png` | Spots, sprout, bear ears, the bow and glasses each on all 8 directions: the bow stays on the bean's left, behind the head facing east and in front facing west. Then the 10 colours with mixed pieces; cream has its outline. In greyscale the sprout, ears and bow change the head's outline and the glasses and spots read as dark marks; the bow is the smallest change. |
+| `look-blue-spots-bow-glasses/*` | The hub scripts in a custom look (images); `look-cream-sprout` and `look-violet-…` keep only their logs |
+| `hub-walk`, `hub-jump`, `hub-depth*` | Unchanged: 2.4 m in 1.0 s, 4.2 m running back; jump apex 0.7679 m, landed at 0.7914 s; behind or in front of the tree agrees in log and image |
+| `drop_t1.000.png`, `drop_t1.500.png` | Both balls level at y = 5.095 m; both landed at 1.4278431 s |
+
+### FPS as measured (informational)
+
+- **Headless GPU** (RTX 5070 Ti), rAF sampling:
+  - hub with the bench and Priya: 170.01 fps, 5.88 ms average frame, 6.1 ms maximum
+  - `looks` gallery (48 rigs in 10 colours): 169.5 fps, 11.8 ms maximum
+  - `bean` gallery: 170 fps
+  - Phaser's `actualFps` still reads about 105–108 (M0 open issue 3).
+- **Software GL** (SwiftShader, `software-gl/`):
+  - hub: 60 fps, 16.67 ms average frame, 16.8 ms maximum
+  - `looks`: 56 fps, 17.85 ms average frame, 33.4 ms maximum
+  - `bean`: 60 fps
+- **Not measured:** the rider mask filter while riding (live shots can't reach a cart), and real Chromebooks and phones.
+
+### Review gate
+
+A separate reviewer subagent ran 2 rounds. It wrote no code, used fresh clones at `E:/rv5` (and `E:/rv6` at `10201d1`) on port 5190, and looked at every PNG.
+
+**Round 1,** at `8c03478`: all 10 checklist items passed. It also confirmed refactor parity at `10201d1` in its own clone.
+- Its 2 should-fix findings:
+  - Tapping the bench from behind or beside it never sat: the straight walk hit the bench and gave up.
+  - The logged `drawnZ` was wrong for bench hops under reduced motion.
+- Its nits:
+  - a jump while walking to a seat kept the target;
+  - E next to the heavy cart could board the light one past it;
+  - the mask cut the bean in empty air beside the cart;
+  - a depth tie with Priya;
+  - compare-states showed only the first difference;
+  - a stale count in ASSUMPTIONS;
+  - Node's DEP0190 warning;
+  - `Math.hypot` in the sim (see open issues);
+  - seat occupancy for M2 (see open issues).
+
+**Fixed in `8a6cd04`:** all of the above except `Math.hypot` and occupancy. There are new tests for the reviewer's cases and a new `hub-bench-around` script.
+
+**Round 2,** at `8a6cd04`: every item passed, with no blockers and no should-fix findings. It tried 12 tap start positions and all of them sit.
+- Its nits:
+  - a thin rim-line cut remains in `hop-down` where the 1.0 m body is wider than the 0.8 m cart (open issue);
+  - a bean standing on the bench's row draws in front of Priya although her seated point is further south (open issue);
+  - a misleading shot name, fixed in `cc37453`.
+
+### Open issues
+
+1. **The dev server on port 5180 did not pick up new source files.** It kept answering 500 for `interactions/bench.ts`. Restart `pnpm dev`. This session shot with `--port 5181` (a fresh server per run).
+2. **A standing bean on the bench's row draws in front of Priya.** Her seated point is 0.15 m further south. Characters sort by ground row with a fixed tie-break, not by their exact seat point.
+3. **The mask cuts a thin strip in mid-hop.** The rider (1.0 m drawn) is wider than the cart (0.8 m): landing, a few pixels beyond the cart's end are cut at the rim line. Above the rim a rider is still about 3.5 px wider on each side (session 2 issue 2, now fixed below the rim).
+4. **The rider mask filter's cost is unmeasured** (it renders to a texture while in a cart). This matters on Chromebooks.
+5. **Cross-engine determinism for M2:**
+   - The sim uses `Math.hypot`, which ECMAScript leaves implementation-approximated. It now also feeds hop durations and arcs.
+   - Planck uses sin, cos and atan2.
+   - The hop's arc itself uses only exact operations.
+6. **Seat occupancy is layout data, not state** (`taken`). That is fine for one player; M2 needs it in the state.
+7. **The bow is the smallest silhouette change in greyscale.** Spots are faint on darker colours.
+8. **No in-game wardrobe** (only `?look=`); it needs a design pass. Goggles combined with headwear or glasses are not handled (they come with the catapult).
+9. **The crouch before a hop does not stop carts.** A bean crouching on the rail is not an obstacle, because it is committed to the hop.
+10. **One flaky shot run:** once, a long `check-looks` run failed with Playwright's "Target page, context or browser has been closed" on `hub-walk/start`. It did not recur in 8 later full runs.
+11. **The c2pa manifests in `art/bean/*.svg`** no longer match the edited content (the game strips `<metadata>`).
+12. **Carried over:**
+    - readouts show speed, not direction (session 2 issue 6);
+    - a bean mid-jump over the rail still stops a cart (issue 5);
+    - no effort face, sweat or dust (issue 7);
+    - no on-screen touch buttons: phones can sit (tap the bench, tap anywhere to stand up) but can't get into a cart or jump;
+    - no real-device fps, fonts not loaded, test hooks in production, no CI;
+    - the drop scene's mass labels overlap the 10 m line near the release;
+    - the tree's greens and the bow's pinks are not in the palette table (listed in `art/README.md`).
+13. **D7:** the other body forms (Mochi, Gumdrop, Pill) aren't drawn. Each needs its own 5 views, `-left` drawings, body mask and headwear anchors.
+
+### Proposed plan for the next session
+
+**What remains of M1** (ROADMAP "done when": walk the plaza, push the carts, sit on the bench, enter the expedition, make a prediction and see it logged):
+- Walking, pushing and sitting are done.
+- **Missing:**
+  - the expedition (item 7), which needs D9 designed first;
+  - a local notebook that logs the prediction;
+  - on-screen touch buttons, so phones can do everything;
+  - CI.
+
+**1. D9 design pass (with you, before any code).** The questions:
+- **How the bean gets there:** a gate or sign in the plaza (touches D2), and E or a tap on it.
+- **The launcher:** its inputs (angle and speed, or crank notches as in the prototype catapult), their ranges and steps, and whether the bean is the projectile.
+- **The prediction:** mark a landing spot, choose among markers, or type a distance. No free text for minors; likely a draggable marker.
+- **Measurement:** landing distance, flight time, apex height, and which of them the readouts show.
+- **Success:** within a tolerance of the prediction, and whether a miss is funny rather than punishing (DESIGN.md §1).
+- **The exact integrator:** confirm D4's general rule ("exact integrators for teaching scenarios").
+- **The notebook entry:** fields, concept id, local storage.
+- **Its side-view scene** and how the bean returns to the hub.
+
+**2. Build the expedition prototype as vertical slices:**
+- the sim projectile with tests (range and time of flight against the textbook);
+- the side-view scene;
+- the prediction marker;
+- the compare screen;
+- the notebook log;
+- scripts and checks like the cart ones.
+
+**3. Smaller M1 items:**
+- on-screen touch buttons (Action, Jump, Run);
+- CI running `pnpm check` and `pnpm shot --all`;
+- the direction on speed readouts, if the momentum lessons need it.
+
+**Open for you:** D2 (hub layout, where the gate goes), D9, D12's paper 3D, D13, and the wardrobe design.
+
 ## M1, session 2: bean rig v0 and carts on a rail (2026-09-29)
 
 Both slices are built, tested and reviewed. The user also asked for two extras during the

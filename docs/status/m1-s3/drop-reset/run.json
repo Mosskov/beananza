@@ -1,0 +1,43 @@
+{
+  "ok": true,
+  "error": null,
+  "script": "tools/shot/scripts/drop-reset.json",
+  "scene": "drop",
+  "url": "http://localhost:5181/?scene=drop&paused=1",
+  "git": {
+    "commit": "cc37453",
+    "dirty": false
+  },
+  "inputs": [
+    {
+      "step": 0,
+      "action": "wait 1",
+      "simTime": 0
+    },
+    {
+      "step": 2,
+      "action": "press \"KeyR\"",
+      "simTime": 1
+    },
+    {
+      "step": 3,
+      "action": "wait 0.5",
+      "simTime": 1
+    },
+    {
+      "step": 5,
+      "action": "tap [640,360]",
+      "simTime": 0.5
+    },
+    {
+      "step": 6,
+      "action": "wait 0.25",
+      "simTime": 0.5
+    }
+  ],
+  "console": {
+    "errors": 0,
+    "warnings": 0,
+    "entries": []
+  }
+}

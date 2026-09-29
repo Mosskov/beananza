@@ -2,6 +2,6 @@
   <!-- Bean buddy, SIDE view facing LEFT: only the parts that are not symmetric, drawn as seen on screen
        (not mirrored). Every other part is side.svg mirrored. The scarf tail is on the bean's left, which
        faces the camera here, so it is drawn in front of the body. data-after = draw it after that part. -->
-  <g id="eyes"><ellipse cx="-25" cy="-80" rx="5.5" ry="8" fill="#2B211C"/><circle cx="-23" cy="-83" r="2" fill="#FFFFFF"/></g>
-  <g id="scarf-tail" data-after="scarf"><path d="M16 -48 L58 -40 L54 -30 L14 -40 Z" fill="#E3A93B"/></g>
+  <g id="eyes" data-pivot="-25 -80"><ellipse cx="-25" cy="-80" rx="5.5" ry="8" fill="#2B211C"/><circle cx="-23" cy="-83" r="2" fill="#FFFFFF"/></g>
+  <g id="scarf-tail" data-pivot="16 -48" data-after="scarf"><path d="M16 -48 L58 -40 L54 -30 L14 -40 Z" fill="#E3A93B"/></g>
 </svg>

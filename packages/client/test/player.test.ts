@@ -127,17 +127,21 @@ describe('choosing a clip from sim state', () => {
   });
 
   it('push while pushing a cart (heavy for a heavy cart), side view lean 10° or 16°', () => {
-    const pushing = { ...still, vx: 1.9, pushing: { cart: 'light', dir: 1, run: false } };
-    expect(chooseClip(pushing, 2, g)).toEqual({ clip: 'push', t: 2 });
-    expect(chooseClip(pushing, 2, g, true)).toEqual({ clip: 'pushHeavy', t: 2 });
+    const pushing = { ...still, vx: 1.9 };
+    expect(chooseClip(pushing, 2, g, { clip: 'push', t: 2 })).toEqual({ clip: 'push', t: 2 });
+    expect(chooseClip(pushing, 2, g, { clip: 'pushHeavy', t: 2 })).toEqual({ clip: 'pushHeavy', t: 2 });
     expect(pose('push', 0.3).body.rotation).toBe(10);
     expect(pose('pushHeavy', 0.3).body.rotation).toBe(16);
     expect(pose('push', 0.3).armA.rotation).toBe(-80);
     expect(pose('push', 0.225, 'side', true).body).toMatchObject({ y: 0, rotation: 10 });
   });
 
-  it('idle while riding in a moving cart', () => {
-    expect(chooseClip({ ...still, vx: 1.2, riding: 'light' }, 2, g)).toEqual({ clip: 'idle', t: 2 });
+  it('an interaction’s clip wins over the ground-speed clips (idle while riding a moving cart)', () => {
+    expect(chooseClip({ ...still, vx: 1.2 }, 2, g, { clip: 'idle', t: 2 })).toEqual({ clip: 'idle', t: 2 });
+    // A hop's clip comes even before the landing squash.
+    const landed = { ...still, lastJump: { startedAt: 1, landedAt: 1.95 } };
+    expect(chooseClip(landed, 2, g, { clip: 'idle', t: 2 }).clip).toBe('land');
+    expect(chooseClip(landed, 2, g, { clip: 'fall', t: 0.1, first: true })).toEqual({ clip: 'fall', t: 0.1 });
   });
 
   it('land for LAND_DURATION after the exact touchdown, then back to the ground clips', () => {
@@ -146,5 +150,35 @@ describe('choosing a clip from sim state', () => {
     expect(chooseClip(landed, 1.8, g).t).toBeCloseTo(0.0086, 12);
     expect(chooseClip(landed, 1.7914 + LAND_DURATION, g).clip).toBe('idle');
     expect(chooseClip({ ...landed, vx: 2.4 }, 1.95, g).clip).toBe('walk');
+  });
+});
+
+describe('sitting on the bench', () => {
+  it('feet dangle 8–15 units below the body and swing in turn over 1.3 s', () => {
+    expect(pose('sit', 0, 'front').footA.y).toBeCloseTo(8, 12);
+    expect(pose('sit', 0.65, 'front').footA.y).toBeCloseTo(15, 12);
+    expect(pose('sit', 0, 'front').footB.y).toBeCloseTo(15, 12);
+    expect(pose('sit', 0.65, 'front').footB.y).toBeCloseTo(8, 12);
+  });
+
+  it('under reduced motion the feet hang still at 12 units and the "z" does not float', () => {
+    for (const t of [0, 0.3, 0.65, 1.1]) {
+      expect(pose('sit', t, 'front', true).footA.y).toBe(12);
+      expect(pose('sit', t, 'front', true).footB.y).toBe(12);
+      expect(pose('doze', t, 'front', true).fx).toEqual({ x: 4, y: -4, rotation: 0, scaleX: 1, scaleY: 1 });
+    }
+  });
+
+  it('dozing: feet still at 12 units, the "z" rises over 2 s', () => {
+    expect(pose('doze', 0.4, 'front').footA.y).toBe(12);
+    expect(pose('doze', 0, 'front').fx.y).toBeCloseTo(6, 12);
+    expect(pose('doze', 1.9, 'front').fx.y).toBeLessThan(-15);
+  });
+
+  it('waving (Priya): sitting, with the screen-right arm raised and waving every 0.4 s; still raised under reduced motion', () => {
+    expect(pose('wave', 0, 'front').armB.rotation).toBeCloseTo(-95, 12);
+    expect(pose('wave', 0.2, 'front').armB.rotation).toBeCloseTo(-125, 12);
+    expect(pose('wave', 0.65, 'front').footA.y).toBeCloseTo(pose('sit', 0.65, 'front').footA.y, 12);
+    expect(pose('wave', 0.2, 'front', true).armB.rotation).toBe(-110);
   });
 });

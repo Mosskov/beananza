@@ -39,6 +39,11 @@ export interface Track {
    * (docs: prefers-reduced-motion). Poses such as the run lean or raised arms stay.
    */
   motion?: boolean;
+  /**
+   * Under reduced motion, hold this value instead of dropping the track (e.g. dangling feet
+   * that stop swinging but still dangle).
+   */
+  still?: number;
 }
 
 export interface Clip {
@@ -48,7 +53,7 @@ export interface Clip {
   tracks: Track[];
 }
 
-export const CLIP_NAMES = ['idle', 'walk', 'run', 'jump', 'fall', 'land', 'push', 'pushHeavy'] as const;
+export const CLIP_NAMES = ['idle', 'walk', 'run', 'jump', 'fall', 'land', 'push', 'pushHeavy', 'sit', 'doze', 'wave'] as const;
 export type ClipName = (typeof CLIP_NAMES)[number];
 
 // Small builders so the data reads like the prototype's keyframes.
@@ -258,6 +263,58 @@ const push = (cycle: number, lean: number, bobHeight: number): Families =>
     ],
   });
 
+/**
+ * Sitting on the bench (DESIGN.md §6, D24; always the front view): feet dangle below the seat
+ * and swing in turn (1.3 s, 8–15 units down), arms rest a little out, breathing as when idle.
+ * Under reduced motion the feet hang still at 12 units.
+ */
+export const SIT_SWING_S = 1.3;
+const SIT_ARMS = [t('armA', 'rotation', keys([0, -12], [1, -12])), t('armB', 'rotation', keys([0, 12], [1, 12]))];
+const SIT = same({
+  duration: SIT_SWING_S,
+  loop: true,
+  tracks: [
+    ...pair('footA', 'footB', 'y', keys([0, 8], [0.5, 15], [1, 8]), { motion: true, still: 12 }),
+    body('scaleX', keys([0, 1], [0.5, 1.035], [1, 1]), { period: 3 }),
+    body('scaleY', keys([0, 1], [0.5, 0.965], [1, 1]), { period: 3 }),
+    ...SIT_ARMS,
+  ],
+});
+
+/**
+ * Dozing after 5 s on the bench: feet hang still, slow deep breaths, and the drawn "z" (the
+ * `fx` slot) floats up and fades by shrinking every 2 s. The closed eyes are a part swap.
+ */
+const DOZE = same({
+  duration: 2,
+  loop: true,
+  tracks: [
+    t('footA', 'y', keys([0, 12], [1, 12])),
+    t('footB', 'y', keys([0, 12], [1, 12])),
+    body('scaleX', keys([0, 1], [0.5, 1.045], [1, 1]), { period: 4 }),
+    body('scaleY', keys([0, 1], [0.5, 0.955], [1, 1]), { period: 4 }),
+    ...SIT_ARMS,
+    t('fx', 'x', keys([0, 0], [1, 10]), { motion: true, still: 4 }),
+    t('fx', 'y', keys([0, 6], [1, -22]), { motion: true, still: -4 }),
+    t('fx', 'scaleX', keys([0, 0.6], [0.7, 1.1], [1, 0.2]), { motion: true, still: 1 }),
+    t('fx', 'scaleY', keys([0, 0.6], [0.7, 1.1], [1, 0.2]), { motion: true, still: 1 }),
+  ],
+});
+
+/**
+ * Waving hello while seated (Priya's greeting, DESIGN.md §7): sitting, with the screen-right arm
+ * raised and waving every 0.4 s (the other arm would be hidden behind a bean sitting on her
+ * west). Under reduced motion the arm stays raised.
+ */
+const WAVE = same({
+  duration: SIT_SWING_S,
+  loop: true,
+  tracks: [
+    ...SIT.front.tracks.filter((track) => track.slot !== 'armB'),
+    t('armB', 'rotation', keys([0, -95], [0.5, -125], [1, -95]), { period: 0.4, motion: true, still: -110 }),
+  ],
+});
+
 export const CLIPS: Readonly<Record<ClipName, Families>> = {
   idle: IDLE,
   walk: WALK_CLIPS,
@@ -267,6 +324,9 @@ export const CLIPS: Readonly<Record<ClipName, Families>> = {
   land: LAND_CLIPS,
   push: push(0.45, 10, 3),
   pushHeavy: push(1, 16, 2),
+  sit: SIT,
+  doze: DOZE,
+  wave: WAVE,
 };
 
 /** Blinking plays on top of every clip: every 4 s, eyes squeeze to 10% for a moment. */

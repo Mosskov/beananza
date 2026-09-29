@@ -1,0 +1,276 @@
+{
+  "ok": true,
+  "error": null,
+  "script": "tools/shot/scripts/hub-carts-heavy.json",
+  "scene": "hub",
+  "shot": "pushing-a",
+  "step": 7,
+  "url": "http://localhost:5181/?scene=hub&paused=1&look=blue%2Cspots%2Cbow%2Cglasses",
+  "simTime": 3.6,
+  "screenshot": "artifacts/shots/look-blue-spots-bow-glasses/hub-carts-heavy/pushing-a.png",
+  "git": {
+    "commit": "cc37453",
+    "dirty": false
+  },
+  "timestamp": "2026-09-29T20:05:16.992Z",
+  "viewport": {
+    "width": 1280,
+    "height": 720
+  },
+  "browser": "chromium 153.0.8010.12",
+  "glRenderer": "ANGLE (NVIDIA, NVIDIA GeForce RTX 5070 Ti (0x00002C05) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+  "reducedMotion": false,
+  "look": "blue,spots,bow,glasses",
+  "server": "started",
+  "inputs": [
+    {
+      "step": 0,
+      "action": "tap [960,410]",
+      "simTime": 0
+    },
+    {
+      "step": 1,
+      "action": "wait 2.5",
+      "simTime": 0
+    },
+    {
+      "step": 2,
+      "action": "tap [960,520]",
+      "simTime": 2.5
+    },
+    {
+      "step": 3,
+      "action": "wait 0.6",
+      "simTime": 2.5
+    },
+    {
+      "step": 5,
+      "action": "keyDown \"ArrowLeft\"",
+      "simTime": 3.1
+    },
+    {
+      "step": 6,
+      "action": "wait 0.5",
+      "simTime": 3.1
+    }
+  ],
+  "console": {
+    "errors": 0,
+    "warnings": 0,
+    "entries": []
+  },
+  "sceneState": {
+    "tick": 216,
+    "simTime": 3.6,
+    "paused": true,
+    "state": {
+      "layout": {
+        "walkable": {
+          "minX": -5.8,
+          "maxX": 5.8,
+          "minY": -3,
+          "maxY": 2
+        },
+        "props": [
+          {
+            "id": "tree",
+            "x": 2.2,
+            "y": 0.2,
+            "halfWidth": 0.25,
+            "halfDepth": 0.2
+          }
+        ],
+        "benches": [
+          {
+            "id": "bench",
+            "x": -3.6,
+            "y": 1.2,
+            "halfWidth": 0.8,
+            "halfDepth": 0.225,
+            "seatHeight": 0.3,
+            "seatDy": -0.15,
+            "seats": [
+              {
+                "id": "west",
+                "dx": -0.4
+              },
+              {
+                "id": "east",
+                "dx": 0.4,
+                "taken": true
+              }
+            ]
+          }
+        ],
+        "start": {
+          "x": -2.5,
+          "y": -0.8
+        },
+        "rail": {
+          "y": -2.1,
+          "minX": -3.68,
+          "maxX": 3.68,
+          "carts": [
+            {
+              "id": "light",
+              "mass": 5,
+              "x": -2.1,
+              "ridable": true
+            },
+            {
+              "id": "heavy",
+              "mass": 20,
+              "x": 1.6,
+              "ridable": false
+            }
+          ]
+        }
+      },
+      "gravity": 9.81,
+      "input": {
+        "x": -1,
+        "y": 0,
+        "run": false
+      },
+      "bean": {
+        "x": 2.2374777777777783,
+        "y": -2.1,
+        "z": 0,
+        "vx": -0.2146666666666667,
+        "vy": 0,
+        "vz": 0,
+        "grounded": true,
+        "facingX": -1,
+        "facingY": 0,
+        "target": null,
+        "stuckSteps": 0,
+        "jumps": 0,
+        "lastJump": null,
+        "act": {
+          "kind": "pushing",
+          "cart": "heavy",
+          "dir": -1,
+          "run": false
+        }
+      },
+      "rail": {
+        "carts": [
+          {
+            "id": "light",
+            "mass": 5,
+            "riderMass": 0,
+            "x": -2.1,
+            "v": 0
+          },
+          {
+            "id": "heavy",
+            "mass": 20,
+            "riderMass": 0,
+            "x": 1.5874777777777782,
+            "v": -0.2146666666666667
+          }
+        ],
+        "collisions": [],
+        "riders": []
+      },
+      "tick": 216,
+      "rng": {
+        "s": 1
+      }
+    },
+    "view": {
+      "bean": {
+        "screen": {
+          "x": 889.4,
+          "y": 520
+        },
+        "scale": 0.866,
+        "depth": 210.5,
+        "rig": {
+          "act": "pushing",
+          "placement": "ground",
+          "masked": false,
+          "drawnZ": 0,
+          "feet": {
+            "a": {
+              "x": -5.4,
+              "y": -3.2
+            },
+            "b": {
+              "x": 5.4,
+              "y": 0
+            }
+          },
+          "view": "side",
+          "mirrored": true,
+          "clip": "pushHeavy",
+          "clipT": 3.6,
+          "body": {
+            "y": -1.792,
+            "rotation": 16,
+            "scaleX": 1,
+            "scaleY": 1
+          }
+        }
+      },
+      "reducedMotion": false,
+      "carts": [
+        {
+          "id": "light",
+          "mass": 5,
+          "v": 0,
+          "readout": "0.00 m/s",
+          "expectedReadout": "0.00 m/s",
+          "screen": {
+            "x": 430,
+            "y": 530
+          }
+        },
+        {
+          "id": "heavy",
+          "mass": 20,
+          "v": -0.2146666666666667,
+          "readout": "0.21 m/s",
+          "expectedReadout": "0.21 m/s",
+          "screen": {
+            "x": 798.7,
+            "y": 530
+          }
+        }
+      ],
+      "classmates": [
+        {
+          "name": "Priya",
+          "clip": "sit",
+          "greeting": null,
+          "bubble": null,
+          "screen": {
+            "x": 320,
+            "y": 175
+          },
+          "depth": -119.6
+        }
+      ],
+      "props": [
+        {
+          "id": "tree",
+          "screen": {
+            "x": 860,
+            "y": 290
+          },
+          "depth": -20,
+          "bean": "in front"
+        },
+        {
+          "id": "bench",
+          "screen": {
+            "x": 280,
+            "y": 190
+          },
+          "depth": -120,
+          "bean": "in front"
+        }
+      ]
+    }
+  }
+}

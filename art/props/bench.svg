@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-100 -110 200 140" width="400" height="280">
+  <!-- Plaza bench, seen from the south in the 3/4 view (backrest on the north side). One drawing:
+       it never turns (D12). Origin (0,0) = the middle of its footprint on the ground (1.6 x 0.45 m in
+       the sim). 100 units = 1 m; a point dy north of the origin and h up draws at y = -(dy + h) * 100.
+       Seat top 0.30 m up, from 0.225 m south (its front edge, y = -7.5) to 0.05 m north (y = -35);
+       backrest slats 0.15 m north. Parts in draw order; a seated bean draws in front of all of them. -->
+  <g id="shadow"><ellipse cx="0" cy="4" rx="90" ry="18" fill="#3B2F2A" opacity="0.15"/></g>
+  <g id="back">
+    <rect x="-76" y="-92" width="7" height="60" rx="2" fill="#6B4A36"/>
+    <rect x="69" y="-92" width="7" height="60" rx="2" fill="#6B4A36"/>
+    <rect x="-82" y="-90" width="164" height="11" rx="4" fill="#8A5C3C"/>
+    <rect x="-82" y="-90" width="164" height="3" rx="1.5" fill="#C99A6B"/>
+    <rect x="-82" y="-72" width="164" height="11" rx="4" fill="#8A5C3C"/>
+    <rect x="-82" y="-72" width="164" height="3" rx="1.5" fill="#C99A6B"/>
+  </g>
+  <g id="seat">
+    <rect x="-76" y="-8" width="7" height="28" rx="2" fill="#6B4A36"/>
+    <rect x="69" y="-8" width="7" height="28" rx="2" fill="#6B4A36"/>
+    <rect x="-82" y="-35" width="164" height="28" rx="4" fill="#C99A6B"/>
+    <path d="M-80 -26 H80 M-80 -17 H80" stroke="#B0845A" stroke-width="1.5"/>
+    <rect x="-82" y="-9" width="164" height="7" rx="3" fill="#8A5C3C"/>
+  </g>
+  <!-- Anchors (never drawn): where a seated bean's feet point sits, 0.30 m up and 0.15 m south of
+       the centre line, 0.4 m either side (the sim's bench layout; a test checks they agree). -->
+  <g id="anchors" display="none"><circle id="anchor-seat-west" cx="-40" cy="-15" r="0"/><circle id="anchor-seat-east" cx="40" cy="-15" r="0"/></g>
+</svg>

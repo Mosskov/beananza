@@ -5,7 +5,7 @@
 import { readFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { CART_PUSH_CAP, CART_PUSH_FORCE, CART_RESTITUTION, CART_ROLLING_DECEL, FIXED_DT, HUB_BEAN_MASS_KG, type HubState } from '@beananza/sim';
+import { CART_PUSH_CAP, CART_PUSH_FORCE, CART_RESTITUTION, CART_ROLLING_DECEL, HUB_BEAN_MASS_KG, type HubState } from '@beananza/sim';
 
 const REPO = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
 const SHOTS = join(REPO, process.argv[2] ?? 'artifacts/shots');
@@ -63,23 +63,37 @@ if (!hit) {
   check('hub-carts-push: restitution', (q.vAfter - p.vAfter) / (p.vBefore - q.vBefore), CART_RESTITUTION);
 }
 
-// 3. Riding: in, v·m/(m+M); out, v·(m+M)/m (the command applies at the start of the step, then
-//    one step of rolling friction).
-const f = CART_ROLLING_DECEL * FIXED_DT;
+// 3. Riding (D23): the bean lands in the cart after a crouch and a hop, and takes off to get
+//    out. The logged rider events give the moments; in between the cart only rolls under
+//    friction. In: v·m/(m+M) at touchdown; out: v·(m+M)/m at take-off.
+const f = CART_ROLLING_DECEL;
 const capLog = load('hub-carts-ride', 'at-cap');
 const inLog = load('hub-carts-ride', 'got-in');
 const ridingLog = load('hub-carts-ride', 'riding');
 const outLog = load('hub-carts-ride', 'got-out');
-const m = cart(capLog, 'light').mass;
-check('hub-carts-ride: rider mass added (kg)', cart(inLog, 'light').mass - m, HUB_BEAN_MASS_KG, 0);
-check('hub-carts-ride: speed getting in (m/s)', cart(inLog, 'light').v, (cart(capLog, 'light').v * m) / (m + HUB_BEAN_MASS_KG) - f);
-check('hub-carts-ride: speed getting out (m/s)', cart(outLog, 'light').v, (cart(ridingLog, 'light').v * (m + HUB_BEAN_MASS_KG)) / m - f);
+const events = load('hub-carts-ride', 'rolling-on').sceneState.state.rail?.riders ?? [];
+const into = events.find((e) => e.kind === 'in');
+const outOf = events.find((e) => e.kind === 'out');
+if (!into || !outOf) {
+  failures += 1;
+  console.log('FAIL hub-carts-ride: the rider events (in and out) are not both logged');
+} else {
+  const m = cart(capLog, 'light').mass;
+  console.log(`     in at t = ${into.time} s: ${into.vBefore} → ${into.vAfter} m/s; out at t = ${outOf.time} s: ${outOf.vBefore} → ${outOf.vAfter} m/s`);
+  check('hub-carts-ride: rider mass added (kg)', into.massAfter - into.massBefore, HUB_BEAN_MASS_KG, 0);
+  check('hub-carts-ride: coasting from the cap until touchdown (m/s)', into.vBefore, cart(capLog, 'light').v - f * (into.time - capLog.simTime));
+  check('hub-carts-ride: speed getting in (m/s)', into.vAfter, (into.vBefore * m) / (m + HUB_BEAN_MASS_KG));
+  check('hub-carts-ride: logged speed after getting in (m/s)', cart(inLog, 'light').v, into.vAfter - f * (inLog.simTime - into.time));
+  check('hub-carts-ride: speed at take-off (m/s)', outOf.vBefore, cart(ridingLog, 'light').v - f * (outOf.time - ridingLog.simTime));
+  check('hub-carts-ride: speed getting out (m/s)', outOf.vAfter, (outOf.vBefore * (m + HUB_BEAN_MASS_KG)) / m);
+  check('hub-carts-ride: logged speed after getting out (m/s)', cart(outLog, 'light').v, outOf.vAfter - f * (outLog.simTime - outOf.time));
+}
 
 // 4. Every readout shows the logged speed in m/s.
 for (const [script, shots] of [
   ['hub-carts-push', ['pushing-a', 'pushing-b', 'at-cap', 'coasting', 'after-collision', 'later']],
   ['hub-carts-heavy', ['pushing-a', 'pushing-b', 'at-cap', 'coasting']],
-  ['hub-carts-ride', ['at-cap', 'got-in', 'riding', 'got-out', 'rolling-on']],
+  ['hub-carts-ride', ['at-cap', 'crouch', 'hop-up', 'hop-down', 'got-in', 'riding', 'hopping-out', 'got-out', 'rolling-on']],
 ] as const) {
   for (const shot of shots) {
     for (const c of load(script, shot).sceneState.view.carts) {

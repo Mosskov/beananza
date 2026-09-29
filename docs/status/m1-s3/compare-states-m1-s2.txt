@@ -1,0 +1,48 @@
+$ pnpm --filter @beananza/shot compare-states "docs/status/m1-s2"
+$ tsx src/compare-states.ts "docs/status/m1-s2"
+same    drop-reset\after-r.json
+same    drop-reset\after-tap.json
+same    drop-reset\t1.json
+live    drop.json (skipped: a live shot's tick depends on wall-clock time)
+same    drop_t1.000.json
+same    drop_t1.500.json
+DIFF    hub-carts-board-still\in-still-cart.json  .bean.z: 0 ≠ 0.1; .bean.act.since: undefined ≠ 101; .rail.riders.0: undefined ≠ {"kind":"in","cart":"light","time":1.6833333333333333,"massB; .tick: 73 ≠ 114
+same    hub-carts-heavy\at-cap.json
+same    hub-carts-heavy\coasting.json
+same    hub-carts-heavy\east-of-heavy-cart.json
+same    hub-carts-heavy\pushing-a.json
+same    hub-carts-heavy\pushing-b.json
+same    hub-carts-push\after-collision.json
+same    hub-carts-push\at-cap.json
+same    hub-carts-push\coasting.json
+same    hub-carts-push\later.json
+same    hub-carts-push\pushing-a.json
+same    hub-carts-push\pushing-b.json
+same    hub-carts-push\west-of-light-cart.json
+same    hub-carts-ride\at-cap.json
+DIFF    hub-carts-ride\got-in.json  .bean.x: -1.587113916188916 ≠ -0.6464472495222493; .bean.z: 0 ≠ 0.1; .bean.vx: 0.37566666666666665 ≠ 0.3531333333333335; .bean.act.since: undefined ≠ 127; .rail.carts.0.x: -1.587113916188916 ≠ -0.6464472495222492; .rail.carts.0.v: 0.37566666666666665 ≠ 0.3531333333333335; and 2 more
+DIFF    hub-carts-ride\got-out.json  .bean.x: -1.4317805828555827 ≠ -0.5023805828555826; .bean.facingX: 1 ≠ 0; .bean.facingY: 0 ≠ -1; .rail.carts.0.x: -1.4113444717444716 ≠ -0.07691391618891644; .rail.carts.0.v: 1.2239999999999989 ≠ 1.0116666666666658; .rail.riders.0: undefined ≠ {"kind":"in","cart":"light","time":2.1166666666666667,"massB; and 2 more
+DIFF    hub-carts-ride\riding.json  .bean.x: -1.4317805828555827 ≠ -0.5023805828555826; .bean.z: 0 ≠ 0.1; .bean.vx: 0.24566666666666642 ≠ 0.22313333333333302; .bean.act.since: undefined ≠ 127; .rail.carts.0.x: -1.4317805828555827 ≠ -0.5023805828555826; .rail.carts.0.v: 0.24566666666666642 ≠ 0.22313333333333302; and 2 more
+DIFF    hub-carts-ride\rolling-on.json  .bean.x: -1.4317805828555827 ≠ -0.5023805828555826; .bean.facingX: 1 ≠ 0; .bean.facingY: 0 ≠ -1; .rail.carts.0.x: -0.831844471744472 ≠ 0.3964194171444167; .rail.carts.0.v: 1.0939999999999999 ≠ 0.8816666666666668; .rail.riders.0: undefined ≠ {"kind":"in","cart":"light","time":2.1166666666666667,"massB; and 2 more
+same    hub-depth-tie\same-row-as-prop.json
+same    hub-depth\behind-prop.json
+same    hub-depth\in-front-of-prop.json
+same    hub-depth\stuck-cancelled.json
+same    hub-jump\air-control.json
+same    hub-jump\apex.json
+same    hub-jump\ground.json
+same    hub-jump\landed-again.json
+same    hub-jump\landed.json
+same    hub-walk\diagonal-half-s.json
+same    hub-walk\ran-back-1s.json
+same    hub-walk\start.json
+same    hub-walk\walked-1s.json
+live    hub.json (skipped: a live shot's tick depends on wall-clock time)
+
+36 sim states compared, 5 failures. Renames applied: M1 session 3: bean.riding and bean.pushing → bean.act; M1 session 3: rail.riders added; M1 session 3: layout.benches added
+[ELIFECYCLE] Command failed with exit code 1.
+Error: ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL
+
+  × "pnpm recursive run" failed in E:\Projects\Beananza\tools\shot
+
+[ELIFECYCLE] Command failed with exit code 1.

@@ -1,7 +1,8 @@
+import { readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
-import { checkFiles, compileDiagnostics, findViolations, listTsFiles, type BoundaryRules, type Violation } from './boundary';
+import { checkFiles, compileDiagnostics, exportedNames, findNameUses, findViolations, listTsFiles, type BoundaryRules, type Violation } from './boundary';
 
 const repo = resolve(fileURLToPath(new URL('.', import.meta.url)), '../../..');
 const simSrc = join(repo, 'packages/sim/src');
@@ -21,6 +22,17 @@ describe('sim boundary', () => {
     const files = [...listTsFiles(simSrc), ...listTsFiles(sharedSrc)];
     expect(files.length).toBeGreaterThan(0);
     expect(format(checkFiles(files, rules))).toEqual([]);
+  });
+
+  it('packages/sim never uses the cosmetic look (D25: cosmetics never touch the sim)', () => {
+    const names = new Set(exportedNames(readFileSync(join(sharedSrc, 'look.ts'), 'utf8')));
+    expect([...names]).toEqual(expect.arrayContaining(['BeanLook', 'BEAN_COLOURS', 'parseLook', 'DEFAULT_LOOK']));
+    const uses = listTsFiles(simSrc).flatMap((f) => findNameUses(f, readFileSync(f, 'utf8'), names));
+    expect(format(uses)).toEqual([]);
+    // The check can fail: a sim file that takes a look is caught.
+    const fixture = ["import { type BeanLook } from '@beananza/shared';", 'export const radius = (look: BeanLook) => 0.25;'].join('\n');
+    expect(findNameUses(join(simSrc, '__fixture__.ts'), fixture, names).length).toBeGreaterThan(0);
+    expect(findNameUses(join(simSrc, '__fixture__.ts'), "export * from '../../shared/src/look';", names).length).toBeGreaterThan(0);
   });
 
   it('packages/sim type-checks against the ES library only (no DOM, no Node types)', () => {

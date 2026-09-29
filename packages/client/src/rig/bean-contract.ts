@@ -1,5 +1,6 @@
-import { parseSvgParts, partPivot, type Point, type SvgDoc } from './svg-parts';
-import { HIDDEN_BY_DEFAULT, MIRRORED_VIEWS, REQUIRED_PARTS, SHADOW_PART, VIEWS, type BeanView } from './views';
+import { usesKeyColours } from './colours';
+import { insideViewBox, parseSvgParts, partPivot, type Point, type SvgDoc } from './svg-parts';
+import { HIDDEN_BY_DEFAULT, MIRRORED_VIEWS, REQUIRED_ANCHORS, REQUIRED_PARTS, SHADOW_PART, VIEWS, type BeanView } from './views';
 
 /** One drawn part, ready for the rig. Coordinates are art units in the view's frame. */
 export interface RigPart {
@@ -11,6 +12,8 @@ export interface RigPart {
    * mirrored), so the rig counter-flips it.
    */
   screenSpace: boolean;
+  /** Drawn in key colours, so there is one texture per bean colour (`colours.ts`). */
+  keyed: boolean;
 }
 
 export interface RigView {
@@ -26,6 +29,17 @@ export interface BeanArtSpec {
   /** Parts that are not symmetric (they have a `-left` drawing). */
   asymmetric: string[];
   views: RigView[];
+  /** Each view's anchors (D22), in its own frame. Mirrored views mirror x. */
+  anchors: Record<BeanView, Record<string, Point>>;
+}
+
+/** The highest point (smallest y) among a path's coordinate pairs: the top of the body. */
+function pathTop(inner: string): number {
+  const d = /\bd="([^"]*)"/.exec(inner)?.[1] ?? '';
+  const nums = (d.match(/-?[\d.]+/g) ?? []).map(Number);
+  let top = Infinity;
+  for (let i = 1; i < nums.length; i += 2) top = Math.min(top, nums[i] as number);
+  return top;
 }
 
 export const variantName = (view: BeanView) => `${view}-left`;
@@ -56,6 +70,14 @@ export function buildBeanArtSpec(sources: Readonly<Record<string, string>>): Bea
     for (const id of REQUIRED_PARTS[view]) if (!ids.includes(id)) problems.push(`${view}: missing part "${id}"`);
     const dupes = ids.filter((id, i) => ids.indexOf(id) !== i);
     if (dupes.length) problems.push(`${view}: duplicate part ids ${dupes.join(', ')}`);
+    for (const name of REQUIRED_ANCHORS[view]) if (!doc.anchors[name]) problems.push(`${view}: missing anchor "${name}"`);
+    for (const [name, p] of Object.entries(doc.anchors)) {
+      if (!insideViewBox(p, doc.viewBox)) problems.push(`${view}: anchor "${name}" is outside the viewBox`);
+    }
+    // Headwear sits on the top of the body (within 1 unit).
+    const body = doc.parts.find((p) => p.id === 'body');
+    const hw = doc.anchors.headwear;
+    if (body && hw && Math.abs(hw.y - pathTop(body.inner)) > 1) problems.push(`${view}: anchor "headwear" is not on the top of the body`);
   }
 
   // A part is asymmetric if any -left drawing has it. It then needs a -left drawing in every
@@ -69,6 +91,7 @@ export function buildBeanArtSpec(sources: Readonly<Record<string, string>>): Bea
       problems.push(`${variantName(view)}: missing`);
       continue;
     }
+    if (Object.keys(variant.anchors).length) problems.push(`${variantName(view)}: anchors belong in ${view}.svg`);
     if (!base) continue;
     const baseIds = base.parts.map((p) => p.id);
     for (const p of variant.parts) {
@@ -106,6 +129,7 @@ export function buildBeanArtSpec(sources: Readonly<Record<string, string>>): Bea
       pivot: partPivot(p),
       hiddenByDefault: p.attrs.visibility === 'hidden' || HIDDEN_BY_DEFAULT.has(p.id),
       screenSpace,
+      keyed: usesKeyColours(p.inner),
     });
     const plain = base.parts.filter((p) => p.id !== SHADOW_PART).map((p) => toRig(view, p, false));
     views.push({ view, mirrored: false, viewBox: base.viewBox, parts: plain });
@@ -127,5 +151,6 @@ export function buildBeanArtSpec(sources: Readonly<Record<string, string>>): Bea
     }
     views.push({ view, mirrored: true, viewBox: base.viewBox, parts });
   }
-  return { docs, asymmetric: [...asymmetric].sort(), views };
+  const anchors = Object.fromEntries(VIEWS.map((v) => [v, { ...(docs[v] as SvgDoc).anchors }])) as BeanArtSpec['anchors'];
+  return { docs, asymmetric: [...asymmetric].sort(), views, anchors };
 }

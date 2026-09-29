@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-60 -30 120 60" width="240" height="120">
+  <!-- Headwear "bear ears" (D25): two round ears. One flat group per view, origin at that view's
+       headwear anchor (the top of the body). Drawn behind the body (data-layer="behind"), so the head
+       hides their lower half. Body and belly key colours, so the ears take the bean's colour; the
+       backs of the ears (back views) have no inner colour. Symmetric: mirrored views mirror them. -->
+  <g id="front" data-layer="behind">
+    <circle cx="-32" cy="8" r="14" fill="#E08A5B"/><circle cx="32" cy="8" r="14" fill="#E08A5B"/>
+    <circle cx="-32" cy="8" r="7.5" fill="#F2B48C"/><circle cx="32" cy="8" r="7.5" fill="#F2B48C"/>
+  </g>
+  <g id="front-34" data-layer="behind">
+    <circle cx="36" cy="6" r="12" fill="#E08A5B"/><circle cx="37" cy="6" r="6" fill="#F2B48C"/>
+    <circle cx="-26" cy="9" r="14" fill="#E08A5B"/><circle cx="-25" cy="9" r="7.5" fill="#F2B48C"/>
+  </g>
+  <g id="side" data-layer="behind">
+    <circle cx="-16" cy="5" r="12" fill="#E08A5B"/>
+    <circle cx="-4" cy="7" r="14" fill="#E08A5B"/><circle cx="0" cy="8" r="7" fill="#F2B48C"/>
+  </g>
+  <g id="back-34" data-layer="behind">
+    <circle cx="-36" cy="6" r="12" fill="#E08A5B"/>
+    <circle cx="26" cy="9" r="14" fill="#E08A5B"/>
+  </g>
+  <g id="back" data-layer="behind">
+    <circle cx="-32" cy="8" r="14" fill="#E08A5B"/><circle cx="32" cy="8" r="14" fill="#E08A5B"/>
+  </g>
+</svg>

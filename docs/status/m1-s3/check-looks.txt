@@ -1,0 +1,4 @@
+ok   blue,spots,bow,glasses: 53 sim states compared with the default look, 0 differ
+ok   cream,sprout: 53 sim states compared with the default look, 0 differ
+ok   violet,spots,bear-ears,glasses: 53 sim states compared with the default look, 0 differ
+all looks give identical sim states

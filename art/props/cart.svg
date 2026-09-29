@@ -26,14 +26,16 @@
     <circle cx="-36" cy="-40" r="1.5" fill="#C4BFB6"/><circle cx="-36" cy="-14" r="1.5" fill="#C4BFB6"/>
     <circle cx="36" cy="-40" r="1.5" fill="#C4BFB6"/><circle cx="36" cy="-14" r="1.5" fill="#C4BFB6"/>
   </g>
-  <g id="wheel-west">
+  <g id="wheel-west" data-pivot="-24 -9">
     <circle cx="-24" cy="-9" r="9" fill="#3B4A6B"/>
     <path d="M-31 -9 H-17 M-24 -16 V-2" stroke="#8E9AAE" stroke-width="2"/>
     <circle cx="-24" cy="-9" r="2.5" fill="#C4BFB6"/>
   </g>
-  <g id="wheel-east">
+  <g id="wheel-east" data-pivot="24 -9">
     <circle cx="24" cy="-9" r="9" fill="#3B4A6B"/>
     <path d="M17 -9 H31 M24 -16 V-2" stroke="#8E9AAE" stroke-width="2"/>
     <circle cx="24" cy="-9" r="2.5" fill="#C4BFB6"/>
   </g>
+  <!-- Anchors (never drawn): floor = where a rider stands (the rail centre line, 0.1 m up: the sim's cart floor height); rim-west/rim-east and base-west/base-east = the corners of the front, below the rim a rider only shows inside them. -->
+  <g id="anchors" display="none"><circle id="anchor-floor" cx="0" cy="-20" r="0"/><circle id="anchor-rim-west" cx="-40" cy="-48" r="0"/><circle id="anchor-rim-east" cx="40" cy="-48" r="0"/><circle id="anchor-base-west" cx="-34" cy="-6" r="0"/><circle id="anchor-base-east" cx="34" cy="-6" r="0"/></g>
 </svg>

@@ -1,0 +1,19 @@
+{
+  "scene": "hub",
+  "steps": [
+    { "keyDown": "ArrowUp" },
+    { "wait": 1.2 },
+    { "keyUp": "ArrowUp" },
+    { "keyDown": "ArrowLeft" },
+    { "wait": 0.5 },
+    { "keyUp": "ArrowLeft" },
+    { "shot": "behind-bench" },
+    { "tap": [280, 170] },
+    { "wait": 0.5 },
+    { "shot": "going-around" },
+    { "wait": 1.0 },
+    { "shot": "hopping-on" },
+    { "wait": 1.0 },
+    { "shot": "sat-from-behind" }
+  ]
+}

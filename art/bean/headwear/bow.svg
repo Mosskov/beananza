@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-60 -30 120 60" width="240" height="120">
+  <!-- Headwear "bow" (D25): a bow on the bean's LEFT side of its head. Not symmetric, so like the
+       scarf tail it never jumps sides (D12): the three mirrored directions have their own groups
+       (`<view>-left`), drawn as seen on screen with the origin at the mirrored anchor. One flat group
+       per view, origin at that view's headwear anchor (the top of the body). Facing east the bean's
+       left is its far side, so the bow is behind the head there (data-layer="behind"); facing west it
+       is the near side, in front. Its own colours (#D94F6B, knot #B23A55): never the bean's. -->
+  <g id="front">
+    <path d="M0 0 C-6 -9 -16 -8 -15 0 C-16 8 -6 9 0 0 Z" fill="#D94F6B" transform="translate(30 12) rotate(20)"/>
+    <path d="M0 0 C6 -9 16 -8 15 0 C16 8 6 9 0 0 Z" fill="#D94F6B" transform="translate(30 12) rotate(20)"/>
+    <circle cx="0" cy="0" r="3.5" fill="#B23A55" transform="translate(30 12) rotate(20)"/>
+  </g>
+  <g id="front-34">
+    <path d="M0 0 C-6 -9 -16 -8 -15 0 C-16 8 -6 9 0 0 Z" fill="#D94F6B" transform="translate(38 16) rotate(25)"/>
+    <path d="M0 0 C6 -9 16 -8 15 0 C16 8 6 9 0 0 Z" fill="#D94F6B" transform="translate(38 16) rotate(25)"/>
+    <circle cx="0" cy="0" r="3.5" fill="#B23A55" transform="translate(38 16) rotate(25)"/>
+  </g>
+  <g id="side" data-layer="behind">
+    <path d="M0 0 C-6 -9 -16 -8 -15 0 C-16 8 -6 9 0 0 Z" fill="#B23A55" transform="translate(-10 0) rotate(-10)"/>
+    <path d="M0 0 C6 -9 16 -8 15 0 C16 8 6 9 0 0 Z" fill="#B23A55" transform="translate(-10 0) rotate(-10)"/>
+  </g>
+  <g id="back-34">
+    <path d="M0 0 C-6 -9 -16 -8 -15 0 C-16 8 -6 9 0 0 Z" fill="#D94F6B" transform="translate(-38 16) rotate(-25)"/>
+    <path d="M0 0 C6 -9 16 -8 15 0 C16 8 6 9 0 0 Z" fill="#D94F6B" transform="translate(-38 16) rotate(-25)"/>
+    <circle cx="0" cy="0" r="3.5" fill="#B23A55" transform="translate(-38 16) rotate(-25)"/>
+  </g>
+  <g id="back">
+    <path d="M0 0 C-6 -9 -16 -8 -15 0 C-16 8 -6 9 0 0 Z" fill="#D94F6B" transform="translate(-30 12) rotate(-20)"/>
+    <path d="M0 0 C6 -9 16 -8 15 0 C16 8 6 9 0 0 Z" fill="#D94F6B" transform="translate(-30 12) rotate(-20)"/>
+    <circle cx="0" cy="0" r="3.5" fill="#B23A55" transform="translate(-30 12) rotate(-20)"/>
+  </g>
+  <g id="front-34-left">
+    <path d="M0 0 C-6 -9 -16 -8 -15 0 C-16 8 -6 9 0 0 Z" fill="#D94F6B" transform="translate(30 14) rotate(20)"/>
+    <path d="M0 0 C6 -9 16 -8 15 0 C16 8 6 9 0 0 Z" fill="#D94F6B" transform="translate(30 14) rotate(20)"/>
+    <circle cx="0" cy="0" r="3.5" fill="#B23A55" transform="translate(30 14) rotate(20)"/>
+  </g>
+  <g id="side-left">
+    <path d="M0 0 C-6 -9 -16 -8 -15 0 C-16 8 -6 9 0 0 Z" fill="#D94F6B" transform="translate(8 12) rotate(15)"/>
+    <path d="M0 0 C6 -9 16 -8 15 0 C16 8 6 9 0 0 Z" fill="#D94F6B" transform="translate(8 12) rotate(15)"/>
+    <circle cx="0" cy="0" r="3.5" fill="#B23A55" transform="translate(8 12) rotate(15)"/>
+  </g>
+  <g id="back-34-left">
+    <path d="M0 0 C-6 -9 -16 -8 -15 0 C-16 8 -6 9 0 0 Z" fill="#D94F6B" transform="translate(-30 14) rotate(-20)"/>
+    <path d="M0 0 C6 -9 16 -8 15 0 C16 8 6 9 0 0 Z" fill="#D94F6B" transform="translate(-30 14) rotate(-20)"/>
+    <circle cx="0" cy="0" r="3.5" fill="#B23A55" transform="translate(-30 14) rotate(-20)"/>
+  </g>
+</svg>

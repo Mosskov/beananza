@@ -8,7 +8,9 @@
     "shot": "tsx src/shot.ts",
     "install-browser": "playwright install chromium",
     "typecheck": "tsc -p tsconfig.json",
-    "check-carts": "tsx src/check-carts.ts"
+    "check-carts": "tsx src/check-carts.ts",
+    "compare-states": "tsx src/compare-states.ts",
+    "check-looks": "tsx src/check-looks.ts"
   },
   "dependencies": {
     "@beananza/shared": "workspace:*",

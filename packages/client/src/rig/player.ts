@@ -52,7 +52,10 @@ function channelNeutral(channel: Channel): number {
 
 function applyClip(pose: Pose, clip: Clip, seconds: number, reducedMotion: boolean): void {
   for (const track of clip.tracks) {
-    if (reducedMotion && track.motion) continue;
+    if (reducedMotion && track.motion) {
+      if (track.still !== undefined) pose[track.slot][track.channel] = track.still;
+      continue;
+    }
     pose[track.slot][track.channel] = sampleTrack(clip, track, seconds);
   }
 }
@@ -82,10 +85,16 @@ export interface BeanMotion {
   vz: number;
   grounded: boolean;
   lastJump: { startedAt: number; landedAt: number | null } | null;
-  /** Set while the bean pushes a cart. */
-  pushing?: object | null;
-  /** Set while the bean rides in a cart: it stands still in it (idle), whatever the cart does. */
-  riding?: string | null;
+}
+
+/**
+ * A clip an interaction asks for (from the hub's presentation table), at `t` seconds into it.
+ * `first` puts it before the air and landing clips (hops); otherwise those come first.
+ */
+export interface ActClip {
+  clip: ClipName;
+  t: number;
+  first?: boolean;
 }
 
 /** Ground speed above this counts as moving (m/s). */
@@ -98,19 +107,20 @@ export const RUN_CLIP_SPEED = 3.3;
  * - in the air: `jump` while rising (t since take-off), `fall` after the apex (t since the apex,
  *   −vz/g, exact under constant gravity);
  * - just landed: `land` for LAND_DURATION after the exact touchdown time;
- * - riding in a cart: `idle`; pushing a cart: `push`, or `pushHeavy` for a heavy cart;
+ * - an interaction's own clip (`actClip`, from the hub's presentation table: pushing, riding;
+ *   a hop's clip comes before everything else);
  * - on the ground: `run`, `walk` or `idle` by ground speed; looping clips run on `time`.
  * `time` is the animation time in sim seconds.
  */
-export function chooseClip(bean: BeanMotion, time: number, gravity: number, heavyPush = false): { clip: ClipName; t: number } {
+export function chooseClip(bean: BeanMotion, time: number, gravity: number, actClip: ActClip | null = null): { clip: ClipName; t: number } {
+  if (actClip?.first) return { clip: actClip.clip, t: actClip.t };
   if (!bean.grounded) {
     if (bean.vz >= 0 || gravity <= 0) return { clip: 'jump', t: Math.max(0, time - (bean.lastJump?.startedAt ?? time)) };
     return { clip: 'fall', t: -bean.vz / gravity };
   }
   const landedAt = bean.lastJump?.landedAt;
   if (landedAt != null && time - landedAt < LAND_DURATION) return { clip: 'land', t: Math.max(0, time - landedAt) };
-  if (bean.riding) return { clip: 'idle', t: time };
-  if (bean.pushing) return { clip: heavyPush ? 'pushHeavy' : 'push', t: time };
+  if (actClip) return { clip: actClip.clip, t: actClip.t };
   const speed = Math.hypot(bean.vx, bean.vy);
   if (speed > RUN_CLIP_SPEED) return { clip: 'run', t: time };
   if (speed > MOVING_SPEED) return { clip: 'walk', t: time };

@@ -41,6 +41,169 @@ deployed, and D11 is untouched.
   shape with a word, never colour alone. The only animation is the dashed arc in the hero,
   skipped under reduced motion.
 
+## M1 session 3 (interaction states, the bench, customization basics), 2026-09-29
+
+### Decisions confirmed at the start of the session
+D21 (interaction states), D22 (anchors and pivots in the SVGs; D13 stays Open), D23 (the cart
+hop and the rider clipped below the rim), D24 (the bench and sitting; D2 stays Open), D25
+(customization basics), D7 (Bean only this session; stays Open) and D18 (footprint stays
+0.25 m). See `docs/DECISIONS.md`.
+
+### Interaction states (`packages/sim/src/interactions/`)
+- **`bean.act` replaced `bean.riding` and `bean.pushing`.** `{ kind: 'free' }`,
+  `{ kind: 'pushing', cart, dir, run }` (the old `pushing` object plus `kind`) and
+  `{ kind: 'riding', cart }`. The hub's data moved to `scenarios/hub-world.ts`; `hub.ts`
+  re-exports it, so imports did not change.
+- **Module interface** (`interactions/types.ts`): `command` (offered every command first),
+  `drive` (after the desired velocity, before anything moves: pushing starts and stops here),
+  `place` (after the carts and Planck moved) and `facing`. The hub calls them in a fixed order
+  (`INTERACTIONS`). The rail and Planck steps stay in `hub.ts`: they are the world, not an
+  interaction.
+- **The Planck body is active only while the bean walks freely** (D21): `free`, and since the
+  bench also `approaching` (a free walk to a seat, with a tap target). While pushing it used to be active, but
+  its result was always overwritten; making it inactive changed no state in 2,760 sampled
+  states of 11 seeded playthroughs, all 13 hub tests or the session 2 script states.
+- **Facing** is computed once at the end of the step from the act's rule, or from the desired
+  ground velocity when free. Same values as before (facing never feeds back into physics).
+- **Parity check:** `pnpm shot:compare-states docs/status/m1-s2` compares the sim state of every
+  stepped shot log with a fresh run, after mapping renamed fields. Live shots (`hub.json`,
+  `drop.json`) are skipped: their tick depends on wall-clock time.
+
+### Anchors and pivots (D22)
+- **Pivot values were generated from the old rules** and written into the SVGs as
+  `data-pivot`; a test re-implements the old rules and checks every part of every file still
+  gets the same point. Every stepped PNG was byte-identical before and after.
+- **Anchors used now:** `headwear` (every view, at the top of the body), `lean` (side view,
+  replacing the constant 40), and the cart's `floor`, `rim-west`, `rim-east`, `base-east`,
+  `base-west`. No hand anchors: the push clip still slides the arms by clip data.
+- **The cart floor height is sim data** (`CART_FLOOR_M = 0.1`, moved from the client to
+  `hub-world.ts`, since the hop ends there); the `floor` anchor must match it (the rail's centre
+  line is 10 units north of the cart's origin, plus 10 up).
+- **`RAIL_GAUGE_M` moved to `hub-view.ts`** so tests can import it without Phaser.
+
+### Getting into and out of a cart (D23)
+- **New acts:** `boarding` (crouch until `hopTick`, hop until `endTick`), `riding` (now with
+  `since`, the tick it landed) and `leaving`. Durations are rounded to whole steps: crouch 7,
+  hop in `round((0.32 + d/9)·60)`, hop out 23. `d` is the ground distance from the bean to the
+  cart's centre on the rail when E is pressed.
+- **The arc is a parabola** (`4·arc·p·(1−p)` on top of the straight line), not the prototype's
+  sine: the shape of a real hop, and only exactly specified arithmetic (open issue 5). The arc
+  heights are the prototype's (0.30 m + 0.3·d in, 0.40 m out).
+- **Getting in lands wherever the cart is at the end:** the path bends toward a moving cart.
+  Momentum v·m/(m+20) applies at touchdown, at the end of that step (after the rail step), so
+  the cart coasts under friction during the crouch and the hop. Getting out applies
+  v·(m+20)/m at take-off, at the start of the step (as before).
+- **A rider now stands at z = 0.1 m in the sim** (it was 0 and the client added the floor).
+  `stepHeight` only runs while the bean walks.
+- **Mid-hop:** E, Space and taps are dropped; held keys still update the input, so the bean
+  walks on after landing. During the crouch the bean does not stop carts (it is committed to
+  the hop), and the Planck body is inactive.
+- **`rail.riders`** logs the last 16 in/out events (time, masses, velocities before and after);
+  `shot:check-carts` now checks riding from these events plus friction between the shots.
+- **Drawing:** jump clip for the crouch (t = 0) and the rising half, fall clip for the falling
+  half, a land squash in the cart. Drawn in the cart (between back and front, masked) from the
+  top of the hop in, and until the top of the hop out. The draw-back from the cart's end fades
+  out over the first half of the hop in. The readout of the cart in use moves up and stays 12
+  units above the bean's head. Under reduced motion the drawn height has no arc (`flatZ`).
+- **The rider mask** is a Phaser 4 mask filter on the rig (`filters.internal.addMask` with a
+  Graphics in world coordinates, not on the display list), rendered only while in a cart:
+  everything above the rim, and the cart front's trapezoid below it, from the cart's anchors.
+
+### The bench and sitting (D24)
+- **Layout:** `layout.benches` (a solid footprint like the props, plus `seatHeight` 0.30 m,
+  `seatDy` −0.15 m and two seats at ±0.4 m). A seated bean's ground point is 0.15 m south of
+  the bench's centre line, so its dangling feet hang over the seat's front edge in the drawing.
+  The bench is at (−3.6, 1.2) m, clear of every earlier script's path (their sim states are
+  unchanged); PLACEHOLDER spot pending D2. The hub's walkable-edges test now uses the plaza
+  without the bench (running north from (−3, −1) meets it); its numbers are unchanged.
+- **Stand spot:** 0.05 m in front of the bench's footprint, in front of each seat. E picks the
+  free seat whose stand spot is nearest (the first on a tie) if it is within 1.3 m; a tap on the
+  bench's drawing (`use`, engine bounds) picks the nearest free seat from anywhere. E tries the
+  cart first, then the bench.
+- **New acts:** `approaching` (tap targets to the stand spot; a held key, a new tap or a jump
+  cancels it, and getting stuck gives up; review round 1: from behind or beside the bench it
+  walks via two waypoints, out past the nearer end on its own row and down to the stand spots'
+  row, so no leg crosses the bench), `seating` (21 steps, arc 0.26 m, starting the step
+  after arriving), `sitting` (`since` = the tick it landed) and `standing` (18 steps, arc 0.26 m;
+  a tap that stood the bean up is walked to afterwards). Mid-hop, E, Space and taps are dropped;
+  held keys still count, so holding a key while landing on the seat stands the bean straight
+  back up (any movement input stands it up).
+- **Seats can be `taken`** (for Priya); nobody else sits there.
+- **A new module hook, `settle`,** runs at the very end of the step: arriving at the stand spot
+  (the tap target is dropped there) starts the hop on.
+- **Drawing:** the seat's point comes from the bench art's `seat-<id>` anchor, and a bean on or
+  hopping to or from the seat is placed between its stand spot on the ground and that anchor
+  (screen space), plus the hop's arc scaled like a jump. So the seated bean sits exactly on the
+  drawn seat, whatever its depth scale (characters are scaled by depth, props are not). It sorts
+  just in front of the bench; no ground shadow while on it.
+- **Clips:** `sit` (feet 8–15 units down, alternating over 1.3 s; arms ±12°; breathing) and
+  `doze` (feet still at 12, slower breathing, the "z" in a new `fx` slot rising and shrinking
+  over 2 s). A track can carry `still`: under reduced motion it holds that value instead of
+  being dropped (the feet hang at 12 units, the "z" stays put).
+- **Doze** is drawn from `sitting.since` (5 s), not sim state: every client derives the same.
+  The eyes swap for `eyes-sleep`; the parts table (`PART_DEFAULTS`) resets them in every other
+  state.
+- **The `bean` gallery** has a fifth row (sit at four phases, doze at four times), so rows moved
+  closer (138 px) and the rigs are a little smaller (0.72).
+- **The dev server on port 5180 did not see new source files** (Vite's resolver answered 500 for
+  a module added during the session), so shots in this session used `--port 5181`, which starts
+  a fresh server per run. Restart `pnpm dev` after pulling.
+
+### Customization basics (D25)
+- **The look is data in `shared/src/look.ts`** (colour, pattern, headwear, face; the palette's
+  10 colours), for the M2 server to pass between players. The sim never uses it: the boundary
+  test fails on any sim source that names anything from that file (with a fixture that proves
+  the check can fail).
+- **`?look=`** on any scene (ids in any order; unknown ids are a console warning, not an
+  error). Boot rasterizes the colours the scene needs: the look's, orange and blue (Priya), or
+  all 10 for the `looks` gallery. No in-game wardrobe yet (it needs design).
+- **Texture keys** are `bean:<colour>:<source>:<part>` for parts drawn in key colours and
+  `bean:any:<source>:<part>` for the rest, so a colour costs only the parts that change.
+- **Far shades** (the side and ¾ views' far foot and arm) are not in the palette table: each
+  colour's are its foot and arm darkened by orange's per-channel ratios.
+- **Cream** gets a 2.5-unit outline in its foot colour on the body (the art rule for very light
+  shapes); on the cream plaza it would otherwise vanish.
+- **Spots** are clipped to each view's body with an SVG `clipPath` when rasterized, and sit
+  right after the body (under the belly, scarf and face) in the body's segment, so they bob and
+  squash with it. Front and back spots are symmetric; the side and ¾ views' spots mirror with
+  the view (the bean's two flanks are mirror images).
+- **Headwear** sits after the goggles (or before the body with `data-layer="behind"`), in the
+  body's segment, placed at the view's `anchor-headwear`; the bow's `-left` groups sit at the
+  mirrored anchor. The glasses sit after the eyes; there is no face in the back views. Goggles
+  and headwear or glasses together are not handled yet (the goggles come with the catapult).
+- **The readout of the cart in use** now clears the highest visible part (headwear included),
+  not the body's top.
+- **"The collider and every sim number are identical for every cosmetic"** is proven by the
+  boundary test (the sim cannot see a look) and by `pnpm shot:check-looks`, which runs every
+  hub script in the default look and three others through the real game and compares all 48
+  stepped sim states (53 with the bench scripts). A Vitest replay across looks was not added: the sim factory takes no
+  look, so such a test could not fail.
+- **Greyscale:** `looks-greyscale.png` (made from the gallery shot with Pillow) was checked by
+  eye: the sprout, the ears and the bow change the head's outline; spots and glasses read as
+  darker marks. The bow is the smallest silhouette change.
+
+### Priya, the seated classmate (D24)
+- **The sim only keeps her seat:** the east seat is `taken`, so E and taps always lead the
+  bean to the west seat. Who sits there (Priya, blue, default look) is client data
+  (`scenes/classmates.ts`); she is drawn only where the sim marks the seat as taken.
+- **Her greeting is worked out from the bean's state:** for 2.4 s after the bean's `sitting.since`
+  on her bench she plays `wave` and shows "Hi!" (the one text exception, DESIGN.md §7;
+  PLACEHOLDER system font and a plain panel). No new sim state, and every client draws the same.
+- **She waves the arm away from the bean** (screen right): the arm towards it would be hidden
+  behind the seated bean. The wave is 0.4 s between −95° and −125°; under reduced motion the arm
+  stays raised at −110°. Her feet swing 0.4 s out of step with the bean's.
+- **She does not doze, walk or react to anything else** (the prototype's Priya also walked to
+  the catapult; out of scope).
+- **`hub-bench.json` changed** with her: the bean now walks to the west seat, so the shots are
+  retimed and add `greeted` and `greeting-over`.
+
+### Hub presentation (`packages/client/src/scenes/hub-presentation.ts`)
+- **One row per act kind:** the act's clip (or null for the ground clips), the toggled parts it
+  shows (`arm-far-push`), where the bean draws (`ground` or in a `cart`), the shadow, how much
+  of the cart stand-off applies, the cart in use, and the flat hop height for reduced motion.
+  Rows take the animation time, so hops animate from sim time. `chooseClip` takes the act's clip instead of the old
+  `pushing`/`riding` flags; jump, fall and land still come first.
+
 ## M1 session 2 (bean rig v0, carts on a rail), 2026-09-29
 
 ### Decisions confirmed at the start of the session

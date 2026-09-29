@@ -1,0 +1,18 @@
+$ pnpm --filter @beananza/shot check-carts
+$ tsx src/check-carts.ts
+ok   hub-carts-push: acceleration of the 5 kg cart (m/s²): 8.140000000000011 (expected 8.14 ± 1e-9)
+ok   hub-carts-push: speed at the cap (m/s): 1.9 (expected 1.9 ± 0)
+ok   hub-carts-heavy: acceleration of the 20 kg cart (m/s²): 1.8399999999999999 (expected 1.84 ± 1e-9)
+ok   hub-carts-heavy: speed at the cap (m/s): 1.9 (expected 1.9 ± 0)
+     collision at t = 2.9172568139873385 s: 5 kg 1.6615132283632936 → -0.3323026456726587 m/s, 20 kg 0 → 0.4984539685089881 m/s
+ok   hub-carts-push: momentum after − before (kg·m/s): 0 (expected 0 ± 1e-9)
+ok   hub-carts-push: restitution: 0.5 (expected 0.5 ± 1e-9)
+     in at t = 2.1166666666666667 s: 1.7656666666666676 → 0.3531333333333335 m/s; out at t = 2.6166666666666667 s: 0.22313333333333302 → 1.115666666666665 m/s
+ok   hub-carts-ride: rider mass added (kg): 20 (expected 20 ± 0)
+ok   hub-carts-ride: coasting from the cap until touchdown (m/s): 1.7656666666666676 (expected 1.7656666666666665 ± 1e-9)
+ok   hub-carts-ride: speed getting in (m/s): 0.3531333333333335 (expected 0.3531333333333335 ± 1e-9)
+ok   hub-carts-ride: logged speed after getting in (m/s): 0.3531333333333335 (expected 0.3531333333333335 ± 1e-9)
+ok   hub-carts-ride: speed at take-off (m/s): 0.22313333333333302 (expected 0.22313333333333302 ± 1e-9)
+ok   hub-carts-ride: speed getting out (m/s): 1.115666666666665 (expected 1.115666666666665 ± 1e-9)
+ok   hub-carts-ride: logged speed after getting out (m/s): 1.0116666666666658 (expected 1.011666666666665 ± 1e-9)
+all cart checks passed (readouts included)

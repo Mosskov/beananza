@@ -69,6 +69,44 @@ front ¾'s near and far sides.
 and scarf to the body. Try option 2 as a small prototype when D7 (more body forms) comes up, since
 four forms × five views is where hand drawing gets expensive.
 
+## To return to (raised 2026-09-29, after M1 session 3)
+
+### A smoother session workflow
+**Problem:** M1 session 3 took about 2 h 20 min of active work, not counting the waits for
+answers. Some of that was the scope: a refactor with a parity proof, anchors, the cart hop, the
+bench, Priya and customization, plus two review rounds. The rest was avoidable friction:
+- **Verification was slow.** A full pass (61 shots, `shot:check-carts`, `shot:check-looks`,
+  `shot:compare-states`) took several minutes and ran about 6 times. The session's ad-hoc
+  runner started a new pnpm, Vite server and browser for every script, although `pnpm shot`
+  takes many `--script` flags in one run. `check-looks` replays every hub script 4 times.
+- **A stale dev server.** The `pnpm dev` server on port 5180 stopped seeing newly added source
+  files and answered 500, so every later run had to start its own server on port 5181.
+- **Backslashes lost in the shell.** Heredocs and inline Python in the Bash tool collapsed `\\`
+  into `\`, which broke regexes and strings about five times.
+- **Two sessions in one working tree.** The share-site session switched branches under the
+  session 3 work, and the two had to coordinate by message.
+- **No shared way to look at many frames.** The session wrote a contact-sheet helper in its
+  scratchpad, and the reviewer overwrote it with its own.
+
+**Proposed changes, not started:**
+1. **Smaller sessions:** one or two slices per prompt, each reviewed on its own.
+2. **`pnpm verify`:** one command that runs `pnpm check`, every scene and script in one browser
+   session, `shot:check-carts`, `shot:check-looks` and `shot:compare-states` against the latest
+   `docs/status/` folder, and prints a short summary. Full runs only at the end of a slice; in
+   between, only the scripts a change touches.
+3. **`pnpm shot:sheet`:** a repo tool that crops and tiles shots into one image (with labels), so
+   a session or reviewer can look at many frames at once.
+4. **One git worktree per concurrent session** (`git worktree add`, short paths), so sessions
+   never share a branch or working tree.
+5. **tools/shot always starts its own server** on a dedicated port, instead of reusing whatever
+   runs on 5180.
+6. **Session prompts say to use the Write and Edit tools for code with backslashes.** The
+   fourth-session prompt already does.
+
+**When:** items 2, 3 and 5 are small tools work (about half an hour) and fit at the start of a
+session, before its first slice. Items 1, 4 and 6 are about how prompts are written and
+sessions are run.
+
 ## Parked
 - **Enemies and bosses:** misconception-themed and non-violent. The Heavy Baron is sketched, with Phase 1 prototyped (D10).
 

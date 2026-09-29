@@ -22,7 +22,8 @@ const scripts = readdirSync(join(REPO, 'tools/shot/scripts'))
 
 function shoot(look: string | null): void {
   const args = ['shot', '--port', port, ...scripts.flatMap((s) => ['--script', `tools/shot/scripts/${s}.json`]), ...(look ? ['--look', look] : [])];
-  const run = spawnSync('pnpm', args, { cwd: REPO, stdio: 'inherit', shell: true });
+  // One command string: pnpm is a .cmd shim on Windows, so it needs the shell.
+  const run = spawnSync(`pnpm ${args.join(' ')}`, { cwd: REPO, stdio: 'inherit', shell: true });
   if (run.status !== 0) throw new Error(`pnpm ${args.join(' ')} failed`);
 }
 

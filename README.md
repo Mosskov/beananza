@@ -216,6 +216,7 @@ Scripts in `tools/shot/scripts/`:
 | `hub-carts-board-still.json` | Walk to the resting 5 kg cart and press E: mid-hop, then the rider faces the camera (it faces the way the cart travels while it moves) |
 | `hub-bench.json` | Tap the bench: walk over to the free (west) seat, hop on, sit next to Priya, who says "Hi!" and waves for 2.4 s (feet swinging, two phases), then no greeting, a doze after 5 s, then → stands up and walks off |
 | `hub-bench-depth.json` | On the bench's row (drawn in front), behind it (drawn behind), in front of it, then E to sit |
+| `hub-bench-around.json` | From behind the bench, a tap on it: the bean walks out past its west end and round to the front, then sits |
 
 After the three cart scripts, `pnpm shot:check-carts` recomputes from their logs the push
 accelerations (F/m − 0.26 m/s²), the cap, momentum and restitution of the collision, the riding

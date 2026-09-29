@@ -1,4 +1,4 @@
-import { CART_FLOOR_M, DOZE_AFTER_S, SEAT_ARC_M, SIM_HZ, STAND_ARC_M, type HubAct, type HubActKind, type HubState } from '@beananza/sim';
+import { CART_FLOOR_M, CART_HALF_LENGTH, DOZE_AFTER_S, SEAT_ARC_M, SIM_HZ, STAND_ARC_M, type HubAct, type HubActKind, type HubState } from '@beananza/sim';
 import { LAND_DURATION, type ClipName } from '../rig/clips';
 import type { ActClip } from '../rig/player';
 
@@ -86,14 +86,17 @@ const PRESENTATION: { [K in HubActKind]: Row<K> } = {
     const clip: ClipName = (cart?.mass ?? 0) >= HEAVY_PUSH_KG ? 'pushHeavy' : 'push';
     return { ...GROUND, clip: { clip, t: time }, parts: { 'arm-far-push': true } };
   },
-  // A crouch, then a hop that is over the cart (and drawn in it) from its top onwards.
-  boarding: (act, _state, time) => {
+  // A crouch, then a hop that is drawn in the cart (and masked by it) once it is past its top and
+  // over the cart; before that the mask would cut the bean off in empty air beside the cart.
+  boarding: (act, state, time) => {
     const crouching = time * SIM_HZ < act.hopTick;
     const p = hopAt(time, act.hopTick, act.endTick);
+    const cart = state.rail?.carts.find((c) => c.id === act.cart);
+    const over = cart !== undefined && Math.abs(state.bean.x - cart.x) <= CART_HALF_LENGTH;
     return {
       clip: crouching ? { clip: 'jump', t: 0, first: true } : hopClip(p),
       parts: {},
-      placement: p >= 0.5 ? { kind: 'cart', cart: act.cart } : { kind: 'ground' },
+      placement: p >= 0.5 && over ? { kind: 'cart', cart: act.cart } : { kind: 'ground' },
       shadow: true,
       standOffCarts: Math.max(0, 1 - 2 * p),
       usingCart: act.cart,

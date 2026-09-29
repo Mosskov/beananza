@@ -218,6 +218,15 @@ describe('hub carts', () => {
     expect([sim.state.bean.facingX, sim.state.bean.facingY]).toEqual([-1, 0]);
   });
 
+  it('E next to the 20 kg cart does not reach past it to the 5 kg cart (review round 1)', () => {
+    // The light cart pushed close, within 1.2 m of a bean that stands at the heavy cart.
+    const layout = { ...DEFAULT_PLAZA, rail: { ...rail, carts: [{ ...rail.carts[0]!, x: -1 }, { ...rail.carts[1]!, x: -0.2 }] } };
+    const sim = newHub({ layout, start: { x: 0, y: rail.y - 0.46 } });
+    sim.enqueue({ type: 'action' });
+    sim.step();
+    expect(sim.state.bean.act.kind).toBe('free');
+  });
+
   it('E does nothing far from the cart or next to the 20 kg cart', () => {
     const far = newHub({ start: { x: LIGHT_X, y: rail.y + 1.5 } });
     far.enqueue({ type: 'action' });

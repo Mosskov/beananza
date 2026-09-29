@@ -63,12 +63,33 @@ function nearestSeat(state: HubState, benchId?: string): { bench: BenchSpec; sea
   return best;
 }
 
-/** Walk to the seat's stand spot (a tap target); `settle` starts the hop on when it arrives. */
+/** Waypoints are this far clear of the bench's ends (m), like the stand spots are of its front. */
+const ROUTE_GAP_M = 0.05;
+
+/**
+ * Waypoints from the bean to a stand spot around the bench: none from in front of it; from
+ * behind or beside it, out past the nearer end on the bean's row, then down to the stand spots'
+ * row, so the straight legs never cross the bench.
+ */
+function route(state: HubState, bench: BenchSpec, spot: { x: number; y: number }): { x: number; y: number }[] {
+  const bean = state.bean;
+  const front = bench.y - bench.halfDepth - HUB_BEAN_RADIUS_M;
+  if (bean.y <= front) return [];
+  const side = bean.x < bench.x ? -1 : 1;
+  const outside = bench.x + side * (bench.halfWidth + HUB_BEAN_RADIUS_M + ROUTE_GAP_M);
+  const endX = side < 0 ? Math.min(bean.x, outside) : Math.max(bean.x, outside);
+  const legs = [clampTarget(state.layout.walkable, endX, bean.y), clampTarget(state.layout.walkable, endX, spot.y)];
+  return legs.filter((p) => Math.hypot(p.x - bean.x, p.y - bean.y) > ARRIVE_M);
+}
+
+/** Walk to the seat's stand spot (tap targets); `settle` starts the hop on when it arrives. */
 function approach(state: HubState, bench: BenchSpec, seat: SeatSpec): void {
   const bean = state.bean;
-  const spot = standSpot(bench, seat);
-  bean.act = { kind: 'approaching', bench: bench.id, seat: seat.id };
-  bean.target = clampTarget(state.layout.walkable, spot.x, spot.y);
+  const stand = standSpot(bench, seat);
+  const spot = clampTarget(state.layout.walkable, stand.x, stand.y);
+  const [to = spot, ...via] = [...route(state, bench, spot), spot];
+  bean.act = { kind: 'approaching', bench: bench.id, seat: seat.id, to, via };
+  bean.target = to;
   bean.stuckSteps = 0;
 }
 
@@ -113,8 +134,12 @@ export const benchInteraction: HubInteraction = {
       approach(state, seat.bench, seat.seat);
       return true;
     }
-    // A new tap or a jump means the bean no longer heads for the seat.
-    if (act.kind === 'approaching' && (command.type === 'moveTo' || command.type === 'jump')) bean.act = { kind: 'free' };
+    // A new tap or a jump means the bean no longer heads for the seat (a jump also drops the
+    // walk there; a tap sets its own target).
+    if (act.kind === 'approaching' && (command.type === 'moveTo' || command.type === 'jump')) {
+      bean.act = { kind: 'free' };
+      if (command.type === 'jump') bean.target = null;
+    }
     return false;
   },
 
@@ -174,11 +199,17 @@ export const benchInteraction: HubInteraction = {
     const bean = state.bean;
     const act = bean.act;
     if (act.kind !== 'approaching' || bean.target) return;
-    // The walk ended: at the stand spot the hop on starts next step; stuck elsewhere, give up.
-    const found = find(state, act);
-    const spot = found ? standSpot(found.bench, found.seat) : null;
-    if (!spot || Math.hypot(bean.x - spot.x, bean.y - spot.y) > ARRIVE_M) {
+    // A leg of the walk ended: stuck short of its end, give up; at a waypoint, walk the next leg;
+    // at the stand spot, the hop on starts next step.
+    if (!find(state, act) || Math.hypot(bean.x - act.to.x, bean.y - act.to.y) > ARRIVE_M) {
       bean.act = { kind: 'free' };
+      return;
+    }
+    const [next, ...via] = act.via;
+    if (next) {
+      bean.target = next;
+      bean.stuckSteps = 0;
+      bean.act = { ...act, to: next, via };
       return;
     }
     const startTick = state.tick + 1;

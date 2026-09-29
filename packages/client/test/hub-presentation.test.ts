@@ -36,7 +36,11 @@ describe('hub presentation table (one row per interaction state)', () => {
     expect(at(80).standOffCarts).toBe(0);
     expect(at(70).clip?.clip).toBe('jump');
     expect(at(80).clip?.clip).toBe('fall');
+    // In the cart (and masked by it) only once over it: not while still beside it (review round 1).
+    s.bean.x = s.rail!.carts[0]!.x - 0.3;
     expect(at(80).placement).toEqual({ kind: 'cart', cart: 'light' });
+    s.bean.x = s.rail!.carts[0]!.x - 0.5;
+    expect(at(80).placement).toEqual({ kind: 'ground' });
     expect(at(93).flatZ).toBeCloseTo(CART_FLOOR_M, 12);
     expect(hopAt(80 / 60, 67, 93)).toBeCloseTo(0.5, 12);
   });
@@ -65,7 +69,7 @@ describe('hub presentation table (one row per interaction state)', () => {
   });
 
   it('approaching the bench: ordinary walking', () => {
-    expect(presentAct({ kind: 'approaching', bench: 'bench', seat: 'west' }, state(), 2)).toMatchObject({ clip: null, placement: { kind: 'ground' }, shadow: true });
+    expect(presentAct({ kind: 'approaching', bench: 'bench', seat: 'west', to: { x: -4, y: 0.675 }, via: [] }, state(), 2)).toMatchObject({ clip: null, placement: { kind: 'ground' }, shadow: true });
   });
 
   it('seating and standing: a hop between the stand spot (p = 0) and the seat (p = 1), no shadow', () => {

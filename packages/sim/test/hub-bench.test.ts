@@ -70,7 +70,7 @@ describe('the bench (D24)', () => {
     sim.enqueue({ type: 'action' });
     sim.step();
     // Nearest stand spot: both are 0.4 m along, so the first (west) wins the tie.
-    expect(sim.state.bean.act).toEqual({ kind: 'approaching', bench: 'bench', seat: 'west' });
+    expect(sim.state.bean.act).toMatchObject({ kind: 'approaching', bench: 'bench', seat: 'west', via: [] });
     expect(sim.state.bean.target).toEqual(standSpot(bench, west));
     until(sim, 'seating');
     const act = sim.state.bean.act as Extract<HubAct, { kind: 'seating' }>;
@@ -131,6 +131,30 @@ describe('the bench (D24)', () => {
     other.enqueue({ type: 'use', id: 'fountain' });
     other.step();
     expect(other.state.bean.act.kind).toBe('free');
+  });
+
+  it.each([
+    ['behind it, west', -4, 1.8],
+    ['behind it, middle', -3.6, 1.8],
+    ['on its row, east', -2.5, 1.2],
+    ['behind it, east', -2.3, 1.6],
+    ['behind it, far west', -5.2, 1.6],
+  ])('a tap from %s walks around the bench and sits (review round 1)', (_name, x, y) => {
+    const sim = newHub({ start: { x, y } });
+    sim.enqueue({ type: 'use', id: 'bench' });
+    sim.step();
+    until(sim, 'sitting', 600);
+    expect(sim.state.bean.act).toMatchObject({ seat: 'west' });
+  });
+
+  it('a jump on the way to the seat drops the walk there', () => {
+    const sim = newHub({ start: { x: -3.6, y: -1 } });
+    sim.enqueue({ type: 'use', id: 'bench' });
+    sim.step();
+    sim.enqueue({ type: 'jump' });
+    sim.step();
+    expect(sim.state.bean.act.kind).toBe('free');
+    expect(sim.state.bean.target).toBeNull();
   });
 
   it('skips a taken seat, and does nothing when every seat is taken', () => {

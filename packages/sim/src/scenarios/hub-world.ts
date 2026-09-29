@@ -164,8 +164,11 @@ export type HubAct =
   | { kind: 'riding'; cart: string; since: number }
   /** Getting out (D23): a hop from the cart's floor to (toX, toY) on the ground. */
   | { kind: 'leaving'; cart: string; startTick: number; endTick: number; fromX: number; fromY: number; toX: number; toY: number; arc: number }
-  /** Walking to a seat's stand spot to sit (D24): a tap target; any other input cancels it. */
-  | { kind: 'approaching'; bench: string; seat: string }
+  /**
+   * Walking to a seat's stand spot to sit (D24): a tap target, via waypoints around the bench
+   * when the bean starts behind or beside it; any other input cancels it.
+   */
+  | { kind: 'approaching'; bench: string; seat: string; to: { x: number; y: number }; via: { x: number; y: number }[] }
   /** The hop from the stand spot onto the seat. */
   | { kind: 'seating'; bench: string; seat: string; startTick: number; endTick: number; fromX: number; fromY: number }
   /** Sitting since tick `since` (dozes after a while, which the client draws from `since`). */

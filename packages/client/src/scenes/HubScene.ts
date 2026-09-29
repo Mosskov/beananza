@@ -25,6 +25,8 @@ const GROUND_DEPTH = -1e6;
  * depends on which object was created first (depth keys are whole pixels apart otherwise).
  */
 const CHARACTER_TIE_BREAK = 0.5;
+/** Seated classmates sort just behind a character on their row (Priya and the bean on the bench row). */
+const CLASSMATE_TIE_BREAK = 0.4;
 const UI_DEPTH = 1e6;
 
 const FONT = 'system-ui, "Segoe UI", Roboto, sans-serif';
@@ -227,7 +229,7 @@ export class HubScene extends SimScene<HubState, HubCommand> {
 
     // The sim's z and the draw order are unchanged; only the drawn height is scaled (D18).
     // Under reduced motion a hop moves in a straight line (no arc).
-    const drawnZ = this.reducedMotion && look.flatZ !== null ? look.flatZ : z;
+    let drawnZ = this.reducedMotion && look.flatZ !== null ? look.flatZ : z;
     let feet = characterScreen(x, y, drawnZ, scale);
     const { rig, shadow } = this.bean;
     // In a cart the bean draws between the back and the front of the cart, and below the rim
@@ -236,7 +238,7 @@ export class HubScene extends SimScene<HubState, HubCommand> {
     let depth = cartView && rail ? depthKey(rail.y) + CART_RIDER_DEPTH : depthKey(y) + CHARACTER_TIE_BREAK;
     if (look.placement.kind === 'seat') {
       const seated = this.seatPlacement(look.placement, scale);
-      if (seated) ({ feet, depth } = seated);
+      if (seated) ({ feet, depth, drawnZ } = seated);
     }
     rig.root.setPosition(feet.x, feet.y).setScale(scale).setDepth(depth);
     if (cartView) drawRiderMask(this.riderMaskShape, cartView.screen);
@@ -306,7 +308,8 @@ export class HubScene extends SimScene<HubState, HubCommand> {
       const at = toScreen(bench.x, bench.y);
       const anchor = propAnchor('bench', `seat-${seat.id}`);
       const scale = depthScale(seatSpot(bench, seat).y, this.sim.state.layout.walkable);
-      rig.root.setPosition(at.x + anchor.x, at.y + anchor.y).setScale(scale).setDepth(depthKey(bench.y) + CHARACTER_TIE_BREAK);
+      // Just behind a bean on the same row (the player draws in front of a classmate on a tie).
+      rig.root.setPosition(at.x + anchor.x, at.y + anchor.y).setScale(scale).setDepth(depthKey(bench.y) + CLASSMATE_TIE_BREAK);
       const bubble = this.add
         .text(rig.root.x, rig.root.y + (rig.drawnTop() - READOUT_GAP_UNITS) * scale, 'Hi!', {
           fontFamily: FONT,
@@ -339,7 +342,7 @@ export class HubScene extends SimScene<HubState, HubCommand> {
    * (p = 0) to the seat anchor of the bench's drawing (p = 1), plus the hop's arc, which reduced
    * motion drops. It sorts just in front of the bench.
    */
-  private seatPlacement(placement: Extract<Placement, { kind: 'seat' }>, scale: number): { feet: { x: number; y: number }; depth: number } | null {
+  private seatPlacement(placement: Extract<Placement, { kind: 'seat' }>, scale: number): { feet: { x: number; y: number }; depth: number; drawnZ: number } | null {
     const bench = this.sim.state.layout.benches.find((q) => q.id === placement.bench);
     const seat = bench?.seats.find((q) => q.id === placement.seat);
     if (!bench || !seat) return null;
@@ -348,8 +351,11 @@ export class HubScene extends SimScene<HubState, HubCommand> {
     const spot = standSpot(bench, seat);
     const from = toScreen(spot.x, spot.y);
     const { p, arc } = placement;
-    const up = this.reducedMotion ? 0 : 4 * arc * p * (1 - p) * PIXELS_PER_METER * scale;
+    const arcZ = this.reducedMotion ? 0 : 4 * arc * p * (1 - p);
+    const up = arcZ * PIXELS_PER_METER * scale;
     return {
+      // For the log: the height drawn (m), the seat's height along the way plus the arc.
+      drawnZ: bench.seatHeight * p + arcZ,
       feet: { x: from.x + (at.x + anchor.x - from.x) * p, y: from.y + (at.y + anchor.y - from.y) * p - up },
       depth: depthKey(bench.y) + CHARACTER_TIE_BREAK,
     };

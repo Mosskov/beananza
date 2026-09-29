@@ -21,7 +21,8 @@ hop and the rider clipped below the rim), D24 (the bench and sitting; D2 stays O
   `place` (after the carts and Planck moved) and `facing`. The hub calls them in a fixed order
   (`INTERACTIONS`). The rail and Planck steps stay in `hub.ts`: they are the world, not an
   interaction.
-- **The Planck body is active only in `free`** (D21). While pushing it used to be active, but
+- **The Planck body is active only while the bean walks freely** (D21): `free`, and since the
+  bench also `approaching` (a free walk to a seat, with a tap target). While pushing it used to be active, but
   its result was always overwritten; making it inactive changed no state in 2,760 sampled
   states of 11 seeded playthroughs, all 13 hub tests or the session 2 script states.
 - **Facing** is computed once at the end of the step from the act's rule, or from the desired
@@ -81,8 +82,10 @@ hop and the rider clipped below the rim), D24 (the bench and sitting; D2 stays O
   free seat whose stand spot is nearest (the first on a tie) if it is within 1.3 m; a tap on the
   bench's drawing (`use`, engine bounds) picks the nearest free seat from anywhere. E tries the
   cart first, then the bench.
-- **New acts:** `approaching` (a tap target to the stand spot; a held key, a new tap or a jump
-  cancels it, and getting stuck gives up), `seating` (21 steps, arc 0.26 m, starting the step
+- **New acts:** `approaching` (tap targets to the stand spot; a held key, a new tap or a jump
+  cancels it, and getting stuck gives up; review round 1: from behind or beside the bench it
+  walks via two waypoints, out past the nearer end on its own row and down to the stand spots'
+  row, so no leg crosses the bench), `seating` (21 steps, arc 0.26 m, starting the step
   after arriving), `sitting` (`since` = the tick it landed) and `standing` (18 steps, arc 0.26 m;
   a tap that stood the bean up is walked to afterwards). Mid-hop, E, Space and taps are dropped;
   held keys still count, so holding a key while landing on the seat stands the bean straight
@@ -135,7 +138,7 @@ hop and the rider clipped below the rim), D24 (the bench and sitting; D2 stays O
 - **"The collider and every sim number are identical for every cosmetic"** is proven by the
   boundary test (the sim cannot see a look) and by `pnpm shot:check-looks`, which runs every
   hub script in the default look and three others through the real game and compares all 48
-  stepped sim states. A Vitest replay across looks was not added: the sim factory takes no
+  stepped sim states (53 with the bench scripts). A Vitest replay across looks was not added: the sim factory takes no
   look, so such a test could not fail.
 - **Greyscale:** `looks-greyscale.png` (made from the gallery shot with Pillow) was checked by
   eye: the sprout, the ears and the bow change the head's outline; spots and glasses read as

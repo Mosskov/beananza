@@ -17,8 +17,7 @@ type Json = Record<string, unknown>;
  * Field renames and additions, oldest first. Each maps an older sim state onto the current
  * fields; none changes a number.
  * - M1 session 3 (D21): `bean.riding` and `bean.pushing` became one interaction state `bean.act`.
- * - M1 session 3 (D23): `rail.riders` logs getting in and out (empty in older logs), and a
- *   rider's act records the tick it landed (`since`).
+ * - M1 session 3 (D23): `rail.riders` logs getting in and out (empty in older logs).
  * - M1 session 3 (D24): `layout.benches`, the plaza's bench.
  */
 const RENAMES: { since: string; apply: (state: Json, fresh: Json) => void }[] = [
@@ -77,17 +76,18 @@ const simState = (file: string): Json | null | 'live' => {
   return log.sceneState?.state ?? null;
 };
 
-/** The first differing path between two JSON values, or null. */
-function firstDiff(a: unknown, b: unknown, path = ''): string | null {
-  if (isDeepStrictEqual(a, b)) return null;
+/** Every differing leaf path between two JSON values (none when equal). */
+function diffs(a: unknown, b: unknown, path = ''): string[] {
+  if (isDeepStrictEqual(a, b)) return [];
   if (a && b && typeof a === 'object' && typeof b === 'object') {
-    for (const k of new Set([...Object.keys(a), ...Object.keys(b)])) {
-      const d = firstDiff((a as Json)[k], (b as Json)[k], `${path}.${k}`);
-      if (d) return d;
-    }
+    return [...new Set([...Object.keys(a), ...Object.keys(b)])].flatMap((k) => diffs((a as Json)[k], (b as Json)[k], `${path}.${k}`));
   }
-  return `${path || '(root)'}: ${JSON.stringify(a)} ≠ ${JSON.stringify(b)}`;
+  const show = (v: unknown) => (JSON.stringify(v) ?? 'undefined').slice(0, 60);
+  return [`${path || '(root)'}: ${show(a)} ≠ ${show(b)}`];
 }
+
+/** How many differing paths a DIFF line lists before "and n more". */
+const SHOW_DIFFS = 6;
 
 export interface Comparison {
   compared: number;
@@ -120,10 +120,11 @@ export function compareStates(base: string, fresh: string, scripts?: readonly st
     }
     if (before && after) for (const r of RENAMES) r.apply(before, after);
     result.compared += 1;
-    const diff = firstDiff(before, after);
-    if (diff) {
+    const found = diffs(before, after);
+    if (found.length) {
       result.failures += 1;
-      result.lines.push(`DIFF    ${rel}  ${diff}`);
+      const more = found.length > SHOW_DIFFS ? `; and ${found.length - SHOW_DIFFS} more` : '';
+      result.lines.push(`DIFF    ${rel}  ${found.slice(0, SHOW_DIFFS).join('; ')}${more}`);
     } else {
       result.lines.push(`same    ${rel}`);
     }

@@ -107,7 +107,13 @@ function getIn(state: HubState): boolean {
   const bean = state.bean;
   const rail = state.layout.rail;
   if (!rail || !state.rail || !bean.grounded || !actWalks(bean.act)) return false;
+  // Only the cart nearest the bean: next to the loaded cart, E does not reach past it.
+  const nearest = state.rail.carts.reduce<RailCart | null>(
+    (best, c) => (!best || Math.hypot(bean.x - c.x, bean.y - rail.y) < Math.hypot(bean.x - best.x, bean.y - rail.y) ? c : best),
+    null,
+  );
   for (const spec of rail.carts) {
+    if (spec.id !== nearest?.id) continue;
     const cart = cartById(state, spec.id);
     if (!spec.ridable || !cart) continue;
     const distance = Math.hypot(bean.x - cart.x, bean.y - rail.y);

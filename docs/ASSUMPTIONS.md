@@ -3,6 +3,39 @@
 Routine choices made while building, logged so they can be reviewed and reversed. None of them
 changes a decision in `docs/DECISIONS.md`. Newest milestone first.
 
+## M1 session 3 (interaction states, the bench, customization basics), 2026-09-29
+
+### Decisions confirmed at the start of the session
+D21 (interaction states), D22 (anchors and pivots in the SVGs; D13 stays Open), D23 (the cart
+hop and the rider clipped below the rim), D24 (the bench and sitting; D2 stays Open), D25
+(customization basics), D7 (Bean only this session; stays Open) and D18 (footprint stays
+0.25 m). See `docs/DECISIONS.md`.
+
+### Interaction states (`packages/sim/src/interactions/`)
+- **`bean.act` replaced `bean.riding` and `bean.pushing`.** `{ kind: 'free' }`,
+  `{ kind: 'pushing', cart, dir, run }` (the old `pushing` object plus `kind`) and
+  `{ kind: 'riding', cart }`. The hub's data moved to `scenarios/hub-world.ts`; `hub.ts`
+  re-exports it, so imports did not change.
+- **Module interface** (`interactions/types.ts`): `command` (offered every command first),
+  `drive` (after the desired velocity, before anything moves: pushing starts and stops here),
+  `place` (after the carts and Planck moved) and `facing`. The hub calls them in a fixed order
+  (`INTERACTIONS`). The rail and Planck steps stay in `hub.ts`: they are the world, not an
+  interaction.
+- **The Planck body is active only in `free`** (D21). While pushing it used to be active, but
+  its result was always overwritten; making it inactive changed no state in 2,760 sampled
+  states of 11 seeded playthroughs, all 13 hub tests or the session 2 script states.
+- **Facing** is computed once at the end of the step from the act's rule, or from the desired
+  ground velocity when free. Same values as before (facing never feeds back into physics).
+- **Parity check:** `pnpm shot:compare-states docs/status/m1-s2` compares the sim state of every
+  stepped shot log with a fresh run, after mapping renamed fields. Live shots (`hub.json`,
+  `drop.json`) are skipped: their tick depends on wall-clock time.
+
+### Hub presentation (`packages/client/src/scenes/hub-presentation.ts`)
+- **One row per act kind:** the act's clip (or null for the ground clips), the toggled parts it
+  shows (`arm-far-push`), where the bean draws (`ground` or in a `cart`), the shadow, and
+  whether the cart stand-off applies. `chooseClip` takes the act's clip instead of the old
+  `pushing`/`riding` flags; jump, fall and land still come first.
+
 ## M1 session 2 (bean rig v0, carts on a rail), 2026-09-29
 
 ### Decisions confirmed at the start of the session

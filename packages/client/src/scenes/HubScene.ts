@@ -9,6 +9,7 @@ import { chooseClip, samplePose } from '../rig/player';
 import { viewForFacing } from '../rig/views';
 import { SimScene } from './SimScene';
 import { CART_FLOOR_M, CART_RIDER_DEPTH, CartView, drawRail, speedReadout } from './hub-carts';
+import { TOGGLED_PARTS, presentAct } from './hub-presentation';
 import { cartStandOff, characterScreen, depthKey, depthScale, groundFromScreen, toScreen } from './hub-view';
 
 const m = (meters: number) => meters * PIXELS_PER_METER;
@@ -25,8 +26,6 @@ const CHARACTER_TIE_BREAK = 0.5;
 const UI_DEPTH = 1e6;
 
 const FONT = 'system-ui, "Segoe UI", Roboto, sans-serif';
-/** Pushing a cart this heavy or heavier plays the heavy push (lean 16°, slower steps). */
-const HEAVY_PUSH_KG = 10;
 /**
  * Height of the side view's belly above the feet (art units): leaning while pushing tips it
  * forward by this times sin(lean), which the stand-off from the cart adds.
@@ -182,47 +181,49 @@ export class HubScene extends SimScene<HubState, HubCommand> {
     const z = lerp(this.prev.z, b.z);
     const scale = depthScale(y, this.sim.state.layout.walkable);
     const rail = this.sim.state.layout.rail;
+    const act = b.act;
+    const look = presentAct(act, this.sim.state);
+    const ridden = look.placement.kind === 'cart' ? look.placement.cart : null;
     for (const c of this.sim.state.rail?.carts ?? []) {
-      this.carts.get(c.id)?.draw(lerp(this.prevCarts.get(c.id) ?? c.x, c.x), rail?.y ?? 0, c.v, b.riding === c.id);
+      this.carts.get(c.id)?.draw(lerp(this.prevCarts.get(c.id) ?? c.x, c.x), rail?.y ?? 0, c.v, ridden === c.id);
     }
 
     // The sim's z and the draw order are unchanged; only the drawn height is scaled (D18).
-    // A rider stands on the cart floor, drawn between the back and the front of its cart.
-    const riding = b.riding !== null && rail !== null;
-    const feet = characterScreen(x, y, riding ? CART_FLOOR_M : z, scale);
+    // In a cart the bean stands on its floor, drawn between the back and the front of the cart.
+    const inCart = ridden !== null && rail !== null;
+    const feet = characterScreen(x, y, inCart ? CART_FLOOR_M : z, scale);
     const { rig, shadow } = this.bean;
-    const depth = riding ? depthKey(rail.y) + CART_RIDER_DEPTH : depthKey(y) + CHARACTER_TIE_BREAK;
+    const depth = inCart ? depthKey(rail.y) + CART_RIDER_DEPTH : depthKey(y) + CHARACTER_TIE_BREAK;
     rig.root.setPosition(feet.x, feet.y).setScale(scale).setDepth(depth);
     const ground = toScreen(x, y);
     // The shadow stays on the ground and shrinks as the bean rises.
     const lift = Math.max(0, 1 - z / 1.5);
-    shadow.setPosition(ground.x, ground.y).setScale(scale * (0.55 + 0.45 * lift)).setVisible(!riding);
+    shadow.setPosition(ground.x, ground.y).setScale(scale * (0.55 + 0.45 * lift)).setVisible(look.shadow);
 
     // Animation runs on sim time (interpolated like the positions), never on wall-clock time,
     // so paused and scripted shots are deterministic. Idle keeps the last facing.
     const time = this.sim.time - (1 - alpha) * FIXED_DT;
     const choice = viewForFacing(b.facingX, b.facingY);
-    const pushedCart = b.pushing ? this.sim.state.rail?.carts.find((c) => c.id === b.pushing?.cart) : undefined;
-    const heavy = (pushedCart?.mass ?? 0) >= HEAVY_PUSH_KG;
-    const { clip, t } = chooseClip(b, time, this.sim.state.gravity, heavy);
+    const { clip, t } = chooseClip(b, time, this.sim.state.gravity, look.clip);
     rig.setView(choice);
-    rig.setPartVisible('arm-far-push', b.pushing !== null);
+    for (const part of TOGGLED_PARTS) rig.setPartVisible(part, look.shows.includes(part));
     const pose = samplePose({ clip, t, time, view: choice.view, reducedMotion: this.reducedMotion });
     rig.applyPose(pose);
     // The bean's body is wider than its footprint: next to a cart's end (pushing or not), draw
     // it back so the body meets the end instead of overlapping it. Drawing only (and its shadow).
-    const onRail = !riding && rail !== null && Math.abs(y - rail.y) < CART_HALF_DEPTH + HUB_BEAN_RADIUS_M;
+    const onRail = look.standOffCarts && rail !== null && Math.abs(y - rail.y) < CART_HALF_DEPTH + HUB_BEAN_RADIUS_M;
     if (onRail) {
       const span = rig.bodySpan();
-      const lean = b.pushing ? Math.sin((pose.body.rotation * Math.PI) / 180) * SIDE_BELLY_HEIGHT_UNITS : 0;
+      const pushDir = act.kind === 'pushing' ? act.dir : 0;
+      const lean = pushDir !== 0 ? Math.sin((pose.body.rotation * Math.PI) / 180) * SIDE_BELLY_HEIGHT_UNITS : 0;
       const cartXs = (this.sim.state.rail?.carts ?? []).map((c) => lerp(this.prevCarts.get(c.id) ?? c.x, c.x));
       const unit = scale / PIXELS_PER_METER; // art units to metres at this depth
       const off = cartStandOff(
         x,
         cartXs,
         CART_HALF_LENGTH,
-        (span.west + Math.max(0, -(b.pushing?.dir ?? 0)) * lean) * unit,
-        (span.east + Math.max(0, b.pushing?.dir ?? 0) * lean) * unit,
+        (span.west + Math.max(0, -pushDir) * lean) * unit,
+        (span.east + Math.max(0, pushDir) * lean) * unit,
       );
       rig.root.x += m(off);
       shadow.x += m(off);

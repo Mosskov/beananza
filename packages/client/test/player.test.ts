@@ -127,17 +127,17 @@ describe('choosing a clip from sim state', () => {
   });
 
   it('push while pushing a cart (heavy for a heavy cart), side view lean 10° or 16°', () => {
-    const pushing = { ...still, vx: 1.9, pushing: { cart: 'light', dir: 1, run: false } };
-    expect(chooseClip(pushing, 2, g)).toEqual({ clip: 'push', t: 2 });
-    expect(chooseClip(pushing, 2, g, true)).toEqual({ clip: 'pushHeavy', t: 2 });
+    const pushing = { ...still, vx: 1.9 };
+    expect(chooseClip(pushing, 2, g, 'push')).toEqual({ clip: 'push', t: 2 });
+    expect(chooseClip(pushing, 2, g, 'pushHeavy')).toEqual({ clip: 'pushHeavy', t: 2 });
     expect(pose('push', 0.3).body.rotation).toBe(10);
     expect(pose('pushHeavy', 0.3).body.rotation).toBe(16);
     expect(pose('push', 0.3).armA.rotation).toBe(-80);
     expect(pose('push', 0.225, 'side', true).body).toMatchObject({ y: 0, rotation: 10 });
   });
 
-  it('idle while riding in a moving cart', () => {
-    expect(chooseClip({ ...still, vx: 1.2, riding: 'light' }, 2, g)).toEqual({ clip: 'idle', t: 2 });
+  it('an interaction’s clip wins over the ground-speed clips (idle while riding a moving cart)', () => {
+    expect(chooseClip({ ...still, vx: 1.2 }, 2, g, 'idle')).toEqual({ clip: 'idle', t: 2 });
   });
 
   it('land for LAND_DURATION after the exact touchdown, then back to the ground clips', () => {

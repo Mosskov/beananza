@@ -36,11 +36,11 @@ function pushLightEast(running = false) {
   const sim = newHub({ start: { x: LIGHT_X - 1.2, y: rail.y } });
   sim.enqueue(move(1, 0, running));
   let n = 0;
-  while (!sim.state.bean.pushing && n < 120) {
+  while (sim.state.bean.act.kind !== 'pushing' && n < 120) {
     sim.step();
     n += 1;
   }
-  expect(sim.state.bean.pushing).toEqual({ cart: 'light', dir: 1, run: running });
+  expect(sim.state.bean.act).toEqual({ kind: 'pushing', cart: 'light', dir: 1, run: running });
   return sim;
 }
 
@@ -84,7 +84,7 @@ describe('hub carts', () => {
     sim.step();
     const v = cart(sim, 'light').v;
     run(sim, 30);
-    expect(sim.state.bean.pushing).toBeNull();
+    expect(sim.state.bean.act.kind).toBe('free');
     expect(cart(sim, 'light').v).toBeCloseTo(v - CART_ROLLING_DECEL * 0.5, 12);
   });
 
@@ -99,13 +99,13 @@ describe('hub carts', () => {
     const b = sim.state.bean;
     expect(Math.abs(b.y - rail.y)).toBeGreaterThan(CART_HALF_DEPTH + HUB_BEAN_RADIUS_M - 0.01);
     expect(Math.abs(b.y - rail.y)).toBeLessThan(CART_HALF_DEPTH + HUB_BEAN_RADIUS_M + 0.03);
-    expect(b.pushing).toBeNull();
+    expect(b.act.kind).toBe('free');
     expect(cart(sim, 'light')).toMatchObject({ x: LIGHT_X, v: 0 });
   });
 
   it('a diagonal into the end still pushes; a move mostly along the cart’s side does not', () => {
     const sim = pushLightEast();
-    expect(sim.state.bean.pushing?.cart).toBe('light');
+    expect(sim.state.bean.act).toMatchObject({ kind: 'pushing', cart: 'light' });
     const side = newHub({ start: { x: LIGHT_X - 1.2, y: rail.y } });
     side.enqueue(move(0.2, 1));
     run(side, 60);
@@ -134,7 +134,7 @@ describe('hub carts', () => {
     const sim = newHub({ start: { x: LIGHT_X - 0.9, y: rail.y - 0.6 } });
     sim.enqueue({ type: 'action' });
     sim.step();
-    expect(sim.state.bean.riding).toBe('light');
+    expect(sim.state.bean.act).toEqual({ kind: 'riding', cart: 'light' });
     expect(cart(sim, 'light').riderMass).toBe(HUB_BEAN_MASS_KG);
     expect([sim.state.bean.x, sim.state.bean.y]).toEqual([LIGHT_X, rail.y]);
     // Movement input does not walk out of the cart.
@@ -143,7 +143,7 @@ describe('hub carts', () => {
     expect(sim.state.bean.x).toBe(LIGHT_X);
     sim.enqueue({ type: 'action' });
     sim.step();
-    expect(sim.state.bean.riding).toBeNull();
+    expect(sim.state.bean.act.kind).toBe('free');
     expect(cart(sim, 'light').riderMass).toBe(0);
     expect(sim.state.bean.y).toBeLessThan(rail.y - CART_HALF_DEPTH - HUB_BEAN_RADIUS_M);
 
@@ -152,7 +152,7 @@ describe('hub carts', () => {
     again.step();
     again.enqueue({ type: 'jump' });
     again.step();
-    expect(again.state.bean.riding).toBeNull();
+    expect(again.state.bean.act.kind).toBe('free');
     expect(again.state.bean.jumps).toBe(0);
   });
 
@@ -162,7 +162,7 @@ describe('hub carts', () => {
     still.step();
     still.enqueue({ type: 'action' });
     still.step();
-    expect(still.state.bean.riding).toBe('light');
+    expect(still.state.bean.act).toEqual({ kind: 'riding', cart: 'light' });
     expect([still.state.bean.facingX, still.state.bean.facingY]).toEqual([0, -1]);
 
     // Pushed to 1.9 m/s, then boarded: 0.38 m/s east, so it faces east; it keeps that facing
@@ -186,11 +186,11 @@ describe('hub carts', () => {
     const sim = newHub({ start: { x: LIGHT_X + 1.2, y: rail.y } });
     sim.enqueue(move(-1, 0));
     run(sim, 40);
-    expect(sim.state.bean.pushing?.dir).toBe(-1);
+    expect(sim.state.bean.act).toMatchObject({ kind: 'pushing', dir: -1 });
     sim.enqueue(move(0, 0));
     sim.enqueue({ type: 'action' });
     sim.step();
-    expect(sim.state.bean.riding).toBe('light');
+    expect(sim.state.bean.act).toEqual({ kind: 'riding', cart: 'light' });
     expect(cart(sim, 'light').v).toBeLessThan(-0.3);
     expect([sim.state.bean.facingX, sim.state.bean.facingY]).toEqual([-1, 0]);
   });
@@ -199,11 +199,11 @@ describe('hub carts', () => {
     const far = newHub({ start: { x: LIGHT_X, y: rail.y + 1.5 } });
     far.enqueue({ type: 'action' });
     far.step();
-    expect(far.state.bean.riding).toBeNull();
+    expect(far.state.bean.act.kind).toBe('free');
     const heavy = newHub({ start: { x: HEAVY_X, y: rail.y - 0.7 } });
     heavy.enqueue({ type: 'action' });
     heavy.step();
-    expect(heavy.state.bean.riding).toBeNull();
+    expect(heavy.state.bean.act.kind).toBe('free');
   });
 
   it('riding changes the cart’s speed by m/(m+20) getting in and back getting out', () => {
@@ -215,7 +215,7 @@ describe('hub carts', () => {
     sim.enqueue({ type: 'action' });
     sim.step();
     const f = CART_ROLLING_DECEL * FIXED_DT;
-    expect(sim.state.bean.riding).toBe('light');
+    expect(sim.state.bean.act).toEqual({ kind: 'riding', cart: 'light' });
     const vIn = cart(sim, 'light').v;
     expect(vIn).toBeCloseTo((v * 5) / 25 - f, 12);
     sim.enqueue({ type: 'action' });

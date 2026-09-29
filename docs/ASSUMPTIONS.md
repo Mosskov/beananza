@@ -3,6 +3,29 @@
 Routine choices made while building, logged so they can be reviewed and reversed. None of them
 changes a decision in `docs/DECISIONS.md`. Newest milestone first.
 
+## Share site (`tools/share`), 2026-09-29
+
+Step 1 of sharing the project with coworkers: a static site built locally. Hosting it (a
+Cloudflare Worker was discussed) and comments on open decisions are later steps; nothing is
+deployed, and D11 is untouched.
+- **Built from the docs on every run**, not written by hand, so it matches the repo. Only the
+  pitch, section intros and labels are written in `tools/share/src/page.ts`.
+- **Teacher sections** are DESIGN.md §1 (vision), §2 (core loop), §8 (expeditions and learning),
+  §10 (multiplayer and classroom), §11 (progress tracking) and §12 (accessibility). The heading
+  tags (Explored, Proposed) show as chips and are explained once.
+- **Milestone progress** is derived from STATUS.md: done when it has a "## Milestone N" report,
+  in progress when it has "## MN, session" reports only, else planned.
+- **The game loads on request** (a Play button over the hub screenshot), so the page itself
+  stays light (the whole folder is about 2 MB).
+- **Screenshots come from the built game** served by `vite preview`, not the dev server, so a
+  dev server of another checkout on port 5180 can never leak into them.
+- **Fonts are self-hosted** (`@fontsource` 5.3.0), so visitors make no requests to Google.
+- **`noindex`** on the page: it is for people with the link, not search engines.
+- **Look:** the game's palette on graph paper (the field-notebook style in DESIGN.md §5),
+  Fredoka for headings, Nunito for text, Caveat for handwritten captions. Status badges pair a
+  shape with a word, never colour alone. The only animation is the dashed arc in the hero,
+  skipped under reduced motion.
+
 ## M1 session 2 (bean rig v0, carts on a rail), 2026-09-29
 
 ### Decisions confirmed at the start of the session

@@ -204,6 +204,27 @@ adds each cart's readout text.
 
 The contract between the game and the tool is `packages/shared/src/test-api.ts`.
 
+## tools/share
+
+Builds a static preview site for coworkers (teachers and developers) into `artifacts/share/`:
+
+```sh
+pnpm share            # build the site (needs pnpm shot:install once)
+pnpm share:preview    # serve it at http://localhost:4190
+```
+
+- **Page** (`index.html`): the pitch, the playable game, and sections for teachers (DESIGN.md
+  §1, 2, 8, 10, 11, 12), the roadmap (ROADMAP.md, with progress from STATUS.md), every decision
+  (DECISIONS.md, filterable, `#D9` opens D9) and developers (IMPLEMENTATION.md §3 and the newest
+  STATUS.md report). It is rendered from the docs on every run, so it never drifts from them.
+  If a doc loses a heading the page uses, the build fails and names it.
+- **Game** (`play/`): a production build with relative paths, loaded only when a visitor
+  presses Play. `play/?scene=bean` and `play/?scene=drop` work too.
+- **Screenshots** (`shots/`): taken with tools/shot from that same build.
+- **No third-party requests:** the fonts (Fredoka, Nunito, Caveat) are self-hosted from
+  `@fontsource`. The build fails if the page would contain a private claude.ai link.
+- The folder is plain static files; any file server can host it.
+
 ## Layout
 
 ```
@@ -217,6 +238,7 @@ packages/
             and the Phaser rig
 tools/
   shot/     Playwright screenshot and log tool
+  share/    builds the preview site for coworkers (docs, screenshots, playable build)
 docs/       design, decisions, implementation notes, assumptions, status
 art/, reference/   design references only (never ported as code)
 ```

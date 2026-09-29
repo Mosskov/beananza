@@ -23,6 +23,10 @@ export default tseslint.config(
     languageOptions: { globals: globals.node },
   },
   {
+    files: ['tools/share/site/**/*.js'],
+    languageOptions: { globals: globals.browser },
+  },
+  {
     files: ['packages/sim/src/**/*.ts', 'packages/shared/src/**/*.ts'],
     rules: {
       'no-restricted-imports': ['error', {

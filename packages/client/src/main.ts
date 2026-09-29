@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { URL_PARAM_PAUSED, URL_PARAM_SCENE } from '@beananza/shared';
 import { GAME_HEIGHT, GAME_WIDTH, PALETTE } from './config';
+import { loadBeanArt } from './rig/bean-art';
 import { DEFAULT_SCENE, SCENE_NAMES, SCENES } from './scenes/registry';
 import type { SceneStartData } from './scenes/TestableScene';
 import { installTestHooks } from './test-hooks';
@@ -9,11 +10,22 @@ const params = new URLSearchParams(window.location.search);
 const sceneName = params.get(URL_PARAM_SCENE) ?? DEFAULT_SCENE;
 const SceneClass = SCENES[sceneName];
 
-if (!SceneClass) {
-  // Logged as an error and flagged so tools/shot fails at once instead of timing out.
-  const message = `Unknown scene "${sceneName}". Registered scenes: ${SCENE_NAMES.join(', ')}.`;
+/** Logged as an error and flagged so tools/shot fails at once instead of timing out. */
+function bootError(message: string): void {
   window.__bootError = message;
   console.error(message);
+}
+
+// The bean's parts are checked against the art contract and rasterized before any scene starts.
+const artError = await loadBeanArt().then(
+  () => null,
+  (err: unknown) => (err instanceof Error ? err.message : String(err)),
+);
+
+if (!SceneClass) {
+  bootError(`Unknown scene "${sceneName}". Registered scenes: ${SCENE_NAMES.join(', ')}.`);
+} else if (artError) {
+  bootError(`Could not load the bean art: ${artError}`);
 } else {
   const game = new Phaser.Game({
     type: Phaser.AUTO,

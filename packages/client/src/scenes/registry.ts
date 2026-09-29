@@ -1,3 +1,4 @@
+import { BeanGalleryScene } from './BeanGalleryScene';
 import { DropScene } from './DropScene';
 import { EmptyScene } from './EmptyScene';
 import { HubScene } from './HubScene';
@@ -13,8 +14,10 @@ export const SCENES: Readonly<Record<string, SceneClass>> = {
   empty: EmptyScene,
   drop: DropScene,
   hub: HubScene,
+  bean: BeanGalleryScene,
 };
 
-export const DEFAULT_SCENE = 'empty';
+/** Plain localhost:5180 opens the hub (D20). */
+export const DEFAULT_SCENE = 'hub';
 
 export const SCENE_NAMES: readonly string[] = Object.keys(SCENES);

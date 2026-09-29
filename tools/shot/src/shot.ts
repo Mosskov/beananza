@@ -35,6 +35,7 @@ interface Options {
   height: number;
   headed: boolean;
   softwareGl: boolean;
+  reducedMotion: boolean;
   timeoutMs: number;
 }
 
@@ -69,6 +70,8 @@ interface ShotLog {
   browser: string;
   /** WebGL renderer string (GPU or SwiftShader), or null if the canvas is not WebGL. */
   glRenderer: string | null;
+  /** The page ran with prefers-reduced-motion: reduce (--reduced-motion). */
+  reducedMotion: boolean;
   server: ServerMode;
   console: { errors: number; warnings: number; entries: ConsoleEntry[] };
   fps: FpsSample | null;
@@ -101,6 +104,7 @@ interface ScriptShotLog {
   viewport: { width: number; height: number };
   browser: string;
   glRenderer: string | null;
+  reducedMotion: boolean;
   server: ServerMode;
   /** Every non-shot step run so far, in order. */
   inputs: ScriptInputLog[];
@@ -132,6 +136,8 @@ function printHelp(): void {
   --headed         Show the browser window.
   --software-gl    Use the headless shell with SwiftShader (no GPU) instead of Chromium's
                    new headless mode, which uses the GPU when there is one.
+  --reduced-motion Emulate prefers-reduced-motion: reduce. Output goes to
+                   <out>/reduced-motion/ so it never overwrites the normal shots.
 
 Writes <out>/<scene>[_t<time>].png and .json; a script writes
 <out>/<script name>/<shot name>.png and .json, plus run.json. Exits non-zero if any shot has a console
@@ -154,6 +160,7 @@ function parseOptions(): Options | null {
       timeout: { type: 'string', default: '30000' },
       headed: { type: 'boolean', default: false },
       'software-gl': { type: 'boolean', default: false },
+      'reduced-motion': { type: 'boolean', default: false },
       help: { type: 'boolean', short: 'h', default: false },
     },
     allowPositionals: false,
@@ -179,7 +186,7 @@ function parseOptions(): Options | null {
     // from tools/shot, so the working directory says nothing useful).
     scripts: scripts.map((f) => resolve(REPO, f)),
     times: times && times.length > 0 ? times : [undefined],
-    outDir: resolve(REPO, values.out),
+    outDir: values['reduced-motion'] ? resolve(REPO, values.out, 'reduced-motion') : resolve(REPO, values.out),
     port: num('port', values.port),
     baseUrl: values.url,
     fpsMs: num('fps-ms', values['fps-ms']),
@@ -187,6 +194,7 @@ function parseOptions(): Options | null {
     height: num('height', values.height),
     headed: values.headed,
     softwareGl: values['software-gl'],
+    reducedMotion: values['reduced-motion'],
     timeoutMs: num('timeout', values.timeout),
   };
 }
@@ -287,6 +295,7 @@ async function openPage(browser: Browser, opts: Options) {
   const context = await browser.newContext({
     viewport: { width: opts.width, height: opts.height },
     deviceScaleFactor: 1,
+    reducedMotion: opts.reducedMotion ? 'reduce' : 'no-preference',
   });
   const page = await context.newPage();
   page.on('console', (msg) => {
@@ -344,6 +353,7 @@ async function shoot(
     viewport: { width: opts.width, height: opts.height },
     browser: `chromium ${browser.version()}${opts.softwareGl ? ' (headless shell)' : ''}`,
     glRenderer: null,
+    reducedMotion: opts.reducedMotion,
     server: serverMode,
     console: { errors: 0, warnings: 0, entries },
     fps: null,
@@ -455,6 +465,7 @@ async function runScript(
           viewport: { width: opts.width, height: opts.height },
           browser: browserName,
           glRenderer,
+          reducedMotion: opts.reducedMotion,
           server: serverMode,
           inputs: [...inputs],
           console: consoleSummary(entries),

@@ -5,6 +5,8 @@
 
 /** `window.__ready` becomes true after the requested scene has rendered its first frame. */
 export const READY_FLAG = '__ready';
+/** `window.__bootError` holds a message if the game could not start the requested scene. */
+export const BOOT_ERROR_KEY = '__bootError';
 /** `window.__game` holds a {@link GameTestApi}. */
 export const TEST_API_KEY = '__game';
 

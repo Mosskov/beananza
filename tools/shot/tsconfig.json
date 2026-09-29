@@ -1,0 +1,9 @@
+{
+  // DOM types are only here for code that runs inside the page via page.evaluate().
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "lib": ["ES2022", "DOM"],
+    "types": ["node"]
+  },
+  "include": ["src"]
+}

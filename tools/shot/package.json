@@ -1,0 +1,18 @@
+{
+  "name": "@beananza/shot",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Headless screenshots and logs of registered game scenes.",
+  "scripts": {
+    "shot": "tsx src/shot.ts",
+    "install-browser": "playwright install chromium",
+    "typecheck": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "@beananza/shared": "workspace:*",
+    "playwright": "1.63.0",
+    "tsx": "4.23.15",
+    "vite": "8.3.1"
+  }
+}

@@ -99,6 +99,19 @@ export class BeanRig {
     return { container, bodySegments, parts };
   }
 
+  /**
+   * How far the body reaches west and east of the feet on screen, in art units at scale 1, for
+   * the current view (from the body part's drawn bounds, so it follows the art).
+   */
+  bodySpan(): { west: number; east: number } {
+    const { view, mirrored } = this.choice;
+    const tex = beanArt().textures.get(`bean:${view}:body`);
+    if (!tex) return { west: 0, east: 0 };
+    const x0 = tex.bounds.x;
+    const x1 = tex.bounds.x + tex.bounds.w;
+    return mirrored ? { west: -x1, east: -x0 } : { west: -x0, east: x1 };
+  }
+
   /** Show or hide a part in every view, e.g. goggles or the pushing arm. */
   setPartVisible(partId: string, visible: boolean): void {
     for (const v of this.built.values()) v.parts.get(partId)?.image.setVisible(visible);

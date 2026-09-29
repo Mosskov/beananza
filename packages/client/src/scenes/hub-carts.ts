@@ -9,6 +9,11 @@ const m = (meters: number) => meters * PIXELS_PER_METER;
 
 // The carts are drawn once in art/props/cart.svg (they run on a straight rail and never turn,
 // D12). The rail itself is still PLACEHOLDER art, drawn in code below.
+/**
+ * Distance between the two rails (m), drawn at ±half of it from the rail's centre line. A cart's
+ * drawing stands on the near (south) rail, where its visible wheels run.
+ */
+export const RAIL_GAUGE_M = 0.2;
 /** Height of the cart floor a rider stands on (m); the front of the cart hides the bean's feet. */
 export const CART_FLOOR_M = 0.1;
 /** Draw order inside a cart's row: back of the cart, a rider, then the front. */
@@ -34,7 +39,7 @@ export function drawRail(scene: Phaser.Scene, rail: RailLayout, depth: number): 
     g.fillRect(at.x - 5, at.y - m(0.17), 10, m(0.34));
   }
   g.lineStyle(4, 0x6b6f7a, 1);
-  for (const dy of [-0.1, 0.1]) g.lineBetween(west.x, west.y - m(dy), east.x, east.y - m(dy));
+  for (const dy of [-RAIL_GAUGE_M / 2, RAIL_GAUGE_M / 2]) g.lineBetween(west.x, west.y - m(dy), east.x, east.y - m(dy));
   g.fillStyle(0xb8532f, 1);
   for (const x of [rail.minX - 0.08, rail.maxX + 0.08]) {
     const at = toScreen(x, rail.y);
@@ -81,7 +86,7 @@ export class CartView {
    * rider the readout moves up, clear of the bean's head.
    */
   draw(x: number, railY: number, v: number, ridden = false): void {
-    const at = toScreen(x, railY);
+    const at = toScreen(x, railY - RAIL_GAUGE_M / 2); // on the near rail
     const depth = depthKey(railY);
     this.screenX = at.x;
     this.screenY = at.y;

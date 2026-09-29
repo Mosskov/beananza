@@ -1,7 +1,9 @@
-# Reference art
+# Art
 
-Exported from the design exploration. **Reference only, not final assets.** Shapes are simple
-SVG paths so they can seed a parts-based rig (see `docs/DESIGN.md` §6).
+The game loads `bean/` and `props/` at runtime, by part id (D3, D12): these files are the
+source of the bean and the props, drawn as SVG text (D13's leaning). Their look is still a first
+pass and may change. `bean/forms.svg` and `baron/` are reference only (from the design
+exploration) and are not loaded yet.
 
 ## Bean buddy (`bean/`)
 - `front.svg`, `front-34.svg`, `side.svg`, `back-34.svg`, `back.svg`: the five drawn views.
@@ -31,7 +33,8 @@ flat top-level `<g id>` parts, soft shadows. Colours come from the palette below
 the tree's greens (`#5F9150`, `#6A9C5A`, `#86B874`) are new. The game loads them by part id
 (`packages/client/src/art/props.ts`; checks in `packages/client/test/prop-art.test.ts`).
 - `tree.svg`: `shadow`, `trunk`, `canopy`. The sim's footprint is 0.5 × 0.4 m.
-- `cart.svg`: the mine cart, 0.8 m long, rim 0.48 m high. `shadow`; `back` and `rocks` (only
+- `cart.svg`: the mine cart, 0.8 m long, rim 0.48 m high. Its origin is the point on the near
+  rail below the cart's centre (the game places it 0.1 m south of the rail's centre line). `shadow`; `back` and `rocks` (only
   the loaded 20 kg cart), drawn behind a rider; `front`, `wheel-west` and `wheel-east`, drawn in
   front of a rider. Wheels roll about their hub (the centre of their first circle), radius 9.
 

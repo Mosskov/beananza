@@ -41,3 +41,19 @@ export function depthScale(groundY: number, walkable: Rect): number {
 export function depthKey(groundY: number): number {
   return -groundY * PIXELS_PER_METER;
 }
+
+/**
+ * How far (m, signed along x) to draw a character away from the carts on its rail so its body
+ * does not overlap a cart's end. The sim keeps the narrower footprint; this moves the drawing
+ * only. `reachWest`/`reachEast` are how far the drawn body reaches each way (m, already scaled).
+ */
+export function cartStandOff(x: number, cartXs: readonly number[], cartHalfLength: number, reachWest: number, reachEast: number): number {
+  let best = 0;
+  for (const cx of cartXs) {
+    const west = x < cx; // the character is west of this cart
+    const needed = cartHalfLength + (west ? reachEast : reachWest);
+    const have = Math.abs(x - cx);
+    if (have < needed && needed - have > Math.abs(best)) best = (west ? -1 : 1) * (needed - have);
+  }
+  return best;
+}

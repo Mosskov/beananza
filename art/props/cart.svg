@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="-60 -90 120 104" width="240" height="208">
   <!-- Mine cart on the east-west rail, seen from the south in the 3/4 view. One drawing: carts on a
-       straight rail never turn (D12). Origin (0,0) = the ground under the cart's centre; 0.8 m long,
+       straight rail never turn (D12). Origin (0,0) = the near rail below the cart's centre; 0.8 m long,
        rim 0.48 m high. 100 units = 1 m. Draw order: shadow on the ground; back (and rocks, only for the
        loaded cart) behind a rider; then front and wheels in front of a rider. Wheels roll about their
        centres. -->

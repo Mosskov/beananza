@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { PIXELS_PER_METER } from '@beananza/shared';
-import { FIXED_DT, HUB_BEAN_RADIUS_M, Sim, createHubScenario, type HubCommand, type HubInput, type HubState } from '@beananza/sim';
+import { CART_HALF_DEPTH, CART_HALF_LENGTH, FIXED_DT, HUB_BEAN_RADIUS_M, Sim, createHubScenario, type HubCommand, type HubInput, type HubState } from '@beananza/sim';
 import { prefersReducedMotion } from '../accessibility';
 import { propPart } from '../art/props';
 import { GAME_HEIGHT, GAME_WIDTH, PALETTE, cssColor } from '../config';
@@ -9,7 +9,7 @@ import { chooseClip, samplePose } from '../rig/player';
 import { viewForFacing } from '../rig/views';
 import { SimScene } from './SimScene';
 import { CART_FLOOR_M, CART_RIDER_DEPTH, CartView, drawRail, speedReadout } from './hub-carts';
-import { characterScreen, depthKey, depthScale, groundFromScreen, toScreen } from './hub-view';
+import { cartStandOff, characterScreen, depthKey, depthScale, groundFromScreen, toScreen } from './hub-view';
 
 const m = (meters: number) => meters * PIXELS_PER_METER;
 
@@ -28,13 +28,9 @@ const FONT = 'system-ui, "Segoe UI", Roboto, sans-serif';
 /** Pushing a cart this heavy or heavier plays the heavy push (lean 16°, slower steps). */
 const HEAVY_PUSH_KG = 10;
 /**
- * Where the side view's belly is, in art units in front of the feet (art/bean/side.svg). The
- * bean's footprint (0.25 m) is narrower than its body, so while pushing the bean is drawn this
- * much further back (scaled) than its footprint, so its belly and hands meet the cart's end
- * instead of overlapping it. Drawing only; the sim position is unchanged.
+ * Height of the side view's belly above the feet (art units): leaning while pushing tips it
+ * forward by this times sin(lean), which the stand-off from the cart adds.
  */
-const SIDE_BODY_FRONT_UNITS = 44;
-/** Height of the belly above the feet (art units): the lean tips it this far times sin(lean). */
 const SIDE_BELLY_HEIGHT_UNITS = 40;
 
 interface BeanView {
@@ -194,7 +190,6 @@ export class HubScene extends SimScene<HubState, HubCommand> {
     // A rider stands on the cart floor, drawn between the back and the front of its cart.
     const riding = b.riding !== null && rail !== null;
     const feet = characterScreen(x, y, riding ? CART_FLOOR_M : z, scale);
-    if (b.pushing) feet.x -= b.pushing.dir * Math.max(0, SIDE_BODY_FRONT_UNITS * scale - m(HUB_BEAN_RADIUS_M));
     const { rig, shadow } = this.bean;
     const depth = riding ? depthKey(rail.y) + CART_RIDER_DEPTH : depthKey(y) + CHARACTER_TIE_BREAK;
     rig.root.setPosition(feet.x, feet.y).setScale(scale).setDepth(depth);
@@ -214,10 +209,23 @@ export class HubScene extends SimScene<HubState, HubCommand> {
     rig.setPartVisible('arm-far-push', b.pushing !== null);
     const pose = samplePose({ clip, t, time, view: choice.view, reducedMotion: this.reducedMotion });
     rig.applyPose(pose);
-    if (b.pushing) {
-      // The lean tips the belly forward too; keep it at the cart's end (drawing only).
-      const lean = Math.sin((pose.body.rotation * Math.PI) / 180) * SIDE_BELLY_HEIGHT_UNITS * scale;
-      rig.root.x -= b.pushing.dir * lean;
+    // The bean's body is wider than its footprint: next to a cart's end (pushing or not), draw
+    // it back so the body meets the end instead of overlapping it. Drawing only (and its shadow).
+    const onRail = !riding && rail !== null && Math.abs(y - rail.y) < CART_HALF_DEPTH + HUB_BEAN_RADIUS_M;
+    if (onRail) {
+      const span = rig.bodySpan();
+      const lean = b.pushing ? Math.sin((pose.body.rotation * Math.PI) / 180) * SIDE_BELLY_HEIGHT_UNITS : 0;
+      const cartXs = (this.sim.state.rail?.carts ?? []).map((c) => lerp(this.prevCarts.get(c.id) ?? c.x, c.x));
+      const unit = scale / PIXELS_PER_METER; // art units to metres at this depth
+      const off = cartStandOff(
+        x,
+        cartXs,
+        CART_HALF_LENGTH,
+        (span.west + Math.max(0, -(b.pushing?.dir ?? 0)) * lean) * unit,
+        (span.east + Math.max(0, b.pushing?.dir ?? 0) * lean) * unit,
+      );
+      rig.root.x += m(off);
+      shadow.x += m(off);
     }
     const r = (n: number) => Math.round(n * 1e4) / 1e4;
     const { y: by, rotation, scaleX, scaleY } = pose.body;

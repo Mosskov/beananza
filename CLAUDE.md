@@ -23,7 +23,7 @@ and at home.
 - `docs/TOPICS.md`: design topics backlog
 - `prompts/M0-first-session.md`: the prepared prompt for the first build session
 - `reference/`: the showcase page and the bean rotation comparison (open in a browser). Behavior reference only; never port their code.
-- `art/`: reference SVGs and palette from the design exploration. Reference only, not final assets.
+- `art/`: the bean and prop SVGs the game loads by part id (see `art/README.md`), plus reference art (body forms, the Heavy Baron) and the palette.
 
 ## Proposed stack (not yet confirmed, see DECISIONS.md)
 - TypeScript everywhere, pnpm workspaces monorepo

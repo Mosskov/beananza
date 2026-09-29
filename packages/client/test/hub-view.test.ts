@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { DEFAULT_PLAZA } from '@beananza/sim';
-import { characterScreen, depthKey, depthScale, groundFromScreen, toScreen } from '../src/scenes/hub-view';
+import { cartStandOff, characterScreen, depthKey, depthScale, groundFromScreen, toScreen } from '../src/scenes/hub-view';
 
 const walk = DEFAULT_PLAZA.walkable;
 
@@ -16,6 +16,15 @@ describe('hub view projection', () => {
     expect(characterScreen(1, 2, 0.768, 0.62)).toEqual(toScreen(1, 2, 0.768 * 0.62));
     expect(characterScreen(1, 2, 0, 0.62)).toEqual(toScreen(1, 2));
     expect(-characterScreen(0, 0, 0.768, 0.92).y / (114 * 0.92)).toBeCloseTo(0.768 / 1.14, 12);
+  });
+
+  it('draws a character back from a cart end its body would overlap, only as far as needed', () => {
+    // Cart at x = 0 (half-length 0.4); body reaches 0.44 m each way.
+    expect(cartStandOff(-0.65, [0], 0.4, 0.44, 0.44)).toBeCloseTo(-0.19, 12);
+    expect(cartStandOff(0.65, [0], 0.4, 0.44, 0.44)).toBeCloseTo(0.19, 12);
+    expect(cartStandOff(-1, [0], 0.4, 0.44, 0.44)).toBe(0);
+    // The nearest overlapping cart wins; reach towards that cart is what counts.
+    expect(cartStandOff(1.3, [0, 2], 0.4, 0.1, 0.44)).toBeCloseTo(-(0.84 - 0.7), 12);
   });
 
   it('maps a ground point back from the screen', () => {

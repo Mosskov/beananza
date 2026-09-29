@@ -102,8 +102,11 @@ Claude draws the art as SVG; it stays Open. See `docs/DECISIONS.md`.
   along at full speed). When the bean's footprint overlaps the rail band (|y − rail| < 0.45 m)
   and it is not riding, the rail sim splits the rail at the bean's footprint [x − 0.25, x + 0.25]:
   carts on each side stop against it with restitution 0 (the braced bean passes the momentum to
-  the ground) and the rail logs a `bean` collision. The bean is not moved. The prototype slowed
-  the cart by 10% per frame instead.
+  the ground) and the rail logs a `bean` collision. The bean is not pushed along (Planck's
+  contact skin may shift it by a few millimetres). A `bean` collision does not conserve the
+  carts' momentum by design, so the momentum checks only use `carts` collisions. The prototype
+  slowed the cart by 10% per frame instead. The rule ignores height: a bean mid-jump over the
+  rail also stops a cart (Planck would bump it anyway); hopping over low objects is not built.
 - **Pushing:** on the ground, the bean's centre within the rail band (|y − rail| ≤ 0.2 m, so it
   touches an end, not a long side), its footprint within 0.03 m of the end, and at least 35% of
   its move direction along the rail towards the cart (the prototype's 0.35). Run pushes with
@@ -138,12 +141,17 @@ Claude draws the art as SVG; it stays Open. See `docs/DECISIONS.md`.
   bean plays `idle`.
 - **Controls hint** now includes "Action: E". No on-screen touch buttons yet (phones cannot get
   into a cart): noted as open.
-- **While pushing, the bean is drawn back from its footprint** (review round 1: it overlapped
-  the cart's end). Its drawn body is wider (0.44 m to the belly × depth scale) than its 0.25 m
-  footprint, so the drawing moves back by the difference plus the lean's tip at belly height
-  (0.40 m · sin lean). Drawing only; the sim position and the shot log's sim state are unchanged
-  (the log's screen position is the drawn one). The push clip slides the arms forward so the
-  hands reach the cart.
+- **Next to a cart's end the bean is drawn back from its footprint** (review rounds 1 and 2: it
+  overlapped the cart, pushing or standing). Its drawn body is wider than its 0.25 m footprint,
+  so on the rail the drawing (and its shadow) moves away from the nearest cart until the body
+  meets the end. How far the body reaches comes from the body part's drawn bounds in the
+  current view (`BeanRig.bodySpan`), plus the lean's tip at belly height (0.40 m · sin lean)
+  while pushing. Drawing only; the sim position and the shot log's sim state are unchanged (the
+  log's screen position is the drawn one). The push clip slides the arms forward so the hands
+  reach the cart.
+- **Carts stand on the near rail:** the rails are drawn 0.2 m apart (±0.1 m from the rail's
+  centre line) and a cart's drawing is placed on the near (south) rail, where its visible
+  wheels run (review round 2: they sat between the rails).
 - **The readout moves up (1.35 m instead of 0.95 m) while the cart is ridden**, clear of the
   bean's head.
 

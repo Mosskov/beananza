@@ -120,12 +120,78 @@ Also, in `packages/client/test/`:
 - `player.test.ts`: clip data and timings, the rig player, reduced motion, and choosing the clip
   from sim state.
 
-And `tools/shot/test/script.test.ts` (script validation).
+And in `tools/shot/test/`: script validation, `verify`'s helpers (the newest status folder,
+`--scripts`, the summary table), the sheet layout and crops, and the art sheet's art paths and
+zoom box.
+
+## Verify everything: `pnpm verify`
+
+One command for the whole pass, with one dev server and one browser:
+
+```sh
+pnpm verify                                  # everything; about a minute
+pnpm verify --no-check --scripts hub-bench   # between steps: only these scripts, no pnpm check
+```
+
+It runs, in order:
+1. `pnpm check`, in the background while the scripts run;
+2. every script in `tools/shot/scripts/`, four at a time;
+3. the hub scripts in the three `check-looks` looks;
+4. every scene live, plus the timed shots found in the baseline (such as `drop_t1.000`). These
+   wait for `pnpm check` to finish, so their fps samples run on a quiet machine;
+5. `check-carts`, the looks comparison, and `compare-states` against the newest `docs/status/`
+   folder (`--baseline <folder>` picks another).
+
+It prints only the failures, then a summary table (step, result, seconds, one line of detail),
+and exits non-zero on any failure. Everything else goes to `artifacts/verify/verify.log`, with
+`pnpm check`'s output in `artifacts/verify/check.log`. Shots land in `artifacts/shots/` as usual.
+
+With `--scripts a,b`, it skips the scenes and any check whose scripts did not run, and says so.
+Other options: `--jobs <n>` (default 4), `--port <n>`, `--reuse`.
+
+## Look at many frames: `pnpm shot:sheet`
+
+```sh
+pnpm shot:sheet artifacts/shots/hub-bench --title hub-bench
+pnpm shot:sheet artifacts/shots/hub-bench/greeted.png artifacts/shots/look-cream-sprout/hub-bench/greeted.png --crop 180,150,240,180 --scale 1.5
+```
+
+Tiles PNGs (files, or every PNG at the top of a folder) into one labelled image in
+`artifacts/sheets/`. Labels are the paths below the folder the files share, so the same shot in
+several looks stays apart. Options:
+- `--crop x,y,w,h` (image pixels);
+- `--cols`;
+- `--scale` (default 0.5, or 1 with a crop);
+- `--title`, `--out`.
+
+It needs no image library: it draws on a canvas in headless Chromium.
+
+## Review an art change: `pnpm art:sheet`
+
+```sh
+pnpm art:sheet               # the working tree's art against HEAD
+pnpm art:sheet --base main   # against another ref
+```
+
+Shoots the `bean` and `looks` galleries and the hub (paused at t = 0, for the props) at 2×
+twice: once with the working tree's art, once with the art of `--base`. Both are drawn by the
+current code. The second Vite server answers every `?raw` import under `art/` with
+`git show <ref>:art/…`, so no second checkout is needed.
+
+Output in `artifacts/art/`:
+- `sheet.png`: every scene as before, after and changed pixels (magenta over a faded picture);
+- `zoom.png`: the same, cropped to what changed;
+- `before/`, `after/` and `diff/`: the single images.
+
+The command also prints the changed art files and, per scene, how many pixels changed and
+where. With no change, every scene is pixel-identical and the sheet says "no change". Every art
+change is reviewed with this sheet (`docs/ART_PIPELINE.md`).
 
 ## tools/shot
 
 Opens a scene in headless Chromium, optionally steps its sim to an exact time, and writes a PNG
-plus a JSON log.
+plus a JSON log. `pnpm verify`, `shot:sheet` and `art:sheet` are built on it
+(`tools/shot/src/session.ts`).
 
 ```sh
 pnpm shot --all                                  # every registered scene, running live
@@ -133,9 +199,14 @@ pnpm shot --scene drop --t 1.0 --t 1.5           # drop scene at exactly t = 1.0
 pnpm shot --help                                 # all options
 ```
 
-- **Server:** reuses a running `pnpm dev` on port 5180, or starts Vite in-process (and stops it
-  afterwards). If another app holds the port, it starts on a free port instead. `--url <url>`
-  points it at any server, such as `pnpm preview`.
+- **Server:** starts its own Vite server in-process on a free port, and stops it afterwards.
+  It never depends on a long-running `pnpm dev`, which can go stale.
+  - `--port <n>` starts it on exactly that port.
+  - `--reuse` reuses the app's dev server on port 5180 (or `--port`) if it runs there.
+  - `--url <url>` points it at any server, such as `pnpm preview`.
+- **Parallel scripts:** `--jobs <n>` runs up to n scripts at once, each in its own page. The sim
+  states are the same; only the order of the printed lines changes.
+- **Scale:** `--scale <n>` sets the device pixels per CSS pixel (default 1).
 - **Readiness:** waits for `window.__ready`, which the game sets once the scene has rendered.
 - **Time:** with `--t`, the page loads with `?paused=1`, and the tool calls
   `window.__game.advanceTo(t)`, which steps the sim in whole fixed steps (t = 1.0 is exactly
@@ -224,8 +295,8 @@ speeds (from the logged touchdown and take-off, with rolling friction in between
 speed readout, and exits non-zero on any mismatch.
 
 `pnpm shot:check-looks` runs every hub script in the default look and in three other looks
-(together they use every piece and three colours, one of them light) and fails if any shot's sim
-state differs: cosmetics never touch the sim (D25). `pnpm shot --look <ids>` runs any scene or
+(together they use every piece and three colours, one of them light), in one server and browser,
+and fails if any shot's sim state differs: cosmetics never touch the sim (D25). `pnpm shot --look <ids>` runs any scene or
 script in a look and writes to `<out>/look-<ids>/`.
 
 `pnpm shot:compare-states <old status folder> [<new shots folder>]` compares the sim state of

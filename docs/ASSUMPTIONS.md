@@ -3,6 +3,38 @@
 Routine choices made while building, logged so they can be reviewed and reversed. None of them
 changes a decision in `docs/DECISIONS.md`. Newest milestone first.
 
+## Workflow tools (`pnpm verify`, `shot:sheet`, `art:sheet`), 2026-09-29
+
+Built on the branch `tools/workflow`, from the workflow chat (`docs/TOPICS.md`, "A smoother
+session workflow"). D13 is partly confirmed there.
+- **tools/shot starts its own server by default**, on a free port. Reusing a running
+  `pnpm dev` is opt-in (`--reuse`): in M1 session 3 a stale one answered 500.
+- **`verify` runs 4 scripts at a time.** Each script steps a paused sim explicitly, so the
+  states are the same. This was checked: `--jobs 1` and `--jobs 4` gave 56 sim states with
+  0 differences, and all 12 scripts took 9 s instead of 14 s. The CLI's default stays 1.
+- **`verify` runs `pnpm check` alongside the scripts**, which don't sample fps. The live scenes
+  wait until it finishes, so their fps samples run on a quiet machine.
+- **`verify` finds the timed shots in the baseline folder** (`drop_t1.000` and `drop_t1.500`),
+  rather than keeping a list of its own, so the baseline decides what gets compared.
+- **Open issue: one browser crash in 6 full runs.** Once, the headless browser closed mid-run
+  ("Target page, context or browser has been closed"). The cause is unknown; possibly load from
+  the concurrent `pnpm check`. The next 5 runs passed.
+  - `verify` now reports a crash as a FAIL row for the step it hit, skips the log checks, and
+    still prints the summary.
+  - If it recurs, run `pnpm check` and `pnpm verify --no-check` one after the other, and look
+    into it.
+- **`verify` prints only failures and a summary table.** The full log goes to
+  `artifacts/verify/`, to keep a session's context small.
+- **Sheets are drawn on a canvas in headless Chromium**, so no image library (such as sharp)
+  was added.
+- **The art sheet** shows the `bean` and `looks` galleries (fixed poses, no sim) and the hub
+  paused at t = 0, at 2× scale.
+  - "Before" uses the ref's art with the current code, served by a Vite plugin from `git show`.
+    An art file that is new since the ref uses the current file, and a note says so.
+  - A pixel counts as changed when a channel differs by more than 2 of 255. Two runs without
+    an art change were pixel-identical in all three scenes.
+  - The zoom crop is the changed box plus 40 units of margin, at least 200 × 200 CSS pixels.
+
 ## Share site (`tools/share`), 2026-09-29
 
 Sharing the project with coworkers: a site built locally from the docs and deployed on

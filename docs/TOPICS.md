@@ -10,8 +10,11 @@ Nothing is approved. "Explored" means discussed or mocked up with a leaning, not
 5. **Hub decisions:** camera (D1), layout (D2), region instancing (D8).
 6. **Other regions:** Wave Canyon, Storm Highlands, Crystal Caves.
 7. **Sound and music:** not discussed yet.
-8. **Art contract:** write it with the bean as the worked example; blocks D13 (see `docs/ART_PIPELINE.md`).
-9. **Drawing tool:** which tool the artists will use; blocks the exporter.
+8. **Art contract:** in place for the bean, cosmetics and props (`art/README.md`, checked in
+   tests); what remains is the bean-shape approach (below) and the next steps in
+   `docs/ART_PIPELINE.md` §7.
+9. **Drawing tool:** answered 2026-09-29: Claude draws SVG text, so there is no tool and no
+   exporter (D13).
 10. **Sim architecture sketch** in SI units, plus the first unit tests (`prompts/M0-first-session.md`).
 11. **Catapult as predict, test, compare:** a prediction marker, a trail of the real flight, and the gap between them. Deferred by the user for now.
 
@@ -71,7 +74,22 @@ four forms × five views is where hand drawing gets expensive.
 
 ## To return to (raised 2026-09-29, after M1 session 3)
 
-### A smoother session workflow
+### A smoother session workflow (done 2026-09-29, tools session)
+**Decided with the user:**
+- **Design passes run in a separate short chat** before a build session, so the build runs
+  without waiting on answers. The D9 questions are in `prompts/D9-design-pass.md`.
+- **Concurrent sessions each use their own git worktree** at a short path, on their own branch.
+- **Art changes are reviewed with `pnpm art:sheet`** (D13).
+
+**Built** (see README):
+- `tools/shot` starts its own server on a free port by default (`--reuse` for the one on 5180),
+  and `--jobs` runs scripts in parallel with identical sim states.
+- `pnpm verify`: the whole pass in about 55 s, `pnpm check` included. The same checks took
+  91 s plus `pnpm check` as separate commands; `check-looks` alone went from 58 s to 29 s.
+- `pnpm shot:sheet` and `pnpm art:sheet`.
+
+What follows is the original write-up.
+
 **Problem:** M1 session 3 took about 2 h 20 min of active work, not counting the waits for
 answers. Some of that was the scope: a refactor with a parity proof, anchors, the cart hop, the
 bench, Priya and customization, plus two review rounds. The rest was avoidable friction:

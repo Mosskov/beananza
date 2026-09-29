@@ -30,6 +30,7 @@ describe('parseScript', () => {
     ['negative wait', { scene: 'hub', steps: [{ wait: -1 }, { shot: 'a' }] }],
     ['wait under one step', { scene: 'hub', steps: [{ wait: 0.001 }, { shot: 'a' }] }],
     ['bad shot name', { scene: 'hub', steps: [{ shot: 'Has Spaces' }] }],
+    ['reserved shot name', { scene: 'hub', steps: [{ shot: 'run' }] }],
     ['duplicate shot name', { scene: 'hub', steps: [{ shot: 'a' }, { shot: 'a' }] }],
     ['no shot', { scene: 'hub', steps: [{ wait: 1 }] }],
   ])('rejects %s', (_label, json) => {

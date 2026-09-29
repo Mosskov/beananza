@@ -18,7 +18,8 @@ export function groundFromScreen(sx: number, sy: number): { x: number; y: number
 /**
  * Character scale by depth (DESIGN.md §4): 0.62 + 0.30·clamp((y − y_top) / depth_range, 0, 1)
  * in screen terms, where y_top is the north edge of the walkable area and depth_range its
- * north-south size. Characters at the back are drawn at 0.62, at the front at 0.92.
+ * north-south size. The formula spans 0.62 (north edge) to 0.92 (south edge); a bean, whose centre
+ * stays one footprint radius inside the edges, reaches about 0.635 to 0.905.
  */
 export function depthScale(groundY: number, walkable: Rect): number {
   const t = (walkable.maxY - groundY) / (walkable.maxY - walkable.minY);

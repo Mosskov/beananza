@@ -1,8 +1,6 @@
 import type { Scenario, SimStateBase } from '../sim';
+import { EARTH_GRAVITY } from '../constants';
 import { FIXED_DT, ticksToSeconds } from '../time';
-
-/** Standard gravity, rounded the way textbooks do (m/s²). */
-export const EARTH_GRAVITY = 9.81;
 
 /**
  * The Heavy Baron's claim, tested: a 1 kg and a 10 kg ball released together from 10 m.

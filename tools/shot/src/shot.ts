@@ -2,7 +2,7 @@
 // time, and write a PNG plus a JSON log (console errors and warnings, fps, sim time, git commit).
 // Usage: see printHelp() or README.md.
 import { execFileSync } from 'node:child_process';
-import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { basename, dirname, extname, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parseArgs } from 'node:util';
@@ -175,8 +175,9 @@ function parseOptions(): Options | null {
   return {
     scenes: values.scene ?? [],
     all: values.all,
-    // pnpm runs this from tools/shot; resolve script paths against where the command was typed.
-    scripts: scripts.map((f) => resolve(process.env.INIT_CWD ?? process.cwd(), f)),
+    // Like --out, relative script paths resolve against the repo root (pnpm runs this tool
+    // from tools/shot, so the working directory says nothing useful).
+    scripts: scripts.map((f) => resolve(REPO, f)),
     times: times && times.length > 0 ? times : [undefined],
     outDir: resolve(REPO, values.out),
     port: num('port', values.port),
@@ -404,6 +405,8 @@ async function runScript(
     return 1;
   }
   const outDir = join(opts.outDir, basename(scriptPath, extname(scriptPath)));
+  // Start clean so a run that fails early leaves no older shots beside its run.json.
+  rmSync(outDir, { recursive: true, force: true });
   mkdirSync(outDir, { recursive: true });
 
   const url = new URL(baseUrl);

@@ -20,8 +20,9 @@ note "the stack is scaffolding, not a decision" no longer applies to those parts
   client has handled the event. The sim stays paused, so this does not change any sim state.
 - **Script shots are not fps-sampled** (the sim is paused); the logs carry sim state and the
   cumulative console output instead.
-- **Output goes to `artifacts/shots/<script name>/`**, and relative `--script` paths resolve
-  against `INIT_CWD` (where `pnpm shot` was typed), since pnpm runs the tool from `tools/shot`.
+- **Output goes to `artifacts/shots/<script name>/`**, cleared at the start of each run; the
+  shot name `run` is reserved. Relative `--script` paths resolve against the repo root, like
+  `--out` (pnpm runs the tool from `tools/shot`).
 
 ### Hub sim (`packages/sim/src/scenarios/hub.ts`)
 - **Planck.js 1.5.0** is the only new sim dependency. The boundary test now allows `planck`.
@@ -50,11 +51,16 @@ note "the stack is scaffolding, not a decision" no longer applies to those parts
   footprint 0.5 × 0.4 m at (2.2, 0.2). Start (−2.5, −0.8). PLACEHOLDER layout pending D2.
 - **Tap targets** are clamped to the walkable area shrunk by the bean's radius. Held keys win
   over a target and cancel it. The last step toward a target moves exactly the remaining
-  distance, so the bean arrives exactly. Run applies to tap moves while Shift is held.
+  distance, so the bean arrives exactly when nothing is in the way. A target right against an
+  edge, corner or prop can't be reached exactly (Planck's contact skin); a blocked step within
+  0.02 m of the target counts as arrived. Run applies to tap moves while Shift is held.
 - **Stuck:** a step is blocked when it makes less than 25% of the intended progress toward the
   target; 21 blocked steps in a row (0.35 s) drop the target. Sliding along a prop is not stuck.
 - **Facing** is the unit vector of the last ground movement, kept while idle; it starts facing
   the camera (south). The rig will map it to the 8 views.
+- **The layout is fixed per scenario.** `state.layout` is for reading; the Planck world is built
+  from it once, when the scenario is created.
+- **Commands with non-finite numbers are ignored** (they will arrive over the network in M2).
 - **Commands:** `move` (held direction plus Run), `moveTo` (tap target), `jump`. The held input
   is part of the sim state, so a replay needs only the commands.
 
@@ -66,7 +72,8 @@ note "the stack is scaffolding, not a decision" no longer applies to those parts
   area's north edge and depth_range its north-south size (5 m). Only the bean is scaled;
   props are drawn at a fixed size (DESIGN.md §4 says characters scale).
 - **Draw order** is `−y·100` from the ground position (not the height), so a jump never changes
-  the order. Props sort by their footprint centre. Ground, floor and shadows sit below
+  the order. On the same ground row the bean draws in front of a prop (explicit +0.5 tie-break),
+  and the shot log's behind or in-front field uses the same rule. Props sort by their footprint centre. Ground, floor and shadows sit below
   everything sorted.
 - **Placeholders**, all marked in code: the bean is an outlined ellipse with a belly and eyes.
   The eyes slide toward the facing direction and hide when facing away; this is not the 8-view
@@ -75,7 +82,7 @@ note "the stack is scaffolding, not a decision" no longer applies to those parts
   the direction or Run changes (on key events and once per frame, which catches keys released
   on blur). Space sends `jump` on its keydown event, ignoring OS repeats. Phaser's `JustDown`
   misses a press and release within one frame. A tap or click sends `moveTo` with the ground
-  point under the pointer (z = 0).
+  point under the pointer (z = 0); only the primary button or a touch counts.
 - **No on-screen touch buttons** for Run and Jump yet; phones can tap-to-move only.
 - **The hub shows one controls hint** ("Move: arrows or WASD   Run: Shift   Jump: Space"),
   which the no-text rule allows. There is no other text.

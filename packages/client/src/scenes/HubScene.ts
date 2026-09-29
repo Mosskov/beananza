@@ -11,6 +11,11 @@ const m = (meters: number) => meters * PIXELS_PER_METER;
 const VIEW_CENTER = { x: 0, y: -0.5 };
 /** Ground, backdrop and shadows sit below everything that is depth-sorted. */
 const GROUND_DEPTH = -1e6;
+/**
+ * Characters draw in front of props on the same ground row. Explicit, so the draw order never
+ * depends on which object was created first (depth keys are whole pixels apart otherwise).
+ */
+const CHARACTER_TIE_BREAK = 0.5;
 const UI_DEPTH = 1e6;
 
 // PLACEHOLDER art: a bean-ish ellipse with a belly and eyes until the parts rig (D3) exists.
@@ -142,6 +147,7 @@ export class HubScene extends SimScene<HubState, HubCommand> {
     kb.on(Phaser.Input.Keyboard.Events.ANY_KEY_UP, () => this.syncHeldInput());
 
     this.input.on(Phaser.Input.Events.POINTER_DOWN, (pointer: Phaser.Input.Pointer) => {
+      if (pointer.button !== 0) return; // Primary button or touch only.
       const ground = groundFromScreen(pointer.worldX, pointer.worldY);
       this.sim.enqueue({ type: 'moveTo', x: ground.x, y: ground.y });
     });
@@ -179,7 +185,7 @@ export class HubScene extends SimScene<HubState, HubCommand> {
     const scale = depthScale(y, this.sim.state.layout.walkable);
 
     const feet = toScreen(x, y, z);
-    this.bean.root.setPosition(feet.x, feet.y).setScale(scale).setDepth(depthKey(y));
+    this.bean.root.setPosition(feet.x, feet.y).setScale(scale).setDepth(depthKey(y) + CHARACTER_TIE_BREAK);
     const ground = toScreen(x, y);
     // The shadow stays on the ground and shrinks as the bean rises.
     const lift = Math.max(0, 1 - z / 1.5);

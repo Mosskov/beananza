@@ -1,7 +1,7 @@
 import { BoxShape, ChainShape, CircleShape, World, type Body } from 'planck';
 import type { Scenario, SimStateBase } from '../sim';
 import { FIXED_DT, SIM_HZ, ticksToSeconds } from '../time';
-import { EARTH_GRAVITY } from './drop';
+import { EARTH_GRAVITY } from '../constants';
 
 /**
  * The hub plaza, seen from ¾ top-down (D1). Coordinates (D15): the ground plane is x east and
@@ -31,6 +31,12 @@ const STUCK_PROGRESS = 0.25;
 export const HUB_BEAN_RADIUS_M = 0.25;
 /** Closer than this to a tap target counts as arrived (m). */
 const ARRIVE_EPSILON = 1e-6;
+/**
+ * A blocked step this close to the target also counts as arrived (m): Planck's 0.01 m contact
+ * skin plus its 0.005 m slop keep the bean from reaching a target set right against an edge,
+ * a corner or a prop, and that should not have to wait out the stuck timer.
+ */
+const ARRIVE_BLOCKED_M = 0.02;
 
 export interface Rect {
   minX: number;
@@ -109,7 +115,11 @@ export interface HubInput {
 }
 
 export interface HubState extends SimStateBase {
-  layout: PlazaLayout;
+  /**
+   * The plaza, for reading. The Planck world is built from it once, when the scenario is
+   * created; changing it here later does not move any walls.
+   */
+  readonly layout: PlazaLayout;
   gravity: number;
   input: HubInput;
   bean: HubBean;
@@ -226,6 +236,8 @@ export function createHubScenario(options: HubOptions = {}): Scenario<HubState, 
     step(state, commands) {
       const bean = state.bean;
       for (const c of commands) {
+        // Commands will one day arrive over the network: drop any with non-finite numbers.
+        if ((c.type === 'move' || c.type === 'moveTo') && !(Number.isFinite(c.x) && Number.isFinite(c.y))) continue;
         if (c.type === 'move') {
           state.input = { x: c.x, y: c.y, run: c.run };
         } else if (c.type === 'moveTo') {
@@ -291,7 +303,7 @@ export function createHubScenario(options: HubOptions = {}): Scenario<HubState, 
           bean.stuckSteps = 0;
         } else if (targetDistance - remaining < STUCK_PROGRESS * intended) {
           bean.stuckSteps += 1;
-          if (bean.stuckSteps >= HUB_STUCK_STEPS) {
+          if (remaining <= ARRIVE_BLOCKED_M || bean.stuckSteps >= HUB_STUCK_STEPS) {
             bean.target = null;
             bean.stuckSteps = 0;
           }

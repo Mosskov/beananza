@@ -64,6 +64,7 @@ export function parseScript(json: unknown): ShotScript {
       if (typeof value !== 'string' || !SHOT_NAME.test(value)) {
         throw new Error(`${where}: shot needs a name of lowercase letters, digits, "-" or "_"`);
       }
+      if (value === 'run') throw new Error(`${where}: shot name "run" is reserved for run.json`);
       if (names.has(value)) throw new Error(`${where}: shot name "${value}" is used twice`);
       names.add(value);
       return { shot: value };

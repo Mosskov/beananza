@@ -5,8 +5,8 @@ A browser game that teaches high school physics through play. This repo is early
 a screenshot and scripted-playthrough tool used to verify every scene, and a first hub plaza
 where a placeholder bean walks, runs and jumps.
 
-Start with `CLAUDE.md` and `docs/` (design, decisions, implementation notes). Nothing in there
-is approved yet. Current state: `docs/STATUS.md`. Routine choices made while building:
+Start with `CLAUDE.md` and `docs/` (design, decisions, implementation notes). Only what
+`docs/DECISIONS.md` marks as confirmed is approved; everything else is a proposal. Current state: `docs/STATUS.md`. Routine choices made while building:
 `docs/ASSUMPTIONS.md`.
 
 ## Requirements
@@ -143,8 +143,10 @@ A script is a JSON file naming a scene and a list of steps, each with exactly on
   console output since the page loaded.
 - **Exit code:** non-zero if the script is invalid, a step throws, or the page logs any console
   error, page error or failed request.
-- `--script` is repeatable and cannot be combined with `--scene`, `--all` or `--t`. Relative
-  paths resolve from the directory you ran the command in.
+- `--script` is repeatable and cannot be combined with `--scene`, `--all` or `--t`. Run
+  `pnpm shot` from the repo root: relative `--script` and `--out` paths resolve against it.
+- Each run first clears its output folder. Scripts with the same file name share a folder, and
+  the shot name `run` is reserved for `run.json`.
 
 Scripts in `tools/shot/scripts/`:
 

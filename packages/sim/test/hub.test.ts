@@ -282,6 +282,29 @@ describe('hub tap-to-move', () => {
     expect(sim.state.bean.x).toBeGreaterThan(tree.x + tree.halfWidth);
   });
 
+  it('arrives at a corner target without waiting out the stuck timer', () => {
+    const sim = newHub({ start: { x: 0, y: -1 } });
+    sim.enqueue({ type: 'moveTo', x: 50, y: -50 });
+    const ideal = Math.hypot(walk.maxX - r, walk.minY + r + 1) / HUB_WALK_SPEED;
+    let n = 0;
+    do {
+      sim.step();
+      n += 1;
+    } while (sim.state.bean.target !== null && n < 1000);
+    expect(n).toBeLessThanOrEqual(steps(ideal) + 2);
+    expect(Math.hypot(sim.state.bean.x - (walk.maxX - r), sim.state.bean.y - (walk.minY + r))).toBeLessThan(0.02);
+  });
+
+  it('ignores commands with non-finite numbers', () => {
+    const sim = newHub({ start: { x: -3, y: -1 } });
+    sim.enqueue({ type: 'moveTo', x: Number.NaN, y: 0 });
+    sim.enqueue(move(Number.POSITIVE_INFINITY, 0));
+    run(sim, 5);
+    expect(sim.state.bean.target).toBeNull();
+    expect(sim.state.input).toEqual({ x: 0, y: 0, run: false });
+    expect(sim.state.bean.x).toBe(-3);
+  });
+
   it('a movement key cancels the target', () => {
     const sim = newHub({ start: { x: -3, y: -1 } });
     sim.enqueue({ type: 'moveTo', x: 1, y: -1 });

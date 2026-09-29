@@ -67,9 +67,16 @@ function ellipseCentres(part: SvgPart): Point[] {
  * - arms and the scarf tail: the first point of their path (the shoulder, the knot);
  * - feet: the centre of their ellipse;
  * - eyes: the mean of the eye ellipse centres (highlight circles are ignored);
- * - everything else: the ground point between the feet (0, 0).
+ * - prop wheels (`wheel-…`): the centre of their first circle (the hub);
+ * - everything else: the origin (the ground point between the feet, or under a prop).
  */
 export function partPivot(part: SvgPart): Point {
+  if (part.id.startsWith('wheel-')) {
+    const m = /<circle\b([^>]*)>/.exec(part.inner);
+    if (!m) throw new Error(`Part "${part.id}" needs a circle for its pivot.`);
+    const a = parseAttrs(m[1] as string);
+    return { x: Number(a.cx ?? 0), y: Number(a.cy ?? 0) };
+  }
   if (part.id.startsWith('arm-') || part.id === 'scarf-tail') {
     const p = firstMove(part);
     if (!p) throw new Error(`Part "${part.id}" needs a path starting with M for its pivot.`);

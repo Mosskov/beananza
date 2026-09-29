@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
-import { ART_RESOLUTION, SHADOW_TEXTURE, addBeanTextures, beanArt, type PartTexture } from './bean-art';
+import { ART_RESOLUTION, partImage } from '../art/raster';
+import { SHADOW_TEXTURE, addBeanTextures, beanArt } from './bean-art';
 import { viewKey, type RigView } from './bean-contract';
 import type { Pose } from './player';
 import type { Point } from './svg-parts';
@@ -20,14 +21,6 @@ interface BuiltView {
 }
 
 const DEG = Math.PI / 180;
-
-/** An image of a part texture whose origin sits on `at` (art units in the view's frame). */
-function partImage(scene: Phaser.Scene, tex: PartTexture, at: Point): Phaser.GameObjects.Image {
-  return scene.add
-    .image(0, 0, tex.key)
-    .setOrigin((at.x - tex.bounds.x) / tex.bounds.w, (at.y - tex.bounds.y) / tex.bounds.h)
-    .setScale(1 / ART_RESOLUTION);
-}
 
 /**
  * The ground shadow under a bean, origin at the ground point between the feet, in art units

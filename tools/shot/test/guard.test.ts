@@ -45,25 +45,22 @@ describe('the guard hook', { timeout: 30_000 }, () => {
     }
   });
 
-  it('blocks merging and rebasing on main, and switching to main to merge', () => {
-    expect(run('git merge tools/prep', onMain)).toMatch(/on main/);
-    expect(run('git rebase origin/main', onMain, 'PowerShell')).toMatch(/on main/);
-    expect(run('git -C . merge x', onMain)).toMatch(/on main/);
-    expect(run('git checkout main && git merge tools/prep', onBranch)).toMatch(/on main/);
+  it('blocks rewriting main: rebasing or resetting on it, and switching to main to rebase', () => {
+    expect(run('git rebase origin/main', onMain, 'PowerShell')).toMatch(/rebase while on main/);
+    expect(run('git -C . reset --hard x', onMain)).toMatch(/reset while on main/);
+    expect(run('git checkout main && git rebase tools/prep', onBranch)).toMatch(/rebase while on main/);
+    expect(run(`git -C "${onMain}" rebase x`, onBranch)).toMatch(/while on main/);
+    expect(run(`cd "${onMain}" && git reset HEAD~1`, onBranch)).toMatch(/while on main/);
   });
 
-  it('blocks the other ways onto main and onto the share site (review round 1)', () => {
+  it('blocks deleting main on the remote, and the other ways onto the share site (review round 1)', () => {
     const cases: [string, string, RegExp][] = [
       ['gh pr merge 3 --squash', onBranch, /merges a pull request/],
-      ['git push origin tools/prep:main', onBranch, /pushes to main/],
-      ['git push origin HEAD:refs/heads/main', onBranch, /pushes to main/],
-      ['git push origin main', onBranch, /pushes to main/],
-      ['git push --delete origin main', onBranch, /pushes to main/],
-      ['git push', onMain, /pushes to main/],
+      ['git push --delete origin main', onBranch, /deletes main/],
+      ['git push origin -d main', onMain, /deletes main/],
+      ['git push origin :main', onBranch, /deletes main/],
+      ['git push origin :refs/heads/main', onBranch, /deletes main/],
       ['git fetch . tools/prep:main', onBranch, /local main/],
-      [`git -C "${onMain}" merge x`, onBranch, /while on main/],
-      [`cd "${onMain}" && git merge tools/prep`, onBranch, /while on main/],
-      ['git pull', onMain, /pull while on main/],
       ['git branch -f main HEAD', onBranch, /main branch/],
       ['npx wrangler deploy', onBranch, /Cloudflare/],
       ['wrangler secret put SITE_PASSWORD', onBranch, /Cloudflare/],
@@ -73,22 +70,19 @@ describe('the guard hook', { timeout: 30_000 }, () => {
     for (const [c, cwd, why] of cases) expect(run(c, cwd), c).toMatch(why);
   });
 
-  it('blocks the round 2 bypasses: HEAD on main, moving main, mirror and --all, other runners, nested shells', () => {
+  it('blocks the round 2 bypasses: moving main, mirror, other runners, nested shells', () => {
     const cases: [string, string, RegExp][] = [
-      ['git push -u origin HEAD', onMain, /pushes to main/],
-      ['git push origin @', onMain, /pushes to main/],
-      ['git push origin HEAD:main', onBranch, /pushes to main/],
       ['git checkout -B main tools/prep && git push origin', onBranch, /moves the main branch/],
       ['git switch -C main tools/prep', onBranch, /moves the main branch/],
       ['git update-ref refs/heads/main HEAD', onBranch, /moves the main branch/],
       ['git branch -d main', onBranch, /main branch/],
       ['git push --mirror origin', onBranch, /force-pushes \(or mirrors\)/],
-      ['git push --all origin', onBranch, /pushes to main/],
+      ['git push -f origin main', onMain, /force-pushes/],
       ['npm --prefix tools/share run cf-deploy', onBranch, /share site/],
       ['cd tools/share && npm run cf-deploy', onBranch, /share site/],
       ['yarn share:password', onBranch, /share site/],
-      [`(cd "${onMain}" && git merge x)`, onBranch, /while on main/],
-      [`bash -c 'cd "${onMain}" && git merge x'`, onBranch, /while on main/],
+      [`(cd "${onMain}" && git rebase x)`, onBranch, /while on main/],
+      [`bash -c 'cd "${onMain}" && git reset --hard x'`, onBranch, /while on main/],
       ['git rebase tools/prep main', onBranch, /rewrites main/],
       ['git reset --hard HEAD~1', onMain, /reset while on main/],
     ];
@@ -135,5 +129,27 @@ describe('the guard hook', { timeout: 30_000 }, () => {
       expect(run(c, onBranch), c).toBeNull();
     }
     expect(run('git status', onMain)).toBeNull();
+  });
+
+  it('lets a session work on main: commit, pull, merge, revert and a plain push of main', () => {
+    for (const c of [
+      'git commit -m "art: the stars"',
+      'git pull',
+      'git pull --ff-only origin main',
+      'git merge origin/main',
+      'git revert HEAD',
+      'git cherry-pick abc123',
+      'git push',
+      'git push origin main',
+      'git push -u origin HEAD',
+      'git push origin @',
+      'git push --all origin',
+      `cd "${onMain}" && git merge x`,
+    ]) {
+      expect(run(c, onMain), c).toBeNull();
+    }
+    for (const c of ['git push origin tools/prep:main', 'git push origin HEAD:refs/heads/main', 'git checkout main && git merge tools/prep']) {
+      expect(run(c, onBranch), c).toBeNull();
+    }
   });
 });

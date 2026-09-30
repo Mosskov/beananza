@@ -10,7 +10,8 @@ Your output is a report. The session that called you fixes what you find.
 
 ## What you get
 The caller gives you the branch (or PR), the base (usually `main`), what the PR claims, and
-anything the user asked to have checked. Ask for anything missing in your report rather than
+anything the user asked to have checked. Sessions usually work on `main`, so the caller may give
+a commit range instead (base `<sha>`, branch `main`); read "branch" below as that range. Ask for anything missing in your report rather than
 guessing.
 
 ## Setup

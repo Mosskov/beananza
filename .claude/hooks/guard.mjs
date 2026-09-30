@@ -1,8 +1,9 @@
 // PreToolUse guard for Bash and PowerShell (.claude/settings.json). Blocks the commands a
 // session must ask the user about first: changing the share site (deploy, secrets, remote
-// migrations), force-pushing, and anything that lands on or moves main (merging, rebasing,
-// pulling or resetting on main, pushing to main, moving the main branch, merging a PR). Reads
-// the hook payload on stdin; prints a deny decision, or nothing to let the command through.
+// migrations), force-pushing, and anything that rewrites, moves or deletes main (rebasing or
+// resetting on main, deleting main on origin, moving the main branch, merging a PR). Sessions
+// work on main and push it (CLAUDE.md, "How we work"), so commits, pulls, merges and plain
+// pushes of main pass. Reads the hook payload on stdin; prints a deny decision, or nothing to let the command through.
 // Plain Node, no dependencies, so it runs the same on Windows, in CI and in cloud sessions.
 import { execFileSync } from 'node:child_process';
 import { isAbsolute, resolve } from 'node:path';
@@ -24,7 +25,7 @@ const at = (base, p) => {
 /** Quoted text blanked out, so a commit message or an echo that mentions a command is not that command. */
 const mask = (s) => s.replace(/"[^"]*"|'[^']*'/g, '""');
 
-const ASK = 'Ask the user before running it (CLAUDE.md: the user merges into main; never run pnpm share:deploy or pnpm share:password unless asked).';
+const ASK = 'Ask the user before running it (CLAUDE.md: never rewrite or delete main or merge a pull request, and never run pnpm share:deploy or pnpm share:password unless asked).';
 
 /** Split a command line into simple commands (;, &&, ||, |, newlines), ignoring separators inside quotes. */
 function segments(command) {
@@ -117,9 +118,11 @@ function verdict(command, cwd, depth = 0) {
       if (args.some((a) => /^--(force(-with-lease|-if-includes)?|mirror)(=.*)?$/.test(a) || /^-[A-Za-z]*f[A-Za-z]*$/.test(a) || /^\+/.test(a))) {
         return `Blocked: "${raw}" force-pushes (or mirrors), which can discard others' commits. ${ASK}`;
       }
+      // A plain push of main is how a session ends; deleting main on the remote is not.
       const refs = words.slice(1); // after the remote
-      if (args.includes('--all') || refs.some(toMain) || (refs.length === 0 && onMain)) {
-        return `Blocked: "${raw}" pushes to main. Changes reach main through a pull request the user merges. ${ASK}`;
+      const deletes = args.includes('--delete') || args.includes('-d');
+      if (refs.some((r) => (deletes && isMain(r)) || (r.startsWith(':') && isMain(r.slice(1))))) {
+        return `Blocked: "${raw}" deletes main on the remote. ${ASK}`;
       }
       continue;
     }
@@ -135,8 +138,9 @@ function verdict(command, cwd, depth = 0) {
     if (sub === 'rebase' && words.length >= 2 && words.at(-1) === 'main') {
       return `Blocked: "${raw}" checks out and rewrites main. ${ASK}`;
     }
-    if (['merge', 'rebase', 'pull', 'cherry-pick', 'am', 'reset', 'revert'].includes(sub) && onMain) {
-      return `Blocked: "${raw}" changes main (${sub} while on main). The user merges into main. ${ASK}`;
+    // Rewriting main's history can discard pushed commits; adding to it (merge, pull, revert) is fine.
+    if (['rebase', 'reset'].includes(sub) && onMain) {
+      return `Blocked: "${raw}" rewrites main (${sub} while on main). ${ASK}`;
     }
   }
   return null;

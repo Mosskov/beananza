@@ -170,8 +170,8 @@ baseline, in the repo: `<script>/<shot>.json` for every shot of every script, an
   .bean.vx: 2.4 ≠ 2.5`.
 - `pnpm verify --update-golden` rewrites them from this run, only if every step passed, and
   nothing else writes them. With `--scripts`, only those scripts' files. `--timed drop@2` adds a
-  timed shot. A sim change is then a diff on the branch, reviewed there: say in the commit
-  message (and the PR, if there is one) why each changed file changed.
+  timed shot. A sim change is then a diff in the commit: say in the commit message (and the
+  PR, if there is one) why each changed file changed.
 - `--baseline <folder>` compares against an old evidence folder instead (such as
   `docs/status/m1-s2`); the renames in `compare-states.ts` still map older fields.
 
@@ -451,8 +451,8 @@ art/, reference/   design references only (never ported as code)
 
 ## How work is done: skills
 
-How a session runs (short, one at a time, one slice on a branch the user creates, no pull request
-unless asked) is in CLAUDE.md, "How we work".
+How a session runs (short, one at a time, one slice committed on `main` and pushed at the end,
+no branch or pull request unless asked) is in CLAUDE.md, "How we work".
 The technical recipes are Claude Code skills in `.claude/skills/`, one copy each:
 - `hub-interaction`: a new hub interaction (sim module and tests, test yard, scripts,
   presentation rows);
@@ -465,7 +465,8 @@ for a pull request) is `.github/pull_request_template.md`. A SessionStart hook
 (`.claude/hooks/sync-branches.sh`) fetches, fast-forwards local `main` and deletes local branches
 that were merged and are gone from GitHub (which deletes a branch when its PR is merged). `.claude/settings.json` allows the everyday
 read-only commands and blocks (through `.claude/hooks/guard.mjs`) `pnpm share:deploy`,
-`pnpm share:password`, force-pushes, and merging or rebasing on main. In a Claude Code on the
+`pnpm share:password`, force-pushes, merging a pull request, and rewriting, moving or deleting
+main (rebase or reset on it); commits, pulls and plain pushes of main pass. In a Claude Code on the
 web session, a SessionStart hook (`.claude/hooks/session-start.sh`) runs `pnpm install` and
 installs Playwright's Chromium if it is missing, so `pnpm verify` works in a fresh container.
 

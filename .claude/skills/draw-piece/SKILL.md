@@ -83,7 +83,7 @@ shown to the user (D13), so plan for that from the start.
 ## 4. Tests and review
 - [ ] `pnpm test` (the contract tests call the same checks as `art:check`). If the file is new,
       add it to the tests that list pieces (`looks.test.ts`, `prop-art.test.ts`).
-- [ ] `pnpm art:sheet` (or `--base main` on a branch). Open `artifacts/art/sheet.png` and
+- [ ] `pnpm art:sheet` (against HEAD; `--base <commit>` to compare with an earlier one). Open `artifacts/art/sheet.png` and
       `zoom.png`.
 - [ ] Check that **every magenta area was meant to change**: a change to one view must not
       touch another view, a cosmetic must not move the bean, and the hub must be unchanged

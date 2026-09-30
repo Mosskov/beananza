@@ -82,7 +82,7 @@ Details in `README.md`.
 - `pnpm check`: typecheck, lint, tests and build (`pnpm test`, `pnpm typecheck`, `pnpm lint`, `pnpm build`)
 - `pnpm verify`: the whole pass in about a minute: check, every scene and script, the looks, and
   the sim states against `tools/shot/golden/` (`pnpm verify --update-golden` rewrites them; the
-  diff is reviewed in the PR). Between steps use `pnpm verify --no-check --scripts <names>`.
+  commit message explains the diff). Between steps use `pnpm verify --no-check --scripts <names>`.
   CI runs it on every push to any branch, and on pull requests from forks (`.github/workflows/verify.yml`).
 - `pnpm shot --all` or `pnpm shot --scene drop --t 1.0`: PNG plus JSON log in `artifacts/shots/`.
   It starts its own server on a free port (`--reuse` for the one on 5180), and `--jobs 4` runs
@@ -98,13 +98,13 @@ Details in `README.md`.
 The user's attention is the limit, so sessions are short, steered and one at a time.
 - **Start:** a SessionStart hook (`.claude/hooks/sync-branches.sh`) has already fetched,
   fast-forwarded local `main` and deleted local branches that were merged and are gone from
-  GitHub (GitHub deletes a branch when its PR is merged); read what it printed. Read "Current
-  state" in `docs/STATUS.md`, `gh pr list` and the CI runs of open work (a red run comes first),
-  say where things are in 3 lines, and agree with the user on **one slice** for the session.
-- **Branch:** **the user creates branches.** Suggest one when a slice starts (`<area>/<topic>`,
-  from an up-to-date `main`), and never create, switch or delete branches yourself. Work on the
-  branch that is checked out; on `main`, ask for a branch before committing. A git worktree
-  only when the user runs a second session at the same time.
+  GitHub; read what it printed. Read "Current state" in `docs/STATUS.md`, `gh pr list` and the
+  latest CI runs on `main` (a red run comes first), say where things are in 3 lines, and agree
+  with the user on **one slice** for the session.
+- **Work on `main`.** No branches and nothing for the user to create, switch or merge: commit
+  on `main` and push it at the end. If the checkout is on another branch (an old one), switch
+  to `main` first. A branch or a git worktree only when the user asks for one (a second session
+  at the same time, or a pull request to review).
 - **Open decisions:** when one comes up, ask in the session (options plus one recommendation),
   then record what the user confirms in `docs/DECISIONS.md`. No separate design chats.
 - **Size:** the hand-written diff (not golden files or generated output) should be reviewable in
@@ -117,15 +117,17 @@ The user's attention is the limit, so sessions are short, steered and one at a t
   `add-clip`. Show every art change as a `pnpm art:sheet` image.
 - **End:** full `pnpm verify` green (explain every golden change), update "Current state" in
   `docs/STATUS.md` in place, commit, confirm `git status` is clean (so CI tests what was
-  tested locally), and push the branch; CI (`.github/workflows/verify.yml`) runs on every
-  push. Don't wait for it: a red run is fixed at the start of the next session. **No pull
-  request unless the user asks for one**; then use the template
-  (`.github/pull_request_template.md`). The commit message carries what the branch is and the
-  routine choices (constants and files). Show the key screenshot or sheet, then hand over in
-  **at most 10 lines**: the branch, what to look at, what failed, decisions needed.
+  tested locally), and push `main` (`git push origin main`); CI
+  (`.github/workflows/verify.yml`) runs on every push. Don't wait for it: a red run is fixed
+  at the start of the next session. **No pull request unless the user asks for one**; then
+  use the template (`.github/pull_request_template.md`). The commit message carries what the
+  slice is and the routine choices (constants and files). Show the key screenshot or sheet,
+  then hand over in **at most 10 lines**: the commits, what to look at, what failed, decisions
+  needed.
 - **Reviewer agent:** only for sim, physics or determinism changes, or when the user asks. One
   round; what is left goes in the handover's open issues.
-- **The user merges.** Never merge into main, force-push, or run `pnpm share:deploy` /
-  `pnpm share:password` without asking (a guard hook in `.claude/settings.json` blocks them).
+- **Never without asking:** force-pushing, rewriting or deleting `main` (rebase or reset on it),
+  merging a pull request (the user merges others' PRs, like a student's), or `pnpm share:deploy`
+  / `pnpm share:password`. A guard hook in `.claude/settings.json` blocks them.
 
 @docs/DECISIONS.md

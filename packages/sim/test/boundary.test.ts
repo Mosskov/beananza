@@ -15,6 +15,11 @@ const rules: BoundaryRules = {
   // public math.random helper. Neither affects results.
   allowedPackages: ['@beananza/shared', 'planck'],
 };
+/**
+ * Loading the TypeScript program takes under a second alone, but about 5 s while `pnpm verify`
+ * runs browsers beside it, which is vitest's default timeout.
+ */
+const COMPILE_TIMEOUT_MS = 30_000;
 const format = (vs: Violation[]) => vs.map((v) => `${v.file}:${v.line} ${v.message}`);
 
 describe('sim boundary', () => {
@@ -61,7 +66,7 @@ describe('sim boundary', () => {
     expect(messages).toEqual([]);
     expect((options.lib ?? []).some((l) => /dom|webworker/i.test(l))).toBe(false);
     expect(options.types).toEqual([]);
-  });
+  }, COMPILE_TIMEOUT_MS);
 
   // The checks above are only worth something if they can fail. Feed them known-bad code.
   describe('catches violations', () => {
@@ -108,6 +113,6 @@ describe('sim boundary', () => {
       expect(messages.some((m) => m.includes("'document'"))).toBe(true);
       expect(messages.some((m) => m.includes("'setTimeout'"))).toBe(true);
       expect(messages.some((m) => m.includes("'process'"))).toBe(true);
-    });
+    }, COMPILE_TIMEOUT_MS);
   });
 });

@@ -4,19 +4,28 @@ Nothing is approved. "Explored" means discussed or mocked up with a leaning, not
 
 ## Up next
 1. **First expedition** (Mechanics Valley, projectile): what students do, the prediction interface, measurement tools, success criteria. Blocks Milestone 1 (D9).
-2. **Teacher and classroom experience:** how a lesson runs start to finish, teacher controls, fitting a class period.
-3. **Progression and notebook:** what students collect or unlock, mastery tracking, reasons to return at home.
-4. **Onboarding:** a student's first five minutes (bean creation, controls, first prediction).
-5. **Hub decisions:** camera (D1), layout (D2), region instancing (D8).
-6. **Other regions:** Wave Canyon, Storm Highlands, Crystal Caves.
-7. **Sound and music:** not discussed yet.
-8. **Art contract:** in place for the bean, cosmetics and props (`art/README.md`, checked in
+2. **Tools prep session** (`prompts/tools-prep-session.md`): the pull request as the unit of
+   work. CI and golden sim states in the repo, the art toolkit (`art:part`, `art:check`) and
+   the clip sheet, the skills, reviewer agent, PR template and guard hooks, then the two-lane
+   rule (one art lane and one behaviour lane at a time). Runs before the asset, interaction
+   and animation lanes. Planned 2026-09-30.
+3. **Reaction model** (`prompts/reactions-design-pass.md`): where a reaction lives (sim state
+   or derived), how it combines with `act`, layering in the rig player, effects as drawn
+   parts, emotes as commands, and determinism for M2. A design pass, no art chosen; it writes
+   the first reactions build prompt. Planned 2026-09-30.
+4. **Teacher and classroom experience:** how a lesson runs start to finish, teacher controls, fitting a class period.
+5. **Progression and notebook:** what students collect or unlock, mastery tracking, reasons to return at home.
+6. **Onboarding:** a student's first five minutes (bean creation, controls, first prediction).
+7. **Hub decisions:** camera (D1), layout (D2), region instancing (D8).
+8. **Other regions:** Wave Canyon, Storm Highlands, Crystal Caves.
+9. **Sound and music:** not discussed yet.
+10. **Art contract:** in place for the bean, cosmetics and props (`art/README.md`, checked in
    tests); what remains is the bean-shape approach (below) and the next steps in
    `docs/ART_PIPELINE.md` §7.
-9. **Drawing tool:** answered 2026-09-29: Claude draws SVG text, so there is no tool and no
+11. **Drawing tool:** answered 2026-09-29: Claude draws SVG text, so there is no tool and no
    exporter (D13).
-10. **Sim architecture sketch** in SI units, plus the first unit tests (`prompts/M0-first-session.md`).
-11. **Catapult as predict, test, compare:** a prediction marker, a trail of the real flight, and the gap between them. Deferred by the user for now.
+12. **Sim architecture sketch** in SI units, plus the first unit tests (`prompts/M0-first-session.md`).
+13. **Catapult as predict, test, compare:** a prediction marker, a trail of the real flight, and the gap between them. Deferred by the user for now.
 
 ## To return to (raised 2026-09-29, share-site session)
 

@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-40 -12 42 16" width="168" height="64">
+  <!-- Dizzy's stars (D26; showcase "dazed"), also shown by Oops: three four-point stars circling over the head.
+       Origin (0, 0) is the effect's anchor, fx-head on the bean, so each star is drawn back at the orbit's centre
+       over the head's middle (32 units in, 4 up: the showcase's orbit at y = -128). The rig moves each star round
+       the orbit (rig/particles.ts, placed by the reaction's start tick) and scales it about its own centre
+       (data-pivot). Drawn shapes only (D17). -->
+  <g id="dizzy-star-1" data-pivot="-32 -4"><path d="M-32 -11 L-29.9 -6.1 L-25 -4 L-29.9 -1.9 L-32 3 L-34.1 -1.9 L-39 -4 L-34.1 -6.1 Z" fill="#F6C66B" stroke="#E3A93B" stroke-width="1.2" stroke-linejoin="round"/></g>
+  <g id="dizzy-star-2" data-pivot="-32 -4"><path d="M-32 -11 L-29.9 -6.1 L-25 -4 L-29.9 -1.9 L-32 3 L-34.1 -1.9 L-39 -4 L-34.1 -6.1 Z" fill="#F6C66B" stroke="#E3A93B" stroke-width="1.2" stroke-linejoin="round"/></g>
+  <g id="dizzy-star-3" data-pivot="-32 -4"><path d="M-32 -11 L-29.9 -6.1 L-25 -4 L-29.9 -1.9 L-32 3 L-34.1 -1.9 L-39 -4 L-34.1 -6.1 Z" fill="#F6C66B" stroke="#E3A93B" stroke-width="1.2" stroke-linejoin="round"/></g>
+</svg>

@@ -12,6 +12,7 @@ import type { EffectSlot } from '../rig/views';
  * effect is registered here, in `effect-sources.ts`, and by its file in `art/effects/`.
  */
 export const EFFECTS: Readonly<Record<string, { slot: EffectSlot; parts: readonly string[] }>> = {
+  'dizzy-stars': { slot: 'fxHead', parts: ['dizzy-star-1', 'dizzy-star-2', 'dizzy-star-3'] },
   'doze-z': { slot: 'fxHead', parts: ['doze-z'] },
   'eureka-bulb': { slot: 'fxHead', parts: ['eureka-bulb'] },
   'sweat-drop': { slot: 'fxBrow', parts: ['sweat-drop'] },

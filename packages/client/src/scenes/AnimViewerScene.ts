@@ -5,6 +5,7 @@ import { prefersReducedMotion } from '../accessibility';
 import { GAME_HEIGHT, GAME_WIDTH, PALETTE, UI_FONT as FONT, cssColor } from '../config';
 import { BeanRig, createBeanShadow } from '../rig/BeanRig';
 import { CLIP_PARTS } from '../rig/clip-parts';
+import { clipParticles, particleOffsets } from '../rig/particles';
 import { reactionParts } from '../rig/reaction-parts';
 import { CLIP_NAMES, CLIPS, familyOf } from '../rig/clips';
 import { samplePose, type Pose, type ReactionLayer } from '../rig/player';
@@ -231,7 +232,7 @@ export class AnimViewerScene extends Phaser.Scene implements TestableScene, Anim
       // As in the hub: a looping clip runs on the clock, a one-shot clip from the start of the pass.
       const t = data.loop ? this.clock : p;
       bean.pose = samplePose({ clip, t, time: this.clock, view: bean.choice.view, mirrored: bean.choice.mirrored, reducedMotion, reaction: this.reaction });
-      bean.rig.applyPose(bean.pose);
+      bean.rig.applyPose(bean.pose, { ...clipParticles(clip, t, reducedMotion), ...particleOffsets(this.reaction, reducedMotion) });
     }
     this.readout.setText(this.describe(p, kind));
   }

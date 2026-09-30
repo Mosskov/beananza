@@ -9,6 +9,7 @@ import { beanArt } from '../rig/bean-art';
 import { chooseClip, samplePose } from '../rig/player';
 import { hitsBeanBody } from '../rig/hit';
 import { reactionParts } from '../rig/reaction-parts';
+import { particleOffsets } from '../rig/particles';
 import { chooseReaction } from '../rig/reactions';
 import { viewForFacing } from '../rig/views';
 import { frameCamera, layoutCentre, sharpText, useRenderScale } from '../screen-scale';
@@ -304,7 +305,7 @@ export class HubScene extends SimScene<HubState, HubCommand> {
     // Keep the readout of the cart in use above the bean's head (headwear included), with a gap.
     if (look.usingCart) this.carts.get(look.usingCart)?.keepReadoutAbove(feet.y + (rig.drawnTop() - READOUT_GAP_UNITS) * scale);
     const pose = samplePose({ clip, t, time, view: choice.view, mirrored: choice.mirrored, reducedMotion: this.reducedMotion, reaction });
-    rig.applyPose(pose);
+    rig.applyPose(pose, particleOffsets(reaction, this.reducedMotion));
     // The bean's body is wider than its footprint: next to a cart's end (pushing or not), draw
     // it back so the body meets the end instead of overlapping it. Drawing only (and its shadow).
     const onRail = look.standOffCarts > 0 && rail !== null && Math.abs(y - rail.y) < CART_HALF_DEPTH + HUB_BEAN_RADIUS_M;

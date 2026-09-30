@@ -269,8 +269,13 @@ describe('reaction clips (D26)', () => {
     expect(pose('waveHi', 0.27, 'front-34').armB.rotation).toBeCloseTo(-138, 12);
   });
 
-  it('dizzy has no tracks yet (the stars and the sway wait for their art)', () => {
-    for (const family of FAMILIES) expect(CLIPS.dizzy[family].tracks).toEqual([]);
+  it('dizzy has only the stars so far (the sway waits for its own pass), popping in from the start', () => {
+    for (const family of FAMILIES) {
+      const tracks = CLIPS.dizzy[family].tracks;
+      expect(tracks.every((tr) => tr.slot === 'fxHead' && tr.group === 'effect'), family).toBe(true);
+      const scale = tracks.find((tr) => tr.channel === 'scaleX');
+      expect(scale?.keys.map((k) => k.v)).toEqual([0, 1.15, 1, 1, 0]);
+    }
   });
 
   it('reduced motion: no jump, no shake; the squash holds at 1.06 × 0.94 and the raised arm at −110° (−165° in the side view)', () => {

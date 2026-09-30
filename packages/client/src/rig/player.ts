@@ -104,6 +104,8 @@ export interface ReactionLayer {
   kind: ReactionKind;
   t: number;
   groups: readonly ReactionGroup[];
+  /** The sim tick it started at (`bean.reaction.since`): what places its particles (`particles.ts`). 0 when left out. */
+  since?: number;
 }
 
 /**

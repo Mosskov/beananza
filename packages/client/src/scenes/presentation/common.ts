@@ -3,7 +3,7 @@ import type { ActClip } from '../../rig/player';
 
 /**
  * Parts some act or reaction shows or hides (`REACTION_PARTS`), and how they are drawn otherwise.
- * `doze-z`, `eureka-bulb` and `sweat-drop` are effects (`art/effects/`), shown and hidden by their
+ * `doze-z`, `eureka-bulb`, `sweat-drop` and the `dizzy-star-…` parts are effects (`art/effects/`), shown and hidden by their
  * part id like a bean part.
  */
 export const PART_DEFAULTS = {
@@ -18,6 +18,9 @@ export const PART_DEFAULTS = {
   'mouth-wavy': false,
   'eureka-bulb': false,
   'sweat-drop': false,
+  'dizzy-star-1': false,
+  'dizzy-star-2': false,
+  'dizzy-star-3': false,
 } as const;
 export type ToggledPart = keyof typeof PART_DEFAULTS;
 

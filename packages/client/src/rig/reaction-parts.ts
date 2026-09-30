@@ -1,11 +1,15 @@
 import type { ReactionGroup, ReactionKind } from '@beananza/sim';
+import { STAR_PARTS } from './particles';
 import type { ReactionLayer } from './player';
+
+/** The three stars of `art/effects/dizzy-stars.svg`, which the rig moves one by one (`particles.ts`). */
+const STARS = Object.fromEntries(STAR_PARTS.map((id) => [id, true])) as Record<(typeof STAR_PARTS)[number], true>;
 
 /**
  * What a reaction shows and hides while it runs (D26), by the group of the compatibility table
  * each change belongs to: the face swaps the eyes and mouth (and hides dozing's closed eyes); the
  * effect shows its drawing from `art/effects/` (and hides the doze "z", which shares the head
- * slot). A group the act does not allow changes nothing. Wave hi and dizzy have none yet.
+ * slot). A group the act does not allow changes nothing. Wave hi has none.
  * Every part named here has a default in the hub's `PART_DEFAULTS`, so it is reset when the
  * reaction ends.
  */
@@ -16,10 +20,10 @@ export const REACTION_PARTS: { readonly [K in ReactionKind]: Partial<Record<Reac
   },
   oops: {
     face: { eyes: false, 'eyes-sleep': false, mouth: false, 'eyes-squeeze': true, 'mouth-wavy': true },
-    effect: { 'doze-z': false, 'sweat-drop': true },
+    effect: { 'doze-z': false, 'sweat-drop': true, ...STARS },
   },
   waveHi: {},
-  dizzy: {},
+  dizzy: { effect: { 'doze-z': false, ...STARS } },
 };
 
 /** The parts a running reaction shows or hides, for the groups it may play; none without one. */

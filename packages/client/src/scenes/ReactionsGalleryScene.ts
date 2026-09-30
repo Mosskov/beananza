@@ -18,6 +18,7 @@ import { BeanRig, createBeanShadow } from '../rig/BeanRig';
 import { chooseClip, samplePose, type Pose } from '../rig/player';
 import { reactionParts } from '../rig/reaction-parts';
 import { chooseReaction } from '../rig/reactions';
+import { particleOffsets } from '../rig/particles';
 import { viewForFacing } from '../rig/views';
 import { frameMainCamera, sharpText } from '../screen-scale';
 import { PART_DEFAULTS, presentAct } from './hub-presentation';
@@ -148,7 +149,7 @@ export class ReactionsGalleryScene extends Phaser.Scene implements TestableScene
         rig.setView(choice);
         const parts: Partial<Record<string, boolean>> = { ...look.parts, ...reactionParts(reaction) };
         for (const [part, shown] of Object.entries(PART_DEFAULTS)) rig.setPartVisible(part, parts[part] ?? shown);
-        rig.applyPose(pose);
+        rig.applyPose(pose, particleOffsets(reaction, this.reducedMotion));
         rig.root.setPosition(x, feetY).setScale(SCALE);
         this.shown.push(summary(sc.label, col.kind, reaction?.t ?? null, reaction?.groups ?? [], clip, choice, pose));
       });

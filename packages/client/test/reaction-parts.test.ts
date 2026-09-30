@@ -14,7 +14,8 @@ describe('reaction parts (D26)', () => {
     expect(reactionParts(null)).toEqual({});
     expect(reactionParts(layer('eureka', ['face', 'effect', 'body']))).toEqual({ ...REACTION_PARTS.eureka.face, ...REACTION_PARTS.eureka.effect });
     expect(reactionParts(layer('oops', ['face']))).toEqual({ eyes: false, 'eyes-sleep': false, mouth: false, 'eyes-squeeze': true, 'mouth-wavy': true });
-    expect(reactionParts(layer('oops', ['effect']))).toEqual({ 'doze-z': false, 'sweat-drop': true });
+    expect(reactionParts(layer('oops', ['effect']))).toEqual({ 'doze-z': false, 'sweat-drop': true, 'dizzy-star-1': true, 'dizzy-star-2': true, 'dizzy-star-3': true });
+    expect(reactionParts({ kind: 'dizzy', t: 0.5, groups: ['effect'] })).toEqual({ 'doze-z': false, 'dizzy-star-1': true, 'dizzy-star-2': true, 'dizzy-star-3': true });
     expect(reactionParts(layer('eureka', ['arms', 'body']))).toEqual({});
   });
 
@@ -39,5 +40,8 @@ describe('reaction parts (D26)', () => {
     expect(moves('eureka', 'fxHead')).toBe(true);
     expect(EFFECTS['sweat-drop']?.slot).toBe('fxBrow');
     expect(moves('oops', 'fxBrow')).toBe(true);
+    expect(EFFECTS['dizzy-stars']?.slot).toBe('fxHead');
+    expect(moves('oops', 'fxHead')).toBe(true);
+    expect(CLIPS.dizzy.front.tracks.some((tr) => tr.slot === 'fxHead' && tr.group === 'effect')).toBe(true);
   });
 });

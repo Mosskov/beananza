@@ -5,6 +5,7 @@ import { DEFAULT_LOOK, type BeanLook } from '@beananza/shared';
 import { SHADOW_TEXTURE, addBeanTextures, beanArt, textureKey } from './bean-art';
 import { viewKey, type RigView } from './bean-contract';
 import { lookParts } from './looks';
+import type { ParticleOffset } from './particles';
 import type { Pose, SlotTransform } from './player';
 import type { Point } from './svg-parts';
 import {
@@ -38,10 +39,11 @@ interface BuiltView {
   bodySegments: Phaser.GameObjects.Container[];
   parts: Map<string, PartImage>;
   /** The effect parts on each effect slot (hidden until shown by part id). */
-  effects: Map<EffectSlot, PartImage[]>;
+  effects: Map<EffectSlot, { id: string; part: PartImage }[]>;
 }
 
 const DEG = Math.PI / 180;
+const NO_OFFSET: ParticleOffset = { x: 0, y: 0, scale: 1 };
 
 /**
  * The ground shadow under a bean, origin at the ground point between the feet, in art units
@@ -138,7 +140,7 @@ export class BeanRig {
     const ground = this.scene.add.container(0, 0);
     container.add([head, ground]);
     bodySegments.push(head);
-    const effects = new Map<EffectSlot, PartImage[]>();
+    const effects = new Map<EffectSlot, { id: string; part: PartImage }[]>();
     for (const ep of effectParts()) {
       const anchor = anchors[EFFECT_SLOT_ANCHORS[ep.slot]] as Point;
       const base = { x: anchor.x + ep.pivot.x, y: anchor.y + ep.pivot.y };
@@ -147,7 +149,7 @@ export class BeanRig {
       (ep.slot === 'fxGround' ? ground : head).add(image);
       const placed = { image, base, sign, top: anchor.y + ep.texture.bounds.y } satisfies PartImage;
       parts.set(ep.partId, placed);
-      effects.set(ep.slot, [...(effects.get(ep.slot) ?? []), placed]);
+      effects.set(ep.slot, [...(effects.get(ep.slot) ?? []), { id: ep.partId, part: placed }]);
     }
     return { container, bodySegments, parts, effects };
   }
@@ -189,23 +191,24 @@ export class BeanRig {
     for (const v of this.built.values()) v.parts.get(partId)?.image.setVisible(visible);
   }
 
-  applyPose(pose: Pose): void {
+  /** Pose the current view; `particles` (`particleOffsets`) moves single effect parts on from their slot. */
+  applyPose(pose: Pose, particles: Readonly<Record<string, ParticleOffset>> = {}): void {
     const view = this.current;
     if (!view) return;
     const b = pose.body;
     for (const seg of view.bodySegments) seg.setPosition(b.x, b.y).setRotation(b.rotation * DEG).setScale(b.scaleX, b.scaleY);
     // A flipped-back part shows as drawn while its motion mirrors like every other part.
-    const place = (part: PartImage, s: SlotTransform) => {
-      const k = 1 / ART_RESOLUTION;
+    const place = (part: PartImage, s: SlotTransform, p: ParticleOffset = NO_OFFSET) => {
+      const k = p.scale / ART_RESOLUTION;
       part.image
-        .setPosition(part.base.x + s.x, part.base.y + s.y)
+        .setPosition(part.base.x + s.x + p.x, part.base.y + s.y + p.y)
         .setRotation(s.rotation * DEG)
         .setScale(part.sign * k * s.scaleX, k * s.scaleY);
     };
     for (const slot of SLOTS) {
       if (slot === 'body') continue;
       if ((EFFECT_SLOTS as readonly Slot[]).includes(slot)) {
-        for (const part of view.effects.get(slot as EffectSlot) ?? []) place(part, pose[slot]);
+        for (const { id, part } of view.effects.get(slot as EffectSlot) ?? []) place(part, pose[slot], particles[id]);
         continue;
       }
       const part = view.parts.get(SLOT_PARTS[this.choice.view][slot as Exclude<Slot, 'body' | EffectSlot>]);

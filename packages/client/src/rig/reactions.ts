@@ -12,5 +12,5 @@ export function chooseReaction(state: Pick<HubState, 'bean'>, time: number): Rea
   const { bean } = state;
   const reaction = bean.reaction;
   if (!reaction) return null;
-  return { kind: reaction.kind, t: Math.max(0, time - reaction.since / SIM_HZ), groups: allowedGroups(bean, reaction.kind) };
+  return { kind: reaction.kind, t: Math.max(0, time - reaction.since / SIM_HZ), groups: allowedGroups(bean, reaction.kind), since: reaction.since };
 }

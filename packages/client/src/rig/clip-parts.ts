@@ -16,4 +16,5 @@ export const CLIP_PARTS: Partial<Record<ClipName, Record<string, boolean>>> = {
   doze: { eyes: false, 'eyes-sleep': true, 'doze-z': true },
   eureka: allGroups('eureka'),
   oops: allGroups('oops'),
+  dizzy: allGroups('dizzy'),
 };

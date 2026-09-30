@@ -104,6 +104,10 @@ it in `effect-sources.ts`; `pnpm art:check` finds a file that is not registered.
 - `eureka-bulb.svg`: Eureka!'s lightbulb with rays, on `fxHead`, drawn back over the head's
   middle (30 units in from the anchor) and popping about its own centre (`data-pivot`).
 - `sweat-drop.svg`: Oops's sweat drop, on `fxBrow`; the clip slides it down the head.
+- `dizzy-stars.svg`: three four-point stars (parts `dizzy-star-1` to `-3`) for dizzy and Oops, on
+  `fxHead`, each drawn at the orbit's centre over the head's middle (32 units in, 4 up from the
+  anchor, the showcase's y = −128). The rig moves each star round a 24 × 7 orbit on its own
+  (`packages/client/src/rig/particles.ts`); the clip pops them in and out.
 
 ## Boss (`baron/`), parked
 - `heavy-baron.svg`: The Heavy Baron in his smug default expression.

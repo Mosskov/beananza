@@ -1,0 +1,411 @@
+{
+  "ok": true,
+  "error": null,
+  "script": "tools/shot/scripts/hub-island-walk.json",
+  "scene": "hub",
+  "shot": "walked-north",
+  "step": 6,
+  "url": "http://localhost:57988/?scene=hub&paused=1&layout=island&look=blue%2Cspots%2Cbow%2Cglasses",
+  "simTime": 2.4,
+  "screenshot": "artifacts/shots/look-blue-spots-bow-glasses/hub-island-walk/walked-north.png",
+  "git": {
+    "commit": "7dc851d",
+    "dirty": true
+  },
+  "timestamp": "2026-09-30T10:03:36.040Z",
+  "viewport": {
+    "width": 1280,
+    "height": 720
+  },
+  "browser": "chromium 153.0.8010.12",
+  "glRenderer": "ANGLE (AMD, AMD Radeon 780M Graphics (0x00001900) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+  "reducedMotion": false,
+  "look": "blue,spots,bow,glasses",
+  "server": "started",
+  "inputs": [
+    {
+      "step": 0,
+      "action": "wait 0.2",
+      "simTime": 0
+    },
+    {
+      "step": 2,
+      "action": "keyDown \"ArrowUp\"",
+      "simTime": 0.2
+    },
+    {
+      "step": 3,
+      "action": "wait 2",
+      "simTime": 0.2
+    },
+    {
+      "step": 4,
+      "action": "keyUp \"ArrowUp\"",
+      "simTime": 2.2
+    },
+    {
+      "step": 5,
+      "action": "wait 0.2",
+      "simTime": 2.2
+    }
+  ],
+  "console": {
+    "errors": 0,
+    "warnings": 0,
+    "entries": []
+  },
+  "sceneState": {
+    "tick": 144,
+    "simTime": 2.4,
+    "paused": true,
+    "state": {
+      "layout": {
+        "walkable": {
+          "points": [
+            {
+              "x": 12,
+              "y": 0
+            },
+            {
+              "x": 6,
+              "y": 10.392304845413264
+            },
+            {
+              "x": -6,
+              "y": 10.392304845413264
+            },
+            {
+              "x": -12,
+              "y": 0
+            },
+            {
+              "x": -6,
+              "y": -10.392304845413264
+            },
+            {
+              "x": 6,
+              "y": -10.392304845413264
+            }
+          ]
+        },
+        "props": [
+          {
+            "id": "tree-west",
+            "art": "tree",
+            "x": -7.2,
+            "y": 2.6,
+            "halfWidth": 0.25,
+            "halfDepth": 0.2
+          },
+          {
+            "id": "tree-east",
+            "art": "tree",
+            "x": 8.4,
+            "y": 1.8,
+            "halfWidth": 0.25,
+            "halfDepth": 0.2
+          },
+          {
+            "id": "tree-south",
+            "art": "tree",
+            "x": -0.8,
+            "y": -7.6,
+            "halfWidth": 0.25,
+            "halfDepth": 0.2
+          }
+        ],
+        "benches": [
+          {
+            "id": "bench",
+            "art": "bench",
+            "usable": true,
+            "x": -5,
+            "y": -4.6,
+            "halfWidth": 0.8,
+            "halfDepth": 0.225,
+            "seatHeight": 0.3,
+            "seatDy": -0.15,
+            "seats": [
+              {
+                "id": "west",
+                "dx": -0.4
+              },
+              {
+                "id": "east",
+                "dx": 0.4,
+                "taken": true
+              }
+            ]
+          }
+        ],
+        "portals": [
+          {
+            "id": "portal-mechanics",
+            "art": "portal",
+            "usable": true,
+            "region": "mechanics",
+            "x": -6.2,
+            "y": 6.2,
+            "halfWidth": 0.65,
+            "halfDepth": 0.2
+          },
+          {
+            "id": "portal-waves",
+            "art": "portal",
+            "usable": true,
+            "region": "waves",
+            "x": 0,
+            "y": 7.8,
+            "halfWidth": 0.65,
+            "halfDepth": 0.2
+          },
+          {
+            "id": "portal-storm",
+            "art": "portal",
+            "usable": true,
+            "region": "storm",
+            "x": 6.2,
+            "y": 6.2,
+            "halfWidth": 0.65,
+            "halfDepth": 0.2
+          },
+          {
+            "id": "portal-crystal",
+            "art": "portal",
+            "usable": true,
+            "region": "crystal",
+            "locked": true,
+            "x": -9.2,
+            "y": -0.8,
+            "halfWidth": 0.65,
+            "halfDepth": 0.2
+          }
+        ],
+        "start": {
+          "x": 0,
+          "y": -1
+        },
+        "rail": {
+          "y": -6,
+          "minX": 0.52,
+          "maxX": 7.88,
+          "carts": [
+            {
+              "id": "light",
+              "mass": 5,
+              "x": 2.1,
+              "ridable": true
+            },
+            {
+              "id": "heavy",
+              "mass": 20,
+              "x": 5.8,
+              "ridable": false
+            }
+          ]
+        }
+      },
+      "gravity": 9.81,
+      "beans": [
+        {
+          "id": "local",
+          "input": {
+            "x": 0,
+            "y": 0,
+            "run": false
+          },
+          "x": 0,
+          "y": 3.800000000000003,
+          "z": 0,
+          "vx": 0,
+          "vy": 0,
+          "vz": 0,
+          "grounded": true,
+          "facingX": 0,
+          "facingY": 1,
+          "target": null,
+          "stuckSteps": 0,
+          "jumps": 0,
+          "lastJump": null,
+          "act": {
+            "kind": "free"
+          }
+        }
+      ],
+      "rail": {
+        "carts": [
+          {
+            "id": "light",
+            "mass": 5,
+            "riderMass": 0,
+            "x": 2.1,
+            "v": 0
+          },
+          {
+            "id": "heavy",
+            "mass": 20,
+            "riderMass": 0,
+            "x": 5.8,
+            "v": 0
+          }
+        ],
+        "collisions": [],
+        "riders": []
+      },
+      "tick": 144,
+      "rng": {
+        "s": 1
+      }
+    },
+    "layout": "island",
+    "view": {
+      "bean": {
+        "screen": {
+          "x": 640,
+          "y": 360
+        },
+        "scale": 0.7151517244269855,
+        "depth": -379.5000000000003,
+        "rig": {
+          "act": "free",
+          "placement": "ground",
+          "masked": false,
+          "drawnZ": 0,
+          "vanish": 0,
+          "feet": {
+            "a": {
+              "x": 0,
+              "y": 0
+            },
+            "b": {
+              "x": 0,
+              "y": 0
+            }
+          },
+          "view": "back",
+          "mirrored": false,
+          "clip": "idle",
+          "clipT": 2.4,
+          "body": {
+            "y": 0,
+            "rotation": 0,
+            "scaleX": 1.0123,
+            "scaleY": 0.9877
+          }
+        }
+      },
+      "reducedMotion": false,
+      "carts": [
+        {
+          "id": "light",
+          "mass": 5,
+          "v": 0,
+          "readout": "0.00 m/s",
+          "expectedReadout": "0.00 m/s",
+          "screen": {
+            "x": 850,
+            "y": 1350
+          }
+        },
+        {
+          "id": "heavy",
+          "mass": 20,
+          "v": 0,
+          "readout": "0.00 m/s",
+          "expectedReadout": "0.00 m/s",
+          "screen": {
+            "x": 1220,
+            "y": 1350
+          }
+        }
+      ],
+      "classmates": [
+        {
+          "name": "Priya",
+          "clip": "sit",
+          "greeting": null,
+          "bubble": null,
+          "screen": {
+            "x": 180,
+            "y": 1185
+          },
+          "depth": 460.3999999999999
+        }
+      ],
+      "props": [
+        {
+          "id": "portal-mechanics",
+          "screen": {
+            "x": 20,
+            "y": 120
+          },
+          "depth": -620,
+          "bean": "in front"
+        },
+        {
+          "id": "portal-waves",
+          "screen": {
+            "x": 640,
+            "y": -40
+          },
+          "depth": -780,
+          "bean": "in front"
+        },
+        {
+          "id": "portal-storm",
+          "screen": {
+            "x": 1260,
+            "y": 120
+          },
+          "depth": -620,
+          "bean": "in front"
+        },
+        {
+          "id": "portal-crystal",
+          "screen": {
+            "x": -280,
+            "y": 820
+          },
+          "depth": 80,
+          "bean": "behind"
+        },
+        {
+          "id": "tree-west",
+          "screen": {
+            "x": -80,
+            "y": 480
+          },
+          "depth": -260,
+          "bean": "behind"
+        },
+        {
+          "id": "tree-east",
+          "screen": {
+            "x": 1480,
+            "y": 560
+          },
+          "depth": -180,
+          "bean": "behind"
+        },
+        {
+          "id": "tree-south",
+          "screen": {
+            "x": 560,
+            "y": 1500
+          },
+          "depth": 760,
+          "bean": "behind"
+        },
+        {
+          "id": "bench",
+          "screen": {
+            "x": 140,
+            "y": 1200
+          },
+          "depth": 459.99999999999994,
+          "bean": "behind"
+        }
+      ]
+    }
+  }
+}

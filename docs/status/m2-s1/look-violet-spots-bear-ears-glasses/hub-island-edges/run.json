@@ -1,0 +1,158 @@
+{
+  "ok": true,
+  "error": null,
+  "script": "tools/shot/scripts/hub-island-edges.json",
+  "scene": "hub",
+  "url": "http://localhost:57988/?scene=hub&paused=1&layout=island&look=violet%2Cspots%2Cbear-ears%2Cglasses",
+  "git": {
+    "commit": "7dc851d",
+    "dirty": true
+  },
+  "inputs": [
+    {
+      "step": 0,
+      "action": "keyDown \"Shift\"",
+      "simTime": 0
+    },
+    {
+      "step": 1,
+      "action": "keyDown \"ArrowUp\"",
+      "simTime": 0
+    },
+    {
+      "step": 2,
+      "action": "wait 3.5",
+      "simTime": 0
+    },
+    {
+      "step": 3,
+      "action": "keyUp \"ArrowUp\"",
+      "simTime": 3.5
+    },
+    {
+      "step": 4,
+      "action": "wait 0.1",
+      "simTime": 3.5
+    },
+    {
+      "step": 6,
+      "action": "keyDown \"ArrowRight\"",
+      "simTime": 3.6
+    },
+    {
+      "step": 7,
+      "action": "wait 3.5",
+      "simTime": 3.6
+    },
+    {
+      "step": 8,
+      "action": "keyUp \"ArrowRight\"",
+      "simTime": 7.1
+    },
+    {
+      "step": 9,
+      "action": "wait 0.1",
+      "simTime": 7.1
+    },
+    {
+      "step": 11,
+      "action": "keyDown \"ArrowDown\"",
+      "simTime": 7.2
+    },
+    {
+      "step": 12,
+      "action": "wait 2",
+      "simTime": 7.2
+    },
+    {
+      "step": 13,
+      "action": "keyUp \"ArrowDown\"",
+      "simTime": 9.2
+    },
+    {
+      "step": 14,
+      "action": "keyDown \"ArrowRight\"",
+      "simTime": 9.2
+    },
+    {
+      "step": 15,
+      "action": "wait 1",
+      "simTime": 9.2
+    },
+    {
+      "step": 16,
+      "action": "keyUp \"ArrowRight\"",
+      "simTime": 10.2
+    },
+    {
+      "step": 17,
+      "action": "wait 0.1",
+      "simTime": 10.2
+    },
+    {
+      "step": 19,
+      "action": "keyDown \"ArrowLeft\"",
+      "simTime": 10.3
+    },
+    {
+      "step": 20,
+      "action": "wait 5.5",
+      "simTime": 10.3
+    },
+    {
+      "step": 21,
+      "action": "keyUp \"ArrowLeft\"",
+      "simTime": 15.8
+    },
+    {
+      "step": 22,
+      "action": "wait 0.1",
+      "simTime": 15.8
+    },
+    {
+      "step": 24,
+      "action": "keyDown \"ArrowDown\"",
+      "simTime": 15.9
+    },
+    {
+      "step": 25,
+      "action": "wait 3.5",
+      "simTime": 15.9
+    },
+    {
+      "step": 26,
+      "action": "keyUp \"ArrowDown\"",
+      "simTime": 19.4
+    },
+    {
+      "step": 27,
+      "action": "keyDown \"ArrowRight\"",
+      "simTime": 19.4
+    },
+    {
+      "step": 28,
+      "action": "wait 1",
+      "simTime": 19.4
+    },
+    {
+      "step": 29,
+      "action": "keyUp \"ArrowRight\"",
+      "simTime": 20.4
+    },
+    {
+      "step": 30,
+      "action": "wait 0.1",
+      "simTime": 20.4
+    },
+    {
+      "step": 32,
+      "action": "keyUp \"Shift\"",
+      "simTime": 20.5
+    }
+  ],
+  "console": {
+    "errors": 0,
+    "warnings": 0,
+    "entries": []
+  }
+}

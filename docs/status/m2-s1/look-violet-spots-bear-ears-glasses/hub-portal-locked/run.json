@@ -1,0 +1,48 @@
+{
+  "ok": true,
+  "error": null,
+  "script": "tools/shot/scripts/hub-portal-locked.json",
+  "scene": "hub",
+  "url": "http://localhost:57988/?scene=hub&paused=1&layout=portals&look=violet%2Cspots%2Cbear-ears%2Cglasses",
+  "git": {
+    "commit": "7dc851d",
+    "dirty": true
+  },
+  "inputs": [
+    {
+      "step": 0,
+      "action": "keyDown \"ArrowUp\"",
+      "simTime": 0
+    },
+    {
+      "step": 1,
+      "action": "wait 0.55",
+      "simTime": 0
+    },
+    {
+      "step": 2,
+      "action": "keyUp \"ArrowUp\"",
+      "simTime": 0.55
+    },
+    {
+      "step": 4,
+      "action": "wait 0.1",
+      "simTime": 0.55
+    },
+    {
+      "step": 6,
+      "action": "wait 0.2",
+      "simTime": 0.65
+    },
+    {
+      "step": 8,
+      "action": "wait 0.5",
+      "simTime": 0.85
+    }
+  ],
+  "console": {
+    "errors": 0,
+    "warnings": 0,
+    "entries": []
+  }
+}

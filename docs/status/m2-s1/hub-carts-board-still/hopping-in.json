@@ -1,0 +1,295 @@
+{
+  "ok": true,
+  "error": null,
+  "script": "tools/shot/scripts/hub-carts-board-still.json",
+  "scene": "hub",
+  "shot": "hopping-in",
+  "step": 4,
+  "url": "http://localhost:57988/?scene=hub&paused=1&layout=plaza",
+  "simTime": 1.5,
+  "screenshot": "artifacts/shots/hub-carts-board-still/hopping-in.png",
+  "git": {
+    "commit": "7dc851d",
+    "dirty": true
+  },
+  "timestamp": "2026-09-30T10:03:05.628Z",
+  "viewport": {
+    "width": 1280,
+    "height": 720
+  },
+  "browser": "chromium 153.0.8010.12",
+  "glRenderer": "ANGLE (AMD, AMD Radeon 780M Graphics (0x00001900) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+  "reducedMotion": false,
+  "look": null,
+  "server": "started",
+  "inputs": [
+    {
+      "step": 0,
+      "action": "tap [430,570]",
+      "simTime": 0
+    },
+    {
+      "step": 1,
+      "action": "wait 1.2",
+      "simTime": 0
+    },
+    {
+      "step": 2,
+      "action": "press \"KeyE\"",
+      "simTime": 1.2
+    },
+    {
+      "step": 3,
+      "action": "wait 0.3",
+      "simTime": 1.2
+    }
+  ],
+  "console": {
+    "errors": 0,
+    "warnings": 0,
+    "entries": []
+  },
+  "sceneState": {
+    "tick": 90,
+    "simTime": 1.5,
+    "paused": true,
+    "state": {
+      "layout": {
+        "walkable": {
+          "points": [
+            {
+              "x": -5.8,
+              "y": -3
+            },
+            {
+              "x": 5.8,
+              "y": -3
+            },
+            {
+              "x": 5.8,
+              "y": 2
+            },
+            {
+              "x": -5.8,
+              "y": 2
+            }
+          ]
+        },
+        "props": [
+          {
+            "id": "tree",
+            "art": "tree",
+            "x": 2.2,
+            "y": 0.2,
+            "halfWidth": 0.25,
+            "halfDepth": 0.2
+          }
+        ],
+        "benches": [
+          {
+            "id": "bench",
+            "art": "bench",
+            "usable": true,
+            "x": -3.6,
+            "y": 1.2,
+            "halfWidth": 0.8,
+            "halfDepth": 0.225,
+            "seatHeight": 0.3,
+            "seatDy": -0.15,
+            "seats": [
+              {
+                "id": "west",
+                "dx": -0.4
+              },
+              {
+                "id": "east",
+                "dx": 0.4,
+                "taken": true
+              }
+            ]
+          }
+        ],
+        "portals": [],
+        "start": {
+          "x": -2.5,
+          "y": -0.8
+        },
+        "rail": {
+          "y": -2.1,
+          "minX": -3.68,
+          "maxX": 3.68,
+          "carts": [
+            {
+              "id": "light",
+              "mass": 5,
+              "x": -2.1,
+              "ridable": true
+            },
+            {
+              "id": "heavy",
+              "mass": 20,
+              "x": 1.6,
+              "ridable": false
+            }
+          ]
+        }
+      },
+      "gravity": 9.81,
+      "beans": [
+        {
+          "id": "local",
+          "input": {
+            "x": 0,
+            "y": 0,
+            "run": false
+          },
+          "x": -2.14301871082157,
+          "y": -1.8725000011150372,
+          "z": 0.4889189304250032,
+          "vx": 0,
+          "vy": 0,
+          "vz": 0,
+          "grounded": true,
+          "facingX": 0,
+          "facingY": -1,
+          "target": null,
+          "stuckSteps": 0,
+          "jumps": 0,
+          "lastJump": null,
+          "act": {
+            "kind": "boarding",
+            "cart": "light",
+            "startTick": 72,
+            "hopTick": 79,
+            "endTick": 101,
+            "fromX": -2.1860374216431406,
+            "fromY": -1.6450000022300744,
+            "arc": 0.4389189304250032,
+            "facingX": 0,
+            "facingY": -1
+          }
+        }
+      ],
+      "rail": {
+        "carts": [
+          {
+            "id": "light",
+            "mass": 5,
+            "riderMass": 0,
+            "x": -2.1,
+            "v": 0
+          },
+          {
+            "id": "heavy",
+            "mass": 20,
+            "riderMass": 0,
+            "x": 1.6,
+            "v": 0
+          }
+        ],
+        "collisions": [],
+        "riders": []
+      },
+      "tick": 90,
+      "rng": {
+        "s": 1
+      }
+    },
+    "layout": "plaza",
+    "view": {
+      "bean": {
+        "screen": {
+          "x": 425.7,
+          "y": 455.6
+        },
+        "scale": 0.8523500000669022,
+        "depth": 210.2,
+        "rig": {
+          "act": "boarding",
+          "placement": "cart",
+          "masked": true,
+          "drawnZ": 0.4889,
+          "vanish": 0,
+          "feet": {
+            "a": {
+              "x": 0,
+              "y": -6
+            },
+            "b": {
+              "x": 0,
+              "y": -6
+            }
+          },
+          "view": "front",
+          "mirrored": false,
+          "clip": "fall",
+          "clipT": 0,
+          "body": {
+            "y": 0,
+            "rotation": 0,
+            "scaleX": 0.95,
+            "scaleY": 1.06
+          }
+        }
+      },
+      "reducedMotion": false,
+      "carts": [
+        {
+          "id": "light",
+          "mass": 5,
+          "v": 0,
+          "readout": "0.00 m/s",
+          "expectedReadout": "0.00 m/s",
+          "screen": {
+            "x": 430,
+            "y": 530
+          }
+        },
+        {
+          "id": "heavy",
+          "mass": 20,
+          "v": 0,
+          "readout": "0.00 m/s",
+          "expectedReadout": "0.00 m/s",
+          "screen": {
+            "x": 800,
+            "y": 530
+          }
+        }
+      ],
+      "classmates": [
+        {
+          "name": "Priya",
+          "clip": "sit",
+          "greeting": null,
+          "bubble": null,
+          "screen": {
+            "x": 320,
+            "y": 175
+          },
+          "depth": -119.6
+        }
+      ],
+      "props": [
+        {
+          "id": "tree",
+          "screen": {
+            "x": 860,
+            "y": 290
+          },
+          "depth": -20,
+          "bean": "in front"
+        },
+        {
+          "id": "bench",
+          "screen": {
+            "x": 280,
+            "y": 190
+          },
+          "depth": -120,
+          "bean": "in front"
+        }
+      ]
+    }
+  }
+}

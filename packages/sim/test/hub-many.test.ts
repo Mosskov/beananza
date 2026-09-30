@@ -55,6 +55,21 @@ describe('many beans in one hub (M2)', () => {
     expect(sim.state.beans.map((b) => b.id)).toEqual(['b']);
   });
 
+  it('spreads arriving beans apart instead of stacking them, clear of props', () => {
+    const sim = server({ layout: ISLAND });
+    for (let i = 0; i < 30; i++) sim.enqueue({ type: 'join', player: `p${i}` });
+    sim.step();
+    const beans = sim.state.beans;
+    expect(beans[0]).toMatchObject({ x: ISLAND.start.x, y: ISLAND.start.y });
+    for (const a of beans) {
+      for (const b of beans) if (a !== b) expect(Math.hypot(a.x - b.x, a.y - b.y)).toBeGreaterThan(0.55);
+      for (const f of [...ISLAND.props, ...ISLAND.benches]) {
+        const inside = Math.abs(a.x - f.x) < f.halfWidth + HUB_BEAN_RADIUS_M && Math.abs(a.y - f.y) < f.halfDepth + HUB_BEAN_RADIUS_M;
+        expect(inside, `${a.id} in ${f.id}`).toBe(false);
+      }
+    }
+  });
+
   it('moves each bean by its own input', () => {
     const sim = server({ layout: { ...ISLAND, portals: [] } });
     sim.enqueue({ type: 'join', player: 'a', at: { x: -2, y: 0 } });
@@ -90,6 +105,8 @@ describe('many beans in one hub (M2)', () => {
       const sim = server({ layout: carts });
       for (const p of pushers) sim.enqueue({ type: 'join', player: p, at: { x: west, y: rail.y } });
       sim.step();
+      // Joining spreads beans apart; put every pusher against the same end.
+      for (const p of pushers) Object.assign(bean(sim, p), { x: west, y: rail.y });
       for (const p of pushers) sim.enqueue({ type: 'move', x: 1, y: 0, run: false, player: p });
       run(sim, 4); // well under the 1.9 m/s push cap, even with two
 

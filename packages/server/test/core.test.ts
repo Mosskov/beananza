@@ -55,12 +55,14 @@ describe('hub server core (M2)', () => {
     core.join('a', ok);
     core.join('b', { ...ok, name: 'Calm Owl' });
     core.tick(FIXED_DT);
+    const [a0, b0] = core.sim.state.beans.map((q) => ({ x: q.x, y: q.y }));
     core.command('a', { type: 'move', x: 1, y: 0, run: false, player: 'b' });
     // 1 s in quarter-second ticks (one tick never catches up more than 0.25 s, MAX_FRAME_SECONDS).
     for (let i = 0; i < 4; i++) core.tick(0.25);
     const [a, b] = core.sim.state.beans;
-    expect(a!.x - ISLAND.start.x).toBeCloseTo(HUB_WALK_SPEED, 1);
-    expect(b!.x).toBeCloseTo(ISLAND.start.x, 9);
+    expect(a!.x - a0!.x).toBeCloseTo(HUB_WALK_SPEED, 1);
+    expect(b!.x).toBeCloseTo(b0!.x, 9);
+    expect(b!.y).toBeCloseTo(b0!.y, 9);
   });
 
   it.each([

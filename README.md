@@ -414,6 +414,22 @@ pnpm server:dev        # ws://localhost:2567, restarts on changes; GET /health a
 pnpm server:start      # the same without watching; PORT sets the port
 ```
 
+**Playing online:** run `pnpm server:dev` and `pnpm dev`, then open
+http://localhost:5180/?class=TEST1 in several tabs (or on phones on the same network, with this
+machine's address). Each tab picks a preset name and joins class `TEST1`; everyone in a class
+shares one island. `&name=Brave%20Otter` skips the name choice. Without `?class=` the hub runs
+offline as before (and that is what `pnpm shot` and `pnpm verify` use). Going through a portal
+leaves the room for the region's scene; coming back joins again in front of that portal. A build
+for hosting points the client at its server with `VITE_HUB_URL` (default: port 2567 on the page's
+host).
+
+`pnpm shot:multi` checks it end to end: the hub server and the game's dev server, three browsers
+in one class (they see each other with name tags, agree on every bean's position after moving,
+and one travels through the Waves portal and back), screenshots in `artifacts/shots/multi/`.
+`--bots 30 --seconds 60` adds a load check with 30 headless players and reports the server's step
+time and the snapshot size per player. It is not part of `pnpm verify` (it needs about a minute
+and two servers); run it after changing the server, the protocol or the online scene.
+
 The protocol (room name, class codes, messages, join options) is in
 `packages/shared/src/net.ts`; the snapshot format in `packages/sim/src/scenarios/hub-snapshot.ts`.
 `HubServerCore` (`packages/server/src/core.ts`) holds the rules without networking and is what the

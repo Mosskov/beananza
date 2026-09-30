@@ -1,5 +1,58 @@
 # Status
 
+## M2, session 1: the hexagon sky island, region portals, and the multiplayer hub (2026-09-30)
+
+Branch `hub-island` (local commits only; nothing pushed or deployed). Evidence in
+`docs/status/m2-s1/` (every scene and script, the looks runs, `shot-multi.txt`, and review
+sheets for the island, the portals and the regions).
+
+**Built, in slices:**
+1. **Island geometry (sim):** the walkable area is a convex polygon; `ISLAND` is a flat-top
+   hexagon 24 m across. The M1 rectangle is kept as `layout=plaza`, bit-identical.
+2. **Sky island and camera (client):** blue sky, parallax clouds, cliffs, a hanging-rock
+   underside, a stone arrival pad; the camera follows the bean. `hub` opens on the island.
+3. **Portals and regions:** four portals (Crystal Caves locked); walk in, tap or press E; a
+   placeholder side-view scene per region and a portal back. New art `art/props/portal.svg`.
+4. **Many beans in one sim:** `state.beans[]`, join and leave, per-player commands, pushes that
+   add, one bean per seat and per cart, beans pass through each other, spread-out spawns.
+5. **Server (`packages/server`):** Colyseus 0.18, a room per class code running the hub sim at
+   60 Hz, snapshots at 15 Hz, preset names, checked commands, rate limit, 20 s reconnection,
+   `/health`.
+6. **Online client:** `?class=<code>` joins (a form for the code and a preset name), draws the
+   server's snapshots 100 ms behind with interpolation, name tags within 3 m, portal trips.
+7. **Checks:** `pnpm shot:multi` (three browsers end to end) and `--bots 30` (load).
+
+**Verified (run and looked at this session):**
+- `pnpm verify`: 380 tests; 19 scripts, 85 shots, no console errors; `check-carts` 13/13; looks
+  246 sim states with 0 differences; `compare-states` 58 states against `docs/status/m1-s3` with
+  0 differences, i.e. the plaza, carts and bench behave exactly as before every refactor. The new
+  evidence folder compares with itself: 87 states, 0 failures.
+- `pnpm shot:multi`: three browsers in one class see each other with name tags; after moving
+  every page agrees on every bean to 0.0000 m; one player went through the Waves portal to the
+  region and came back in front of it while the others watched it go and return.
+- Load, 30 headless players for 60 s in one class: 60.1 sim steps a second, 1.7 ms per tick on
+  average (budget 16.7 ms), 37 ms worst (server, bots, Vite and a browser in one process).
+- The sim alone with 30 beans: 0.24 ms per step, deterministic over 60 s.
+
+**Open issues:**
+1. **Hosting (D11):** nothing is deployed. The server needs a host that runs a Node WebSocket
+   server; the docs plan none. Recommendation: Fly.io in an EU region. Also open: where students
+   load the client from (the share site is behind the coworkers' password). No push or deploy
+   happens without your go-ahead.
+2. **Bandwidth:** snapshots are about 5 KB each as JSON (less as msgpack on the wire), about
+   77 KB/s per player, so roughly 18 Mbit/s for a class of 30 on one classroom wifi. Workable, and
+   the first thing to shrink (integers instead of rounded floats, only beans that changed).
+3. **No prediction for your own bean online:** it moves after the round trip plus 100 ms. Fine on
+   a LAN; measure on school wifi before adding prediction.
+4. **D27 (beans pass through each other)** is built as the leaning and needs your yes or no.
+5. **Name tags** extend the no-text rule (D17) to names: please confirm.
+6. **Region scenes** are placeholders without a sim; they wait for each region's design (D9
+   for Mechanics Valley). Region travel is a page load.
+7. **`pnpm verify` does not run `shot:multi`** (about a minute, two servers); run it after
+   changing the server, the protocol or the online scene. No CI yet (unchanged).
+8. **Worst server tick 37 to 62 ms** in the load check came with everything in one process; check
+   again on the real host.
+
 ## M1, session 3: interaction states, the bench, customization basics (2026-09-29)
 
 All three slices are built, tested and reviewed. Priya came along with the bench, after

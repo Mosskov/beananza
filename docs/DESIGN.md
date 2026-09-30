@@ -39,11 +39,15 @@ region gates, Expeditions board, Discovery Wall, demo stage or amphitheater (tea
 Wardrobe (customization), Library (notebook), playground with physics toys (seesaw, swings,
 trampoline, carts), group camps, benches, pond, arrival pad.
 
-**Hub layout (Open):** two concepts explored.
-- A, *Town square*: one large island with neighborhoods, everything reachable on foot.
-- B, *Floating islands*: a central island joined by rope bridges to one islet per region
-  (plus playground and camps). Scales well as regions are added.
-Recommendation: prototype one small plaza first; choose later.
+**Hub layout (Confirmed, D2, 2026-09-30):** one 2D **hexagon island floating in a blue sky**
+(flat edges north and south, 24 m corner to corner), big enough for a class of about 30, with a
+camera that follows the player's bean. A stone arrival pad at the centre; stone paths lead to
+**one portal per region** (Mechanics Valley, Wave Canyon and Storm Highlands along the north half;
+Crystal Caves, locked, by the west corner). The cart rail, the bench with Priya and trees are on
+the island. Walking into a portal (or tapping it, or E near it) floats the bean into its swirl
+and on to the region; each region is a placeholder scene until it is built. Earlier concepts, for
+the record: A, *Town square* (one large island with neighbourhoods) and B, *Floating islands* (a
+central island with rope bridges to one islet per region).
 
 **Anomaly zones (Proposed):** pockets where one law is subtly altered (sideways gravity,
 zero friction, no momentum conservation). Students diagnose what changed.
@@ -155,11 +159,15 @@ Use them as tuning starting points; the real sim should use SI units.
   - Meta villain: **Professor Paradox**, who causes the anomaly zones.
 - A "certainty" meter replaces health and drops each time students prove the boss wrong.
 
-## 10. Multiplayer and classroom (Proposed)
-- Class code = room. Hub room holds about 30 players (movement and emotes only). Expedition rooms
-  per group (2–4) run authoritative physics.
+## 10. Multiplayer and classroom (Proposed; the hub part built 2026-09-30, D5)
+- Class code = room. Hub room holds about 30 players (up to 40). **Built:** the server runs the
+  hub sim as the authority for the whole hub (movement, carts, the bench, portals), not only
+  movement; clients send commands and draw snapshots. Expedition rooms per group (2–4) run
+  authoritative physics (not built).
+- Names: students pick a preset name ("Brave Otter"), never type one (D26).
 - Communication: preset pings only ("On my way", "Look here", "Need help", "Nice find!").
-- Name tags appear on proximity; groups shown by scarf color and a ground ring.
+- Name tags appear on proximity (built: within 3 m); groups shown by scarf color and a ground ring.
+- Beans pass through each other (D27, Open); a bench seat and the ridable cart take one bean each.
 - Teacher controls: broadcast banner, recall everyone to the hub, freeze, lock or unlock regions,
   assign expeditions, class progress view.
 - Region instancing (Open): private per group, fully shared, or private with visible traces of other groups.

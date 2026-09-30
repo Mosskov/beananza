@@ -1,0 +1,63 @@
+{
+  "ok": true,
+  "error": null,
+  "script": "tools/shot/scripts/hub-island-portals.json",
+  "scene": "hub",
+  "url": "http://localhost:57988/?scene=hub&paused=1&layout=island&look=cream%2Csprout",
+  "git": {
+    "commit": "7dc851d",
+    "dirty": true
+  },
+  "inputs": [
+    {
+      "step": 0,
+      "action": "keyDown \"Shift\"",
+      "simTime": 0
+    },
+    {
+      "step": 1,
+      "action": "keyDown \"ArrowUp\"",
+      "simTime": 0
+    },
+    {
+      "step": 2,
+      "action": "wait 1",
+      "simTime": 0
+    },
+    {
+      "step": 4,
+      "action": "wait 0.7",
+      "simTime": 1
+    },
+    {
+      "step": 6,
+      "action": "wait 0.6",
+      "simTime": 1.7
+    },
+    {
+      "step": 7,
+      "action": "keyUp \"ArrowUp\"",
+      "simTime": 2.3
+    },
+    {
+      "step": 8,
+      "action": "keyUp \"Shift\"",
+      "simTime": 2.3
+    },
+    {
+      "step": 9,
+      "action": "wait 0.3",
+      "simTime": 2.3
+    },
+    {
+      "step": 11,
+      "action": "wait 0.6",
+      "simTime": 2.6
+    }
+  ],
+  "console": {
+    "errors": 0,
+    "warnings": 0,
+    "entries": []
+  }
+}

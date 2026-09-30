@@ -139,6 +139,43 @@ function initialRail(rail: RailLayout | null): HubRailState | null {
   return { carts: rail.carts.map((c) => ({ id: c.id, mass: c.mass, riderMass: 0, x: c.x, v: 0 })), collisions: [], riders: [] };
 }
 
+/** Arriving beans stand at least this far apart (m), so a class never spawns in one stack. */
+const SPAWN_GAP_M = 0.6;
+/** Spacing of the spawn grid around the arrival point (m). */
+const SPAWN_STEP_M = 0.8;
+/**
+ * Spawn spots around an arrival point: a hex grid, nearest first (ties by y, then x), built with
+ * + − × and sqrt only (STATUS open issue 5). 91 spots, over twice a class.
+ */
+const SPAWN_OFFSETS: readonly { x: number; y: number }[] = (() => {
+  const h = Math.sqrt(3) / 2;
+  const out: { x: number; y: number; d: number }[] = [];
+  for (let r = -5; r <= 5; r++) {
+    for (let q = -5; q <= 5; q++) {
+      if (Math.abs(q + r) > 5) continue;
+      const x = SPAWN_STEP_M * (q + r / 2);
+      const y = SPAWN_STEP_M * r * h;
+      out.push({ x, y, d: x * x + y * y });
+    }
+  }
+  return out.sort((a, b) => a.d - b.d || a.y - b.y || a.x - b.x).map(({ x, y }) => ({ x, y }));
+})();
+
+/**
+ * The spot nearest `at` (on the grid, inside the walkable area, clear of every solid footprint)
+ * with no bean within SPAWN_GAP_M. The first bean gets `at` itself.
+ */
+function spawnSpot(state: HubState, at: { x: number; y: number }): { x: number; y: number } {
+  const r = HUB_BEAN_RADIUS_M;
+  const solid = [...state.layout.props, ...state.layout.benches];
+  for (const o of SPAWN_OFFSETS) {
+    const p = clampTarget(state.layout.walkable, at.x + o.x, at.y + o.y);
+    if (solid.some((f) => Math.abs(p.x - f.x) < f.halfWidth + r && Math.abs(p.y - f.y) < f.halfDepth + r)) continue;
+    if (state.beans.every((b) => Math.hypot(b.x - p.x, b.y - p.y) >= SPAWN_GAP_M)) return p;
+  }
+  return at;
+}
+
 /** A player's id: short, printable, and never a prototype key. */
 const validPlayer = (id: unknown): id is string => typeof id === 'string' && /^[A-Za-z0-9_-]{1,64}$/.test(id);
 
@@ -193,7 +230,7 @@ export function createHubScenario(options: HubOptions = {}): Scenario<HubState, 
         if (c.type === 'join') {
           if (!validPlayer(c.player) || state.beans.some((b) => b.id === c.player)) continue;
           const at = c.at && Number.isFinite(c.at.x) && Number.isFinite(c.at.y) ? clampTarget(state.layout.walkable, c.at.x, c.at.y) : state.layout.start;
-          state.beans.push(initialBean(c.player, at));
+          state.beans.push(initialBean(c.player, spawnSpot(state, at)));
           continue;
         }
         if (c.type === 'leave') {

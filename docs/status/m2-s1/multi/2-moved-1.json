@@ -1,0 +1,193 @@
+{
+  "online": true,
+  "you": "oRQA_XjSQ",
+  "layout": "island",
+  "tick": 780.0288437494817,
+  "roster": [
+    {
+      "id": "oRQA_XjSQ",
+      "name": "Brave Otter",
+      "look": "blue,plain,bow,round"
+    },
+    {
+      "id": "gxAtq42rs",
+      "name": "Calm Owl",
+      "look": "green,spots,sprout,round"
+    },
+    {
+      "id": "RzK5nm432",
+      "name": "Jolly Puffin",
+      "look": "yellow,plain,none,glasses"
+    }
+  ],
+  "beans": [
+    {
+      "id": "oRQA_XjSQ",
+      "x": 3.68,
+      "y": -1,
+      "act": "free"
+    },
+    {
+      "id": "gxAtq42rs",
+      "x": -2.6,
+      "y": -3.6928,
+      "act": "free"
+    },
+    {
+      "id": "RzK5nm432",
+      "x": 0.4,
+      "y": -1.6928,
+      "act": "free"
+    }
+  ],
+  "tags": [],
+  "view": {
+    "bean": {
+      "screen": {
+        "x": 640,
+        "y": 360
+      },
+      "scale": 0.7844337567297406,
+      "depth": 100.5,
+      "rig": {
+        "act": "free",
+        "placement": "ground",
+        "masked": false,
+        "drawnZ": 0,
+        "vanish": 0,
+        "feet": {
+          "a": {
+            "x": 0,
+            "y": 0
+          },
+          "b": {
+            "x": 0,
+            "y": 0
+          }
+        },
+        "view": "side",
+        "mirrored": false,
+        "clip": "idle",
+        "clipT": 13.0005,
+        "body": {
+          "y": 0,
+          "rotation": 0,
+          "scaleX": 1.0259,
+          "scaleY": 0.9741
+        }
+      }
+    },
+    "reducedMotion": false,
+    "carts": [
+      {
+        "id": "light",
+        "mass": 5,
+        "v": 0,
+        "readout": "0.00 m/s",
+        "expectedReadout": "0.00 m/s",
+        "screen": {
+          "x": 482,
+          "y": 870
+        }
+      },
+      {
+        "id": "heavy",
+        "mass": 20,
+        "v": 0,
+        "readout": "0.00 m/s",
+        "expectedReadout": "0.00 m/s",
+        "screen": {
+          "x": 852,
+          "y": 870
+        }
+      }
+    ],
+    "classmates": [
+      {
+        "name": "Priya",
+        "clip": "sit",
+        "greeting": null,
+        "bubble": null,
+        "screen": {
+          "x": -188,
+          "y": 705
+        },
+        "depth": 460.3999999999999
+      }
+    ],
+    "props": [
+      {
+        "id": "portal-mechanics",
+        "screen": {
+          "x": -348,
+          "y": -360
+        },
+        "depth": -620,
+        "bean": "in front"
+      },
+      {
+        "id": "portal-waves",
+        "screen": {
+          "x": 272,
+          "y": -520
+        },
+        "depth": -780,
+        "bean": "in front"
+      },
+      {
+        "id": "portal-storm",
+        "screen": {
+          "x": 892,
+          "y": -360
+        },
+        "depth": -620,
+        "bean": "in front"
+      },
+      {
+        "id": "portal-crystal",
+        "screen": {
+          "x": -648,
+          "y": 340
+        },
+        "depth": 80,
+        "bean": "in front"
+      },
+      {
+        "id": "tree-west",
+        "screen": {
+          "x": -448,
+          "y": 0
+        },
+        "depth": -260,
+        "bean": "in front"
+      },
+      {
+        "id": "tree-east",
+        "screen": {
+          "x": 1112,
+          "y": 80
+        },
+        "depth": -180,
+        "bean": "in front"
+      },
+      {
+        "id": "tree-south",
+        "screen": {
+          "x": 192,
+          "y": 1020
+        },
+        "depth": 760,
+        "bean": "behind"
+      },
+      {
+        "id": "bench",
+        "screen": {
+          "x": -228,
+          "y": 720
+        },
+        "depth": 459.99999999999994,
+        "bean": "behind"
+      }
+    ]
+  }
+}

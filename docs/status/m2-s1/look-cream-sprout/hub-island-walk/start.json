@@ -1,0 +1,391 @@
+{
+  "ok": true,
+  "error": null,
+  "script": "tools/shot/scripts/hub-island-walk.json",
+  "scene": "hub",
+  "shot": "start",
+  "step": 1,
+  "url": "http://localhost:57988/?scene=hub&paused=1&layout=island&look=cream%2Csprout",
+  "simTime": 0.2,
+  "screenshot": "artifacts/shots/look-cream-sprout/hub-island-walk/start.png",
+  "git": {
+    "commit": "7dc851d",
+    "dirty": true
+  },
+  "timestamp": "2026-09-30T10:03:54.383Z",
+  "viewport": {
+    "width": 1280,
+    "height": 720
+  },
+  "browser": "chromium 153.0.8010.12",
+  "glRenderer": "ANGLE (AMD, AMD Radeon 780M Graphics (0x00001900) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+  "reducedMotion": false,
+  "look": "cream,sprout",
+  "server": "started",
+  "inputs": [
+    {
+      "step": 0,
+      "action": "wait 0.2",
+      "simTime": 0
+    }
+  ],
+  "console": {
+    "errors": 0,
+    "warnings": 0,
+    "entries": []
+  },
+  "sceneState": {
+    "tick": 12,
+    "simTime": 0.2,
+    "paused": true,
+    "state": {
+      "layout": {
+        "walkable": {
+          "points": [
+            {
+              "x": 12,
+              "y": 0
+            },
+            {
+              "x": 6,
+              "y": 10.392304845413264
+            },
+            {
+              "x": -6,
+              "y": 10.392304845413264
+            },
+            {
+              "x": -12,
+              "y": 0
+            },
+            {
+              "x": -6,
+              "y": -10.392304845413264
+            },
+            {
+              "x": 6,
+              "y": -10.392304845413264
+            }
+          ]
+        },
+        "props": [
+          {
+            "id": "tree-west",
+            "art": "tree",
+            "x": -7.2,
+            "y": 2.6,
+            "halfWidth": 0.25,
+            "halfDepth": 0.2
+          },
+          {
+            "id": "tree-east",
+            "art": "tree",
+            "x": 8.4,
+            "y": 1.8,
+            "halfWidth": 0.25,
+            "halfDepth": 0.2
+          },
+          {
+            "id": "tree-south",
+            "art": "tree",
+            "x": -0.8,
+            "y": -7.6,
+            "halfWidth": 0.25,
+            "halfDepth": 0.2
+          }
+        ],
+        "benches": [
+          {
+            "id": "bench",
+            "art": "bench",
+            "usable": true,
+            "x": -5,
+            "y": -4.6,
+            "halfWidth": 0.8,
+            "halfDepth": 0.225,
+            "seatHeight": 0.3,
+            "seatDy": -0.15,
+            "seats": [
+              {
+                "id": "west",
+                "dx": -0.4
+              },
+              {
+                "id": "east",
+                "dx": 0.4,
+                "taken": true
+              }
+            ]
+          }
+        ],
+        "portals": [
+          {
+            "id": "portal-mechanics",
+            "art": "portal",
+            "usable": true,
+            "region": "mechanics",
+            "x": -6.2,
+            "y": 6.2,
+            "halfWidth": 0.65,
+            "halfDepth": 0.2
+          },
+          {
+            "id": "portal-waves",
+            "art": "portal",
+            "usable": true,
+            "region": "waves",
+            "x": 0,
+            "y": 7.8,
+            "halfWidth": 0.65,
+            "halfDepth": 0.2
+          },
+          {
+            "id": "portal-storm",
+            "art": "portal",
+            "usable": true,
+            "region": "storm",
+            "x": 6.2,
+            "y": 6.2,
+            "halfWidth": 0.65,
+            "halfDepth": 0.2
+          },
+          {
+            "id": "portal-crystal",
+            "art": "portal",
+            "usable": true,
+            "region": "crystal",
+            "locked": true,
+            "x": -9.2,
+            "y": -0.8,
+            "halfWidth": 0.65,
+            "halfDepth": 0.2
+          }
+        ],
+        "start": {
+          "x": 0,
+          "y": -1
+        },
+        "rail": {
+          "y": -6,
+          "minX": 0.52,
+          "maxX": 7.88,
+          "carts": [
+            {
+              "id": "light",
+              "mass": 5,
+              "x": 2.1,
+              "ridable": true
+            },
+            {
+              "id": "heavy",
+              "mass": 20,
+              "x": 5.8,
+              "ridable": false
+            }
+          ]
+        }
+      },
+      "gravity": 9.81,
+      "beans": [
+        {
+          "id": "local",
+          "input": {
+            "x": 0,
+            "y": 0,
+            "run": false
+          },
+          "x": 0,
+          "y": -1,
+          "z": 0,
+          "vx": 0,
+          "vy": 0,
+          "vz": 0,
+          "grounded": true,
+          "facingX": 0,
+          "facingY": -1,
+          "target": null,
+          "stuckSteps": 0,
+          "jumps": 0,
+          "lastJump": null,
+          "act": {
+            "kind": "free"
+          }
+        }
+      ],
+      "rail": {
+        "carts": [
+          {
+            "id": "light",
+            "mass": 5,
+            "riderMass": 0,
+            "x": 2.1,
+            "v": 0
+          },
+          {
+            "id": "heavy",
+            "mass": 20,
+            "riderMass": 0,
+            "x": 5.8,
+            "v": 0
+          }
+        ],
+        "collisions": [],
+        "riders": []
+      },
+      "tick": 12,
+      "rng": {
+        "s": 1
+      }
+    },
+    "layout": "island",
+    "view": {
+      "bean": {
+        "screen": {
+          "x": 640,
+          "y": 360
+        },
+        "scale": 0.7844337567297406,
+        "depth": 100.5,
+        "rig": {
+          "act": "free",
+          "placement": "ground",
+          "masked": false,
+          "drawnZ": 0,
+          "vanish": 0,
+          "feet": {
+            "a": {
+              "x": 0,
+              "y": 0
+            },
+            "b": {
+              "x": 0,
+              "y": 0
+            }
+          },
+          "view": "front",
+          "mirrored": false,
+          "clip": "idle",
+          "clipT": 0.2,
+          "body": {
+            "y": 0,
+            "rotation": 0,
+            "scaleX": 1.0017,
+            "scaleY": 0.9983
+          }
+        }
+      },
+      "reducedMotion": false,
+      "carts": [
+        {
+          "id": "light",
+          "mass": 5,
+          "v": 0,
+          "readout": "0.00 m/s",
+          "expectedReadout": "0.00 m/s",
+          "screen": {
+            "x": 850,
+            "y": 870
+          }
+        },
+        {
+          "id": "heavy",
+          "mass": 20,
+          "v": 0,
+          "readout": "0.00 m/s",
+          "expectedReadout": "0.00 m/s",
+          "screen": {
+            "x": 1220,
+            "y": 870
+          }
+        }
+      ],
+      "classmates": [
+        {
+          "name": "Priya",
+          "clip": "sit",
+          "greeting": null,
+          "bubble": null,
+          "screen": {
+            "x": 180,
+            "y": 705
+          },
+          "depth": 460.3999999999999
+        }
+      ],
+      "props": [
+        {
+          "id": "portal-mechanics",
+          "screen": {
+            "x": 20,
+            "y": -360
+          },
+          "depth": -620,
+          "bean": "in front"
+        },
+        {
+          "id": "portal-waves",
+          "screen": {
+            "x": 640,
+            "y": -520
+          },
+          "depth": -780,
+          "bean": "in front"
+        },
+        {
+          "id": "portal-storm",
+          "screen": {
+            "x": 1260,
+            "y": -360
+          },
+          "depth": -620,
+          "bean": "in front"
+        },
+        {
+          "id": "portal-crystal",
+          "screen": {
+            "x": -280,
+            "y": 340
+          },
+          "depth": 80,
+          "bean": "in front"
+        },
+        {
+          "id": "tree-west",
+          "screen": {
+            "x": -80,
+            "y": 0
+          },
+          "depth": -260,
+          "bean": "in front"
+        },
+        {
+          "id": "tree-east",
+          "screen": {
+            "x": 1480,
+            "y": 80
+          },
+          "depth": -180,
+          "bean": "in front"
+        },
+        {
+          "id": "tree-south",
+          "screen": {
+            "x": 560,
+            "y": 1020
+          },
+          "depth": 760,
+          "bean": "behind"
+        },
+        {
+          "id": "bench",
+          "screen": {
+            "x": 140,
+            "y": 720
+          },
+          "depth": 459.99999999999994,
+          "bean": "behind"
+        }
+      ]
+    }
+  }
+}

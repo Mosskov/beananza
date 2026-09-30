@@ -1,0 +1,103 @@
+{
+  "ok": true,
+  "error": null,
+  "script": "tools/shot/scripts/hub-island-walk.json",
+  "scene": "hub",
+  "url": "http://localhost:57988/?scene=hub&paused=1&layout=island&look=violet%2Cspots%2Cbear-ears%2Cglasses",
+  "git": {
+    "commit": "7dc851d",
+    "dirty": true
+  },
+  "inputs": [
+    {
+      "step": 0,
+      "action": "wait 0.2",
+      "simTime": 0
+    },
+    {
+      "step": 2,
+      "action": "keyDown \"ArrowUp\"",
+      "simTime": 0.2
+    },
+    {
+      "step": 3,
+      "action": "wait 2",
+      "simTime": 0.2
+    },
+    {
+      "step": 4,
+      "action": "keyUp \"ArrowUp\"",
+      "simTime": 2.2
+    },
+    {
+      "step": 5,
+      "action": "wait 0.2",
+      "simTime": 2.2
+    },
+    {
+      "step": 7,
+      "action": "keyDown \"Shift\"",
+      "simTime": 2.4
+    },
+    {
+      "step": 8,
+      "action": "keyDown \"ArrowLeft\"",
+      "simTime": 2.4
+    },
+    {
+      "step": 9,
+      "action": "keyDown \"ArrowDown\"",
+      "simTime": 2.4
+    },
+    {
+      "step": 10,
+      "action": "wait 2.5",
+      "simTime": 2.4
+    },
+    {
+      "step": 11,
+      "action": "keyUp \"ArrowLeft\"",
+      "simTime": 4.9
+    },
+    {
+      "step": 12,
+      "action": "keyUp \"ArrowDown\"",
+      "simTime": 4.9
+    },
+    {
+      "step": 13,
+      "action": "keyUp \"Shift\"",
+      "simTime": 4.9
+    },
+    {
+      "step": 14,
+      "action": "wait 0.2",
+      "simTime": 4.9
+    },
+    {
+      "step": 16,
+      "action": "keyDown \"ArrowRight\"",
+      "simTime": 5.1
+    },
+    {
+      "step": 17,
+      "action": "wait 3",
+      "simTime": 5.1
+    },
+    {
+      "step": 18,
+      "action": "keyUp \"ArrowRight\"",
+      "simTime": 8.1
+    },
+    {
+      "step": 19,
+      "action": "wait 0.2",
+      "simTime": 8.1
+    }
+  ],
+  "console": {
+    "errors": 0,
+    "warnings": 0,
+    "entries": []
+  }
+}

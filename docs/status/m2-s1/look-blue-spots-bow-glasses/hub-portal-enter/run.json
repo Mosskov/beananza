@@ -1,0 +1,68 @@
+{
+  "ok": true,
+  "error": null,
+  "script": "tools/shot/scripts/hub-portal-enter.json",
+  "scene": "hub",
+  "url": "http://localhost:57988/?scene=hub&paused=1&layout=portals&look=blue%2Cspots%2Cbow%2Cglasses",
+  "git": {
+    "commit": "7dc851d",
+    "dirty": true
+  },
+  "inputs": [
+    {
+      "step": 0,
+      "action": "wait 0.1",
+      "simTime": 0
+    },
+    {
+      "step": 2,
+      "action": "tap [800,150]",
+      "simTime": 0.1
+    },
+    {
+      "step": 3,
+      "action": "wait 1",
+      "simTime": 0.1
+    },
+    {
+      "step": 5,
+      "action": "wait 0.95",
+      "simTime": 1.1
+    },
+    {
+      "step": 7,
+      "action": "wait 0.25",
+      "simTime": 2.05
+    },
+    {
+      "step": 9,
+      "action": "wait 0.5",
+      "simTime": 2.3
+    },
+    {
+      "step": 11,
+      "action": "keyDown \"ArrowLeft\"",
+      "simTime": 2.8
+    },
+    {
+      "step": 12,
+      "action": "press \"Space\"",
+      "simTime": 2.8
+    },
+    {
+      "step": 13,
+      "action": "wait 0.5",
+      "simTime": 2.8
+    },
+    {
+      "step": 14,
+      "action": "keyUp \"ArrowLeft\"",
+      "simTime": 3.3
+    }
+  ],
+  "console": {
+    "errors": 0,
+    "warnings": 0,
+    "entries": []
+  }
+}

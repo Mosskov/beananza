@@ -3,7 +3,7 @@ import { WebSocketTransport } from '@colyseus/ws-transport';
 import { HUB_ROOM } from '@beananza/shared';
 import { HubRoom } from './room';
 
-export { HubRoom } from './room';
+export { HubRoom, hubRoomStats } from './room';
 export { HubServerCore, JoinRefused, checkJoin, parseCommand, CMD_BURST, CMD_PER_STEP } from './core';
 
 /**

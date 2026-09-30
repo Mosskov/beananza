@@ -13,5 +13,5 @@
   <g id="scarf"><path d="M-42 -54 Q0 -40 42 -54 L42 -44 Q0 -30 -42 -44 Z" fill="#F6C66B"/></g>
   <g id="scarf-tail" data-pivot="-22 -46"><path d="M-22 -46 L-30 -20 L-20 -18 L-14 -44 Z" fill="#E3A93B"/></g>
   <!-- Anchors (never drawn): headwear sits at the top of the body. -->
-  <g id="anchors" display="none"><circle id="anchor-headwear" cx="0" cy="-114" r="0"/></g>
+  <g id="anchors" display="none"><circle id="anchor-headwear" cx="0" cy="-114" r="0"/><circle id="anchor-fx-head" cx="32" cy="-124" r="0"/><circle id="anchor-fx-brow" cx="-30" cy="-96" r="0"/><circle id="anchor-fx-ground" cx="0" cy="0" r="0"/></g>
 </svg>

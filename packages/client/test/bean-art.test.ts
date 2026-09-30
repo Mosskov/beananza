@@ -107,6 +107,16 @@ describe('bean art contract (art/bean/*.svg)', () => {
     for (const v of spec.views) expect(v.parts.some((p) => p.id === 'anchors')).toBe(false);
   });
 
+  it('has the effect anchors in every view: fx-head beside the head (the "z"), fx-brow, fx-ground between the feet', () => {
+    expect(spec.anchors.front['fx-head']).toEqual({ x: 32, y: -124 });
+    expect(spec.anchors.front['fx-brow']).toEqual({ x: -30, y: -96 });
+    for (const v of ['front', 'front-34', 'side', 'back-34', 'back'] as const) {
+      expect(spec.anchors[v]['fx-ground'], v).toEqual({ x: 0, y: 0 });
+      expect(spec.anchors[v]['fx-head'], v).toBeDefined();
+      expect(spec.anchors[v]['fx-brow'], v).toBeDefined();
+    }
+  });
+
   it('hides the goggles and the pushing arm by default, and drops the shadow from the rig', () => {
     const side = view('side', false);
     expect(side.parts.find((p) => p.id === 'arm-far-push')?.hiddenByDefault).toBe(true);
@@ -124,6 +134,7 @@ describe('bean art contract (art/bean/*.svg)', () => {
     expect(() => buildBeanArtSpec(noBody)).toThrow(/back: missing part "body"/);
     const edit = (view: string, from: string | RegExp, to: string) => ({ ...BEAN_SVGS, [view]: (BEAN_SVGS[view] as string).replace(from, to) });
     expect(() => buildBeanArtSpec(edit('side', 'id="anchor-lean"', 'id="anchor-tilt"'))).toThrow(/side: missing anchor "lean"/);
+    expect(() => buildBeanArtSpec(edit('side', 'id="anchor-fx-brow"', 'id="anchor-fx-brows"'))).toThrow(/side: missing anchor "fx-brow"/);
     expect(() => buildBeanArtSpec(edit('front', 'cy="-114" r="0"', 'cy="-100" r="0"'))).toThrow(/front: anchor "headwear" is not on the top of the body/);
     expect(() => buildBeanArtSpec(edit('back', 'cy="-114" r="0"', 'cy="-400" r="0"'))).toThrow(/back: anchor "headwear" is outside the viewBox/);
     expect(() => buildBeanArtSpec(edit('front', / data-pivot="-44 -50"/, ''))).toThrow(/front: Part "arm-left" needs data-pivot/);

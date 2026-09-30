@@ -23,5 +23,5 @@
   <g id="eyes-sleep"><path d="M-21 -80 q6 5 12 0 M9 -80 q6 5 12 0" fill="none" stroke="#2B211C" stroke-width="3" stroke-linecap="round"/></g>
   <g id="doze-z" data-pivot="32 -124"><path d="M26 -130 H38 L26 -118 H38" fill="none" stroke="#5A4A40" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><path d="M40 -142 H47 L40 -135 H47" fill="none" stroke="#5A4A40" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></g>
   <!-- Anchors (never drawn): headwear sits at the top of the body. -->
-  <g id="anchors" display="none"><circle id="anchor-headwear" cx="0" cy="-114" r="0"/></g>
+  <g id="anchors" display="none"><circle id="anchor-headwear" cx="0" cy="-114" r="0"/><circle id="anchor-fx-head" cx="32" cy="-124" r="0"/><circle id="anchor-fx-brow" cx="-30" cy="-96" r="0"/><circle id="anchor-fx-ground" cx="0" cy="0" r="0"/></g>
 </svg>

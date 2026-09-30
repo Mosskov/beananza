@@ -20,5 +20,5 @@
   </g>
   <g id="arm-near" data-pivot="-42 -50"><path d="M-42 -50 q-16 10 -12 26" fill="none" stroke="#C96F42" stroke-width="10" stroke-linecap="round"/></g>
   <!-- Anchors (never drawn): headwear sits at the top of the body. -->
-  <g id="anchors" display="none"><circle id="anchor-headwear" cx="0" cy="-114" r="0"/></g>
+  <g id="anchors" display="none"><circle id="anchor-headwear" cx="0" cy="-114" r="0"/><circle id="anchor-fx-head" cx="32" cy="-124" r="0"/><circle id="anchor-fx-brow" cx="-20" cy="-96" r="0"/><circle id="anchor-fx-ground" cx="0" cy="0" r="0"/></g>
 </svg>

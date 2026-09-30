@@ -100,15 +100,23 @@ export const REQUIRED_PARTS: Readonly<Record<BeanView, readonly string[]>> = {
 };
 
 /**
+ * Where effects are placed on the bean (D26, D22): every view has these three anchors, each in
+ * the view's own frame (mirrored views mirror x). `fx-head` is above and beside the head (the
+ * doze "z"), `fx-brow` on the brow (sweat), `fx-ground` on the ground between the feet (dust).
+ * They may lie outside the body, so the body-outline check skips them (`checks.ts`).
+ */
+export const EFFECT_ANCHORS = ['fx-head', 'fx-brow', 'fx-ground'] as const;
+
+/**
  * Anchors every view must have (D22): `headwear` at the top of the body; in the side view,
- * `lean`, the point whose forward tip the pushing stand-off adds.
+ * `lean`, the point whose forward tip the pushing stand-off adds; and the effect anchors.
  */
 export const REQUIRED_ANCHORS: Readonly<Record<BeanView, readonly string[]>> = {
-  front: ['headwear'],
-  'front-34': ['headwear'],
-  side: ['headwear', 'lean'],
-  'back-34': ['headwear'],
-  back: ['headwear'],
+  front: ['headwear', ...EFFECT_ANCHORS],
+  'front-34': ['headwear', ...EFFECT_ANCHORS],
+  side: ['headwear', 'lean', ...EFFECT_ANCHORS],
+  'back-34': ['headwear', ...EFFECT_ANCHORS],
+  back: ['headwear', ...EFFECT_ANCHORS],
 };
 
 /**

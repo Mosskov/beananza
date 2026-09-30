@@ -7,7 +7,7 @@
 import { buildBeanArtSpec, variantName, type BeanArtSpec } from '../rig/bean-contract';
 import { buildCosmeticsSpec, COSMETIC_FOLDERS, type CosmeticKind, type CosmeticSources } from '../rig/looks';
 import { ArtContractError, parseSvgParts, partPivot, type Point, type SvgDoc } from '../rig/svg-parts';
-import { MIRRORED_VIEWS, VIEWS, type BeanView } from '../rig/views';
+import { EFFECT_ANCHORS, MIRRORED_VIEWS, VIEWS, type BeanView } from '../rig/views';
 import { outsideBy, rightEdgeAt, shapeOutlines } from './geometry';
 import { FACE_IDS, HEADWEAR_IDS, PATTERN_IDS } from '@beananza/shared';
 import { buildPropArtSpec, PROP_PARTS } from './prop-contract';
@@ -153,6 +153,7 @@ export function beanDrawingProblems(docs: Readonly<Record<string, SvgDoc>>): str
       if (worst.by > OUTLINE_TOLERANCE) problems.push(`${name}: "${id}" reaches ${fmt(worst.by)} units outside the body outline (at ${fmt(worst.at.x)}, ${fmt(worst.at.y)})`);
     }
     for (const [anchor, at] of Object.entries(doc.anchors)) {
+      if ((EFFECT_ANCHORS as readonly string[]).includes(anchor)) continue; // effects sit around the bean, not on it
       const by = outsideBy(at, outline);
       if (by > OUTLINE_TOLERANCE) problems.push(`${name}: anchor "${anchor}" is ${fmt(by)} units outside the body outline`);
     }

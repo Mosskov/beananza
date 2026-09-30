@@ -12,7 +12,7 @@ import { toScreen, type CameraMargin } from './hub-view';
  */
 
 /** Layouts drawn as a sky island (the rest are plaza ground: the M1 plaza and its test yards). */
-export const SKY_LAYOUTS: ReadonlySet<string> = new Set(['island']);
+export const SKY_LAYOUTS: ReadonlySet<string> = new Set(['island', 'bare-island']);
 
 /**
  * The cliff under the south edges and the underside below it (m, drawn straight down the screen).
@@ -52,15 +52,18 @@ const screenPoints = (poly: ConvexPolygon, dz = 0) => poly.points.map((p) => new
 
 export class SkyIsland {
   private readonly clouds: { image: Phaser.GameObjects.Graphics; x: number; speed: number }[] = [];
+  private readonly sky: Phaser.GameObjects.Graphics;
 
   /**
    * `groundDepth` is where the ground draws; the sky and clouds go below it. `paths` are ground
    * points (m) a stone path leads to from the arrival pad: the portals' exit spots.
    */
   constructor(scene: Phaser.Scene, walkable: ConvexPolygon, groundDepth: number, paths: readonly { x: number; y: number }[] = []) {
-    const sky = scene.add.graphics().setScrollFactor(0).setDepth(groundDepth - 2);
-    sky.fillGradientStyle(PALETTE.skyTop, PALETTE.skyTop, PALETTE.skyBottom, PALETTE.skyBottom, 1);
-    sky.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
+    // The sky fills the 1280×720 layout window; update() keeps it on the view (the camera zooms,
+    // screen-scale.ts, so a scroll factor of 0 would not line up).
+    this.sky = scene.add.graphics().setDepth(groundDepth - 2);
+    this.sky.fillGradientStyle(PALETTE.skyTop, PALETTE.skyTop, PALETTE.skyBottom, PALETTE.skyBottom, 1);
+    this.sky.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
 
     for (const c of CLOUDS) {
       const g = scene.add.graphics().setScrollFactor(CLOUD_PARALLAX).setDepth(groundDepth - 1);
@@ -75,8 +78,12 @@ export class SkyIsland {
     this.drawIsland(scene.add.graphics().setDepth(groundDepth), walkable, paths);
   }
 
-  /** Drift the clouds to sim time `time` (s). Still under reduced motion. */
-  update(time: number, reducedMotion: boolean): void {
+  /**
+   * Keep the sky on the view (its top left corner in world pixels) and drift the clouds to sim
+   * time `time` (s). The clouds stand still under reduced motion.
+   */
+  update(time: number, reducedMotion: boolean, viewLeft: number, viewTop: number): void {
+    this.sky.setPosition(viewLeft, viewTop);
     for (const c of this.clouds) {
       const drift = reducedMotion ? 0 : c.speed * time;
       const x = (((c.x + drift + CLOUD_WRAP_M / 2) % CLOUD_WRAP_M) + CLOUD_WRAP_M) % CLOUD_WRAP_M - CLOUD_WRAP_M / 2;

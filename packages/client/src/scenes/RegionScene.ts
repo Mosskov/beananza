@@ -6,6 +6,7 @@ import { propPart } from '../art/props';
 import { GAME_HEIGHT, GAME_WIDTH, PALETTE, UI_FONT, cssColor } from '../config';
 import { BeanRig, createBeanShadow } from '../rig/BeanRig';
 import { samplePose } from '../rig/player';
+import { frameMainCamera, sharpText } from '../screen-scale';
 import { SWIRL_DEG_PER_S } from './hub-portals';
 import { REGION_STYLES, hubUrl, isRegionId, type RegionStyle } from './regions';
 import type { SceneStartData, TestableScene } from './TestableScene';
@@ -70,9 +71,9 @@ export class RegionScene extends Phaser.Scene implements TestableScene {
     this.rig.setView({ view: 'front', mirrored: false });
     this.rig.root.setPosition(BEAN_X, GROUND_Y).setScale(BEAN_SCALE);
 
-    this.add
-      .text(GAME_WIDTH - 20, GAME_HEIGHT - 16, 'Back: E, Space or tap the portal', HINT_STYLE)
-      .setOrigin(1, 1);
+    sharpText(this.add.text(GAME_WIDTH - 20, GAME_HEIGHT - 16, 'Back: E, Space or tap the portal', HINT_STYLE).setOrigin(1, 1));
+    // The 1280×720 layout at the canvas's real resolution (screen-scale.ts).
+    frameMainCamera(this);
 
     const kb = this.input.keyboard;
     kb?.on('keydown-E', () => this.back());

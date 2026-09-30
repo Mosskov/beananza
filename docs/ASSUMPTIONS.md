@@ -5,7 +5,7 @@ changes a decision in `docs/DECISIONS.md`. Newest milestone first.
 
 ## Hub island and multiplayer hub (branch `hub-island`), 2026-09-30
 
-Decisions confirmed by the user this session are in DECISIONS (D2, D5, D26; D27 Open). The rest:
+Decisions confirmed by the user this session are in DECISIONS (D2, D5, D27; D28 Open). The rest:
 - **Island size and shape:** flat-top hexagon, circumradius 12 m (24 m across, 20.8 m north to
   south): flat edges face the camera, so the south edge is one straight cliff.
 - **Contents:** rail south-east, bench with Priya south-west, three trees, portals for
@@ -26,7 +26,7 @@ Decisions confirmed by the user this session are in DECISIONS (D2, D5, D26; D27 
 - **Regions:** travel is a page load (`?scene=region&region=<id>`, back with `?from=<id>`); a
   paused sim never travels, so tools/shot stays on the hub. Region scenes have no sim yet.
 - **Many beans:** commands without `player` go to the local bean; beans pass through each other
-  (D27); a seat or the ridable cart taken by another bean is skipped; several pushes on one cart
+  (D28); a seat or the ridable cart taken by another bean is skipped; several pushes on one cart
   add; the speed cap is the highest among pushers in the winning direction. A player who leaves
   while riding leaves the cart as if hopping out. Arriving beans take the nearest free spot on a
   0.8 m hex grid around the arrival point (no bean within 0.6 m, clear of props); the first gets
@@ -44,6 +44,179 @@ Decisions confirmed by the user this session are in DECISIONS (D2, D5, D26; D27 
   "Other names"); `?name=` skips it, and the class and name stay in the URL for portal trips.
 - **Server address:** `VITE_HUB_URL` at build time, else port 2567 on the page's own host (dev and
   LAN play).
+- **Merged with main after the tools prep (PR #5):** main's D26 is the reaction model, so this
+  branch's decisions are D27 (preset names) and D28 (beans pass through each other). The drawing
+  moved into `HubWorldView` keeps main's sharp picture (`screen-scale.ts`): the camera is framed
+  with `frameCamera` at k each frame, and the sky and the controls hint are placed at the view's
+  corner in world space (a scroll factor of 0 does not line up once the camera zooms); texts use
+  `sharpText`. The portal is registered in `prop-contract.ts` and `prop-sources.ts`.
+- **Golden states:** the 64 existing files changed only in form (`layout: "plaza"`, `bean` to
+  `beans[0]` with `id` and `input`, the walkable polygon, `portals: []`); compared through the
+  renames against main's files, 64 of 64 are the same. 23 files are new (the island and portal
+  scripts). `pnpm verify --update-golden` sets `VERIFY_UPDATING_GOLDEN` for its `pnpm check`, so
+  the golden-completeness test skips during the run that rewrites the folder (otherwise a new
+  script could never get its first golden file); every other test still gates.
+- **Test timeouts under `pnpm verify`:** the sim boundary type-check (about 1 s alone) and the
+  30-bean determinism test (about 2 s) get 30 s: verify runs `pnpm check` while the browsers
+  shoot, and on this laptop the 5 s default ran out.
+## Tools prep session (branch `tools/prep`), 2026-09-30
+
+No decision changes. From `prompts/tools-prep-session.md`.
+
+### Baseline
+- **main failed `pnpm check`** at `9e3d3ef`: the D26 row in DECISIONS.md has an escaped pipe
+  (`\|`) inside a cell, which `tools/share`'s table parser split into a sixth cell. The parser
+  now splits only on unescaped pipes (GFM) and unescapes them, with a test. Everything else in
+  the baseline `pnpm verify` passed (58 states, 0 differences against `docs/status/m1-s3`).
+- **pnpm on this machine** comes from corepack (`corepack enable --install-directory` into a
+  user folder), because no global pnpm was installed; nothing in the repo depends on it.
+
+### Golden sim states (`tools/shot/golden/`)
+- **`docs/status/` is no longer the baseline.** It keeps each session's images and write-ups as
+  history. `pnpm verify` compares against `tools/shot/golden/`; `--baseline <folder>` still
+  compares against an evidence folder.
+- **One file per shot**, `<script>/<shot>.json` and `<scene>_t<time>.json`, with exactly the
+  fields `script`, `shot`, `scene`, `layout`, `look` (always null) and `state` (timed shots:
+  `scene`, `t`, `layout`, `look`, `state`). Many small files make a PR diff name the shot that
+  changed. The state is stored as the game logs it, so the comparison stays exact (no rounding).
+- **Seeded from `docs/status/m1-s3`** with the documented renames applied (drawing-only fields
+  copied from main's run). `hub-yard-bench` and `hub-yard-carts` are newer than m1-s3, so their
+  6 states come from main's run at `9e3d3ef`. 64 files; 0 differences against main's scripts.
+- **The golden check also fails on a new shot without a file**, and on files no script takes
+  (a test and `verify`'s `golden` row). Evidence folders from older sessions have fewer
+  scripts, so `--baseline` does not check for extras.
+- **`--update-golden` writes only after a passing run**, and a file whose state is equal (in
+  any key order) keeps its bytes, so the diff shows only real changes. With `--scripts` it
+  touches only those scripts' files and leaves the timed shots alone. `--timed scene@t` adds a
+  timed shot (the only way to add one).
+- **Proof on a real change:** `HUB_WALK_SPEED` 2.4 → 2.5 (reverted) made
+  `verify --scripts hub-walk` fail on 3 of 4 shots, each line naming the file and fields
+  (`tools/shot/golden/hub-walk/walked-1s.json .bean.x …; .bean.vx: 2.4 ≠ 2.5`). Moving one
+  golden file away failed both the completeness row and the comparison.
+
+### CI (`.github/workflows/verify.yml`)
+- **ubuntu-latest, Node 24, pnpm through corepack** (the version in `package.json`). The pnpm
+  store is cached by the lockfile's hash, the Playwright browser by the Playwright version; the
+  browser's system libraries are installed every run (`playwright install-deps`, not cacheable).
+- **`pnpm check`, then `pnpm verify --no-check`**, so check runs once and its failure shows as
+  its own step.
+- **A contact sheet per script** (`pnpm shot:sheet`) goes into `artifacts/sheets/`, uploaded
+  with `artifacts/verify/` and `artifacts/shots/` as `verify-artifacts` (kept 14 days), even
+  when a step fails.
+- **No retry.** The known flake (the browser closing mid-run) is recorded if it shows up.
+
+### The art toolkit (`art:check`, `art:part`) and the clip sheet
+- **The contract code became importable from Node** without moving it: the `?raw` imports
+  moved to `rig/looks-sources.ts` and `art/prop-sources.ts`, the prop contract to
+  `art/prop-contract.ts`, and `@beananza/client` exports `./art/*` and `./rig/*` for tools/shot.
+  The builders throw `ArtContractError` with the problem list, which `art:check` prints.
+- **One checks module** (`client/src/art/checks.ts`) for the CLI and the tests. The new drawing
+  rules and their numbers: near parts at pivot x < 0 in front ¾ and > 0 in back ¾ (far parts
+  opposite); the near arm after the body and the far arm before it in the ¾ and side views;
+  `belly`, `eyes`, `eyes-sleep`, `mouth`, `cheeks` and every anchor inside the body outline
+  within 1.5 units (curves sampled at 12 points, ellipses at 24); the side belly's frontmost
+  point within 2 units of the body's front edge. Current art: 0 findings. The session 3 slips,
+  re-introduced: the side belly gives 1 finding (6.5 units short at y −24), back ¾ gives 4.
+- **Why the side belly rule is about the front edge,** not "inside the outline": the old belly
+  was inside the body; its fault was being inset from the front (it read as a spot on the hip).
+- **`art:part` draws in headless Chromium,** the engine the game rasterizes with, and each part
+  as its own SVG image placed in its view's frame, as the game rasterizes each part on its own.
+  No new dependency. Timing on this machine, `pnpm art:part` for a headwear piece in all 8
+  views: 2.7 s wall, of which 0.7 s is the tool's own work; the rest is starting Node, tsx and
+  pnpm. Getting there: the root scripts run `node --import tsx` (one process, not pnpm → pnpm →
+  tsx → node: 5.0 s before), and the command exits without waiting for Chromium to close
+  (1.3 s on Windows). The headless shell was slower to use here (2.8 s in the tool).
+- **The clip sheet is a game scene** (`?scene=clip`), shot by tools/shot, so the real `BeanRig`
+  and `samplePose` draw it; a second renderer of poses in Node would be a second version of
+  the rig. Columns: a looping cycle split evenly, a one-shot clip start to end; the blink
+  overlay is off (time 0). Part overrides per clip (push: the pushing arm; doze: closed eyes and
+  "z") are a small table in the scene that mirrors the hub's presentation rows. Shot at 2×
+  device pixels so 8 × 8 cells stay readable. `verify` shoots it live with its defaults (idle).
+
+### Skills, the reviewer, the PR template, hooks
+- **Six skills, not five:** the five the prompt names plus `session-start` (worktree, install,
+  baseline), because the fourth-session prompt's setup and baseline sections had to become a
+  skill name too. Written by hand in the skill-creator's format (frontmatter with a
+  trigger-rich description, checklists that say why); its eval loop was skipped, as the
+  reviewer walks each skill on a toy case instead.
+- **"Adding a scene" stays in README** as the one copy: no skill covers a new scene on its own,
+  and the CLAUDE.md line that repeated it is gone. `hub-interaction` points at it.
+- **The reviewer agent** has Read, Grep, Glob, Bash and PowerShell; no Edit or Write. Its
+  instructions forbid writing into the repo through the shell; the tool list cannot enforce
+  that.
+- **The guard is a Node script** (`.claude/hooks/guard.mjs`), so it runs the same on Windows,
+  in CI and in cloud containers, and returns a PreToolUse `deny` with a reason that says to ask
+  the user. It splits a command on `;`, `&&`, `||`, `|` and newlines and checks each part:
+  `pnpm … share:deploy|share:password|cf-deploy|cf-password`; `git … push` with `--force`,
+  `--force-with-lease`, `--force-if-includes`, a short flag cluster containing `f`, or a `+`
+  refspec; `git merge|rebase` when the current branch (in the payload's `cwd`) is main, or
+  after a `git checkout|switch main` earlier in the same command. Known limits: it reads the
+  branch of `cwd`, not of a `cd` or `-C` path inside the command, and a commit message that
+  quotes a blocked command is blocked too (the user can then run it).
+- **The allowlist** names each command (`pnpm art:part`, `pnpm art:part *`, …) for both Bash
+  and PowerShell, rather than the legacy `:*` prefix form, which reads ambiguously next to
+  script names with colons.
+- **No render-on-save hook,** as the prompt says: the skills call `art:part` when it matters.
+
+### Cloud sessions and lanes
+- **SessionStart hook** (`.claude/hooks/session-start.sh`): only when `CLAUDE_CODE_REMOTE` is
+  `true`; `pnpm install --frozen-lockfile` (enabling corepack if pnpm is missing); Playwright's
+  Chromium only if `chromium.executablePath()` does not exist (so a `PLAYWRIGHT_BROWSERS_PATH`
+  that already has it is used), then `playwright install-deps chromium` where the container
+  allows it. It calls Playwright through `pnpm exec`, not `pnpm shot:install`, to avoid a nested
+  pnpm. Tested here on Windows with `CLAUDE_CODE_REMOTE=true`: with the browser present it
+  skips it (5 s); with an empty `PLAYWRIGHT_BROWSERS_PATH` it installed Chromium and the
+  headless shell (2 min 25 s) and the next run skipped it. **Not tested in a real cloud
+  container.**
+- **Review round 1 fixes:** the guard also blocks `gh pr merge`, pushes to main by refspec,
+  `--delete` or a bare `git push` on main, `git fetch …:main`, `git branch -f|-D main`, `pull`,
+  `cherry-pick` and `am` on main, and direct `wrangler` deploys, secrets and remote D1
+  migrations (`--dry-run` passes); it follows `cd` and `git -C` to judge the right tree.
+  `art:check` reports a drawing that is not registered and a registered id with no drawing
+  (`registrationFindings`), and a test checks the loaded sources equal the files on disk.
+  `--update-golden` refuses `--no-check`. The skills gained the missing steps (looks gallery
+  row, D25 confirmation, effects not built yet, a new layout field, the clip log's path).
+  Not changed: the geometry sampler's limits (no `transform`, compact arc flags), the one-point
+  side-belly test, and CI running for both push and pull_request (two runs per PR push).
+- **Review round 2 fixes:** the guard now reads each simple command with its quoted text
+  blanked out (a commit message or `echo` that mentions `git push origin main` is not blocked),
+  splits chains outside quotes, looks inside subshells and `bash -c` / `powershell -Command`,
+  and blocks `HEAD` / `@` pushed from main, `push --mirror` and `--all`, `checkout -B main`,
+  `switch -C main`, `update-ref refs/heads/main`, `branch -d main`, `rebase <x> main`,
+  `reset` and `revert` on main, and share-site scripts run by npm, yarn, npx or bun as well as
+  pnpm. `checkout -b x main` no longer counts as switching to main. `art:check` names any SVG
+  under `art/` that the game cannot load (a new folder, an id with `_`) unless it is listed in
+  `REFERENCE_ART`. The reactions prompt's Step 0 names `session-start`, and the fourth
+  session's branch follows the lane pattern (`behaviour/m1-s4`).
+- **The lane file map** in CLAUDE.md assigns the drawing loaders, galleries and clip data to the
+  art lane and the sim, hub scene, scripts and golden files to the behaviour lane; the five
+  shared files get one-line additions only.
+
+## A sharp picture at full screen, 2026-09-29
+
+Fixes the "Blurry game at full screen" topic in `docs/TOPICS.md`. No decision changes and no sim
+change: the sim states from `pnpm verify` still match `docs/status/m1-s3` (58 of 58), and the
+looks check still shows 177 of 177 identical.
+- **The canvas has the screen's real pixels.** `client/src/screen-scale.ts`: k = fit scale ×
+  `devicePixelRatio`, from the `#game` box, recomputed on every resize (`installRenderScale`).
+  `Phaser.Scale.FIT` stays, so the picture is shown at the same size and letterboxed as before;
+  only the canvas behind it grows. At 1280×720 and a ratio of 1, k is 1 and nothing changes.
+- **Scenes keep the 1280×720 layout.** Every camera is framed with `frameCamera` (size, zoom × k,
+  centred on the same point), so scene coordinates, taps and the `view` blocks in the shot logs
+  (`onScreen` in `HubScene.debugState`) are the same at every k. The hub's controls hint used
+  `setScrollFactor(0)`, which zooms about the camera's centre, so it now sits in the world at the
+  window's bottom right corner; the hub camera never moves.
+- **Text renders at resolution k** (`sharpText`), and follows k when the window changes.
+- **k is capped at 2.5** (`MAX_RENDER_SCALE`, for weak Chromebooks: a 2560×1440 screen at a ratio
+  of 1 needs 2, a 4K one 3) and floored at 0.5 (small phones need fewer pixels than the layout).
+- **`ART_RESOLUTION` 2 → 3**, so the bean (drawn up to 0.92 of full size in the hub) stays sharp at
+  the cap. At k = 1 the screenshots differ a little from the M1 session 3 evidence (sharper edges);
+  the logs do not. Texture memory for the parts is about 2.25 times what it was.
+- **Measured** (software GL, headless Chromium): the canvas is exactly the CSS size × ratio for
+  1280×720 at ratios 1 and 2, 1920×1080, 900×700 and a 390×700 phone at ratio 3, and follows live
+  window resizes. A tap at layout x = 800 at 1920×1080 sends the bean to sim x = 1.6 m.
+  Not measured: fps on real GPUs, Chromebooks and phones (the sandbox's software GL gives 3 to 30
+  fps run to run, before and after alike).
 
 ## Hub refactor for parallel work (branch `refactor/hub-parallel`), 2026-09-29
 

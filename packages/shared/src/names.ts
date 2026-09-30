@@ -1,5 +1,5 @@
 /**
- * Preset names (D26): students pick one of these, never type one (students are minors, and there
+ * Preset names (D27): students pick one of these, never type one (students are minors, and there
  * is no free text anywhere). A name is an adjective and an animal, e.g. "Brave Otter". The server
  * accepts only names from this list.
  */

@@ -3,9 +3,9 @@
   "error": null,
   "script": "tools/shot/scripts/hub-island-edges.json",
   "scene": "hub",
-  "url": "http://localhost:57988/?scene=hub&paused=1&layout=island",
+  "url": "http://localhost:64294/?scene=hub&paused=1&layout=bare-island",
   "git": {
-    "commit": "7dc851d",
+    "commit": "eec1758",
     "dirty": true
   },
   "inputs": [

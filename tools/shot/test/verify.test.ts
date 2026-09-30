@@ -1,39 +1,30 @@
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
-import { tmpdir } from 'node:os';
-import { join } from 'node:path';
-import { afterEach, describe, expect, it } from 'vitest';
-import { formatRows, naturalSort, newestStatusFolder, pickScripts, timedShots } from '../src/verify';
+import { describe, expect, it } from 'vitest';
+import type { SimState } from '../src/compare-states';
+import { formatRows, parseTimed, pickScripts, pickStates } from '../src/verify';
 
-describe('newestStatusFolder', () => {
-  let dir: string | undefined;
-  afterEach(() => {
-    if (dir) rmSync(dir, { recursive: true, force: true });
-  });
-
-  it('picks the last folder in natural order, ignoring files', () => {
-    dir = mkdtempSync(join(tmpdir(), 'status-'));
-    for (const d of ['m0', 'm1-s2', 'm1-s9', 'm1-s10']) mkdirSync(join(dir, d));
-    writeFileSync(join(dir, 'zz.txt'), '');
-    expect(newestStatusFolder(dir)).toBe(join(dir, 'm1-s10'));
-  });
-
-  it('is null without a folder', () => {
-    expect(newestStatusFolder(join(tmpdir(), 'no-such-status-folder'))).toBeNull();
-  });
-});
-
-describe('naturalSort', () => {
-  it('orders numbers by value', () => {
-    expect(naturalSort(['m1-s10', 'm1-s2', 'm1-s9'])).toEqual(['m1-s2', 'm1-s9', 'm1-s10']);
-  });
-});
-
-describe('timedShots', () => {
-  it('finds the timed scene shots and ignores everything else', () => {
-    expect(timedShots(['drop_t1.000.json', 'drop_t1.000.png', 'drop.json', 'hub-walk', 'drop_t1.500.json'])).toEqual([
-      { scene: 'drop', t: 1 },
+describe('parseTimed', () => {
+  it('reads scene@seconds pairs', () => {
+    expect(parseTimed('drop@1.5, hub@2')).toEqual([
       { scene: 'drop', t: 1.5 },
+      { scene: 'hub', t: 2 },
     ]);
+    expect(parseTimed(undefined)).toEqual([]);
+  });
+  it('rejects anything else', () => {
+    expect(() => parseTimed('drop=1')).toThrow(/scene@seconds/);
+  });
+});
+
+describe('pickStates', () => {
+  it("keeps only the run's scripts and timed shots", () => {
+    const states = new Map<string, SimState>([
+      ['hub-walk/start.json', {}],
+      ['hub-old/start.json', {}],
+      ['drop_t1.000.json', {}],
+      ['drop_t9.000.json', {}],
+      ['hub.json', 'live'],
+    ]);
+    expect([...pickStates(states, ['hub-walk'], ['drop_t1.000.json']).keys()]).toEqual(['hub-walk/start.json', 'drop_t1.000.json']);
   });
 });
 

@@ -1,0 +1,32 @@
+{
+  "scene": "drop",
+  "t": 1.5,
+  "layout": null,
+  "look": null,
+  "state": {
+    "gravity": 9.81,
+    "releaseHeight": 10,
+    "balls": [
+      {
+        "id": "light",
+        "massKg": 1,
+        "x": -1.5,
+        "y": 0,
+        "vy": 0,
+        "landedAt": 1.4278431229270618
+      },
+      {
+        "id": "heavy",
+        "massKg": 10,
+        "x": 1.5,
+        "y": 0,
+        "vy": 0,
+        "landedAt": 1.4278431229270618
+      }
+    ],
+    "tick": 90,
+    "rng": {
+      "s": 1
+    }
+  }
+}

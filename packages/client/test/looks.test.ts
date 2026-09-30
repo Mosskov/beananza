@@ -3,11 +3,12 @@ import { BEAN_COLOURS, COLOUR_IDS, DEFAULT_LOOK, allLooks, lookToString, parseLo
 import { BEAN_SVGS } from '../src/rig/bean-art-sources';
 import { buildBeanArtSpec } from '../src/rig/bean-contract';
 import { KEY, colourSet, recolour, usesKeyColours } from '../src/rig/colours';
-import { COSMETIC_SVGS, buildCosmeticsSpec, cosmeticDocs, lookParts } from '../src/rig/looks';
+import { buildCosmeticsSpec, cosmeticDocs, lookParts } from '../src/rig/looks';
+import { COSMETIC_SVGS } from '../src/rig/looks-sources';
 import { viewForFacing, type BeanView } from '../src/rig/views';
 
 const bean = buildBeanArtSpec(BEAN_SVGS);
-const cosmetics = buildCosmeticsSpec();
+const cosmetics = buildCosmeticsSpec(COSMETIC_SVGS);
 const S = Math.SQRT1_2;
 const DIRECTIONS: [string, number, number][] = [
   ['S', 0, -1],

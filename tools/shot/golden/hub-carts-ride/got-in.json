@@ -1,0 +1,152 @@
+{
+  "script": "hub-carts-ride",
+  "shot": "got-in",
+  "scene": "hub",
+  "layout": "plaza",
+  "look": null,
+  "state": {
+    "layout": {
+      "walkable": {
+        "points": [
+          {
+            "x": -5.8,
+            "y": -3
+          },
+          {
+            "x": 5.8,
+            "y": -3
+          },
+          {
+            "x": 5.8,
+            "y": 2
+          },
+          {
+            "x": -5.8,
+            "y": 2
+          }
+        ]
+      },
+      "props": [
+        {
+          "id": "tree",
+          "art": "tree",
+          "x": 2.2,
+          "y": 0.2,
+          "halfWidth": 0.25,
+          "halfDepth": 0.2
+        }
+      ],
+      "benches": [
+        {
+          "id": "bench",
+          "art": "bench",
+          "usable": true,
+          "x": -3.6,
+          "y": 1.2,
+          "halfWidth": 0.8,
+          "halfDepth": 0.225,
+          "seatHeight": 0.3,
+          "seatDy": -0.15,
+          "seats": [
+            {
+              "id": "west",
+              "dx": -0.4
+            },
+            {
+              "id": "east",
+              "dx": 0.4,
+              "taken": true
+            }
+          ]
+        }
+      ],
+      "portals": [],
+      "start": {
+        "x": -2.5,
+        "y": -0.8
+      },
+      "rail": {
+        "y": -2.1,
+        "minX": -3.68,
+        "maxX": 3.68,
+        "carts": [
+          {
+            "id": "light",
+            "mass": 5,
+            "x": -2.1,
+            "ridable": true
+          },
+          {
+            "id": "heavy",
+            "mass": 20,
+            "x": 1.6,
+            "ridable": false
+          }
+        ]
+      }
+    },
+    "gravity": 9.81,
+    "beans": [
+      {
+        "id": "local",
+        "input": {
+          "x": 1,
+          "y": 0,
+          "run": false
+        },
+        "x": -0.6464472495222493,
+        "y": -2.1,
+        "z": 0.1,
+        "vx": 0.3531333333333335,
+        "vy": 0,
+        "vz": 0,
+        "grounded": true,
+        "facingX": 1,
+        "facingY": 0,
+        "target": null,
+        "stuckSteps": 0,
+        "jumps": 0,
+        "lastJump": null,
+        "act": {
+          "kind": "riding",
+          "cart": "light",
+          "since": 127
+        }
+      }
+    ],
+    "rail": {
+      "carts": [
+        {
+          "id": "light",
+          "mass": 5,
+          "riderMass": 20,
+          "x": -0.6464472495222492,
+          "v": 0.3531333333333335
+        },
+        {
+          "id": "heavy",
+          "mass": 20,
+          "riderMass": 0,
+          "x": 1.6,
+          "v": 0
+        }
+      ],
+      "collisions": [],
+      "riders": [
+        {
+          "kind": "in",
+          "cart": "light",
+          "time": 2.1166666666666667,
+          "massBefore": 5,
+          "vBefore": 1.7656666666666676,
+          "massAfter": 25,
+          "vAfter": 0.3531333333333335
+        }
+      ]
+    },
+    "tick": 127,
+    "rng": {
+      "s": 1
+    }
+  }
+}

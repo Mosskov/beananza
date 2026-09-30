@@ -1,0 +1,211 @@
+{
+  "script": "hub-island-portals",
+  "shot": "into-waves",
+  "scene": "hub",
+  "layout": "island",
+  "look": null,
+  "state": {
+    "layout": {
+      "walkable": {
+        "points": [
+          {
+            "x": 12,
+            "y": 0
+          },
+          {
+            "x": 6,
+            "y": 10.392304845413264
+          },
+          {
+            "x": -6,
+            "y": 10.392304845413264
+          },
+          {
+            "x": -12,
+            "y": 0
+          },
+          {
+            "x": -6,
+            "y": -10.392304845413264
+          },
+          {
+            "x": 6,
+            "y": -10.392304845413264
+          }
+        ]
+      },
+      "props": [
+        {
+          "id": "tree-west",
+          "art": "tree",
+          "x": -7.2,
+          "y": 2.6,
+          "halfWidth": 0.25,
+          "halfDepth": 0.2
+        },
+        {
+          "id": "tree-east",
+          "art": "tree",
+          "x": 8.4,
+          "y": 1.8,
+          "halfWidth": 0.25,
+          "halfDepth": 0.2
+        },
+        {
+          "id": "tree-south",
+          "art": "tree",
+          "x": -0.8,
+          "y": -7.6,
+          "halfWidth": 0.25,
+          "halfDepth": 0.2
+        }
+      ],
+      "benches": [
+        {
+          "id": "bench",
+          "art": "bench",
+          "usable": true,
+          "x": -5,
+          "y": -4.6,
+          "halfWidth": 0.8,
+          "halfDepth": 0.225,
+          "seatHeight": 0.3,
+          "seatDy": -0.15,
+          "seats": [
+            {
+              "id": "west",
+              "dx": -0.4
+            },
+            {
+              "id": "east",
+              "dx": 0.4,
+              "taken": true
+            }
+          ]
+        }
+      ],
+      "portals": [
+        {
+          "id": "portal-mechanics",
+          "art": "portal",
+          "usable": true,
+          "region": "mechanics",
+          "x": -6.2,
+          "y": 6.2,
+          "halfWidth": 0.65,
+          "halfDepth": 0.2
+        },
+        {
+          "id": "portal-waves",
+          "art": "portal",
+          "usable": true,
+          "region": "waves",
+          "x": 0,
+          "y": 7.8,
+          "halfWidth": 0.65,
+          "halfDepth": 0.2
+        },
+        {
+          "id": "portal-storm",
+          "art": "portal",
+          "usable": true,
+          "region": "storm",
+          "x": 6.2,
+          "y": 6.2,
+          "halfWidth": 0.65,
+          "halfDepth": 0.2
+        },
+        {
+          "id": "portal-crystal",
+          "art": "portal",
+          "usable": true,
+          "region": "crystal",
+          "locked": true,
+          "x": -9.2,
+          "y": -0.8,
+          "halfWidth": 0.65,
+          "halfDepth": 0.2
+        }
+      ],
+      "start": {
+        "x": 0,
+        "y": -1
+      },
+      "rail": {
+        "y": -6,
+        "minX": 0.52,
+        "maxX": 7.88,
+        "carts": [
+          {
+            "id": "light",
+            "mass": 5,
+            "x": 2.1,
+            "ridable": true
+          },
+          {
+            "id": "heavy",
+            "mass": 20,
+            "x": 5.8,
+            "ridable": false
+          }
+        ]
+      }
+    },
+    "gravity": 9.81,
+    "beans": [
+      {
+        "id": "local",
+        "input": {
+          "x": 0,
+          "y": 0,
+          "run": false
+        },
+        "x": 0,
+        "y": 7.785555555555556,
+        "z": 0.5037037037037037,
+        "vx": 0,
+        "vy": 0,
+        "vz": 0,
+        "grounded": true,
+        "facingX": 0,
+        "facingY": 1,
+        "target": null,
+        "stuckSteps": 0,
+        "jumps": 0,
+        "lastJump": null,
+        "act": {
+          "kind": "entering",
+          "portal": "portal-waves",
+          "startTick": 122,
+          "endTick": 158,
+          "fromX": 0,
+          "fromY": 7.540000000000012
+        }
+      }
+    ],
+    "rail": {
+      "carts": [
+        {
+          "id": "light",
+          "mass": 5,
+          "riderMass": 0,
+          "x": 2.1,
+          "v": 0
+        },
+        {
+          "id": "heavy",
+          "mass": 20,
+          "riderMass": 0,
+          "x": 5.8,
+          "v": 0
+        }
+      ],
+      "collisions": [],
+      "riders": []
+    },
+    "tick": 156,
+    "rng": {
+      "s": 1
+    }
+  }
+}

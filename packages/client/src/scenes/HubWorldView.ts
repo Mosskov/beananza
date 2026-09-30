@@ -26,6 +26,7 @@ import { PART_DEFAULTS, presentAct, type Placement, type Presentation, type Togg
 import { cameraCentre, cartStandOff, characterScreen, depthKey, depthScale, groundFromScreen, toScreen, type CameraMargin } from './hub-view';
 import { SKY_LAYOUTS, SKY_MARGIN, SkyIsland } from './sky-island';
 import { PortalView } from './hub-portals';
+import { frameCamera, layoutCentre, renderScale, sharpText } from '../screen-scale';
 
 /**
  * Everything the hub draws (D1, D2): the ground or the sky island, props, portals, the rail and
@@ -147,6 +148,8 @@ export class HubWorldView {
   private readonly beans = new Map<string, BeanDrawer>();
   /** The sky and clouds, for layouts drawn as the floating island (D2); null on plaza ground. */
   private readonly sky: SkyIsland | null = null;
+  /** The controls hint: in the world, kept at the view's bottom right corner (the camera zooms, screen-scale.ts). */
+  private readonly hint: Phaser.GameObjects.Text;
 
   /** `state` gives the layout (and Priya's seat); `lookOf` each bean's look. */
   constructor(
@@ -184,12 +187,10 @@ export class HubWorldView {
       }
     }
     this.createClassmates(state);
-    // Controls hint only (allowed by the no-text rule). PLACEHOLDER UI font and style.
-    scene.add
-      .text(GAME_WIDTH - 20, GAME_HEIGHT - 16, hint, HINT_STYLE)
-      .setOrigin(1, 1)
-      .setScrollFactor(0)
-      .setDepth(UI_DEPTH);
+    // Controls hint only (allowed by the no-text rule). PLACEHOLDER UI font and style. It lives in
+    // the world and moves with the view each frame: scroll factor 0 does not survive the camera's
+    // zoom (screen-scale.ts).
+    this.hint = sharpText(scene.add.text(0, 0, hint, HINT_STYLE).setOrigin(1, 1).setDepth(UI_DEPTH));
   }
 
   /** The rig drawn for a bean last frame, for the logs. */
@@ -253,8 +254,12 @@ export class HubWorldView {
     const at = focus ? frame.beanAt(focus) : VIEW_CENTER;
     const centre = cameraCentre(at, this.bounds, VIEW_M, this.sky ? SKY_MARGIN : NO_MARGIN, VIEW_CENTER);
     const centreScreen = toScreen(centre.x, centre.y);
-    this.scene.cameras.main.centerOn(centreScreen.x, centreScreen.y);
-    this.sky?.update(time, this.reducedMotion);
+    // The 1280×720 layout window around the centre, at k canvas pixels per unit (screen-scale.ts).
+    frameCamera(this.scene.cameras.main, renderScale(), centreScreen);
+    const viewLeft = centreScreen.x - GAME_WIDTH / 2;
+    const viewTop = centreScreen.y - GAME_HEIGHT / 2;
+    this.hint.setPosition(viewLeft + GAME_WIDTH - 20, viewTop + GAME_HEIGHT - 16);
+    this.sky?.update(time, this.reducedMotion, viewLeft, viewTop);
     for (const p of this.portals.values()) p.draw(time, this.reducedMotion);
     this.drawClassmates(state, time);
 
@@ -367,11 +372,13 @@ export class HubWorldView {
       const scale = depthScale(seatSpot(bench, seat).y, this.bounds);
       // Just behind a bean on the same row (the player draws in front of a classmate on a tie).
       rig.root.setPosition(at.x + anchor.x, at.y + anchor.y).setScale(scale).setDepth(depthKey(bench.y) + CLASSMATE_TIE_BREAK);
-      const bubble = this.scene.add
-        .text(rig.root.x, rig.root.y + (rig.drawnTop() - READOUT_GAP_UNITS) * scale, 'Hi!', BUBBLE_STYLE)
-        .setOrigin(0.5, 1)
-        .setDepth(UI_DEPTH - 2)
-        .setVisible(false);
+      const bubble = sharpText(
+        this.scene.add
+          .text(rig.root.x, rig.root.y + (rig.drawnTop() - READOUT_GAP_UNITS) * scale, 'Hi!', BUBBLE_STYLE)
+          .setOrigin(0.5, 1)
+          .setDepth(UI_DEPTH - 2)
+          .setVisible(false),
+      );
       this.classmates.push({ who, rig, bubble, greeting: null, clip: 'sit' });
     }
   }
@@ -417,10 +424,11 @@ export class HubWorldView {
 
   /** The drawn world for the logs: the focus bean, carts, classmates and props on screen. */
   debugView(state: HubState, focus: string): unknown {
-    const cam = this.scene.cameras.main;
-    const onScreen = (o: Phaser.GameObjects.Components.Transform) => ({
-      x: Math.round((o.x - cam.scrollX) * 10) / 10,
-      y: Math.round((o.y - cam.scrollY) * 10) / 10,
+    // Where an object is in the 1280×720 layout window, whatever the canvas resolution.
+    const centre = layoutCentre(this.scene.cameras.main);
+    const onScreen = (o: { x: number; y: number }) => ({
+      x: Math.round((o.x - (centre.x - GAME_WIDTH / 2)) * 10) / 10,
+      y: Math.round((o.y - (centre.y - GAME_HEIGHT / 2)) * 10) / 10,
     });
     const me = this.beans.get(focus);
     const beanDepth = me?.rig.root.depth ?? 0;
@@ -435,7 +443,7 @@ export class HubWorldView {
           v: c.v,
           readout: view?.readout.text ?? null,
           expectedReadout: speedReadout(c.v),
-          screen: view ? { x: Math.round((view.screen.x - cam.scrollX) * 10) / 10, y: Math.round((view.screen.y - cam.scrollY) * 10) / 10 } : null,
+          screen: view ? onScreen(view.screen) : null,
         };
       }),
       classmates: this.classmates.map((c) => ({

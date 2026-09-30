@@ -1,0 +1,79 @@
+{
+  "script": "hub-island-edges",
+  "shot": "south-edge",
+  "scene": "hub",
+  "layout": "bare-island",
+  "look": null,
+  "state": {
+    "layout": {
+      "walkable": {
+        "points": [
+          {
+            "x": 12,
+            "y": 0
+          },
+          {
+            "x": 6,
+            "y": 10.392304845413264
+          },
+          {
+            "x": -6,
+            "y": 10.392304845413264
+          },
+          {
+            "x": -12,
+            "y": 0
+          },
+          {
+            "x": -6,
+            "y": -10.392304845413264
+          },
+          {
+            "x": 6,
+            "y": -10.392304845413264
+          }
+        ]
+      },
+      "props": [],
+      "benches": [],
+      "portals": [],
+      "start": {
+        "x": 0,
+        "y": -1
+      },
+      "rail": null
+    },
+    "gravity": 9.81,
+    "beans": [
+      {
+        "id": "local",
+        "input": {
+          "x": 0,
+          "y": 0,
+          "run": true
+        },
+        "x": -1.6490264012507532,
+        "y": -10.13730484541533,
+        "z": 0,
+        "vx": 0,
+        "vy": 0,
+        "vz": 0,
+        "grounded": true,
+        "facingX": 1,
+        "facingY": 0,
+        "target": null,
+        "stuckSteps": 0,
+        "jumps": 0,
+        "lastJump": null,
+        "act": {
+          "kind": "free"
+        }
+      }
+    ],
+    "rail": null,
+    "tick": 1230,
+    "rng": {
+      "s": 1
+    }
+  }
+}

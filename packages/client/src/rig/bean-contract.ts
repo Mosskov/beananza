@@ -1,5 +1,5 @@
 import { usesKeyColours } from './colours';
-import { insideViewBox, parseSvgParts, partPivot, type Point, type SvgDoc } from './svg-parts';
+import { ArtContractError, insideViewBox, parseSvgParts, partPivot, type Point, type SvgDoc } from './svg-parts';
 import { HIDDEN_BY_DEFAULT, MIRRORED_VIEWS, REQUIRED_ANCHORS, REQUIRED_PARTS, SHADOW_PART, VIEWS, type BeanView } from './views';
 
 /** One drawn part, ready for the rig. Coordinates are art units in the view's frame. */
@@ -118,7 +118,7 @@ export function buildBeanArtSpec(sources: Readonly<Record<string, string>>): Bea
     }
   };
   for (const name of Object.keys(docs)) pivots(name);
-  if (problems.length) throw new Error(`Bean art breaks the art contract:\n- ${problems.join('\n- ')}`);
+  if (problems.length) throw new ArtContractError('Bean art', problems);
 
   const views: RigView[] = [];
   for (const view of VIEWS) {

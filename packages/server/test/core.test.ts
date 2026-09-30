@@ -5,7 +5,7 @@ import { CMD_BURST, CMD_PER_STEP, HubServerCore, JoinRefused, parseCommand } fro
 
 const ok = { classCode: 'ABC123', name: 'Brave Otter', look: 'blue,bow' };
 
-describe('preset names (D26)', () => {
+describe('preset names (D27)', () => {
   it('has 256 distinct names and offers a few different ones', () => {
     expect(new Set(PRESET_NAMES).size).toBe(256);
     expect(isPresetName('Brave Otter')).toBe(true);

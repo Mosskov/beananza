@@ -1,6 +1,6 @@
 {
   "scene": "hub",
-  "layout": "island",
+  "layout": "bare-island",
   "steps": [
     { "keyDown": "Shift" },
     { "keyDown": "ArrowUp" },

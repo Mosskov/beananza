@@ -33,7 +33,7 @@ export const MSG_SNAPSHOT = 'snap';
 /** What a client sends when it joins. */
 export interface HubJoinOptions {
   classCode: string;
-  /** One of PRESET_NAMES (D26). */
+  /** One of PRESET_NAMES (D27). */
   name: string;
   /** The look as its URL value (`lookToString`), e.g. `blue,spots,bow,glasses`. */
   look: string;

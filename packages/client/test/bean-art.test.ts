@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { BEAN_SVGS } from '../src/rig/bean-art-sources';
+import { beanDrawingProblems, beanSpecProblems } from '../src/art/checks';
 import { buildBeanArtSpec } from '../src/rig/bean-contract';
 import { PROP_SVGS } from '../src/art/props';
 import { parseAttrs, parseSvgParts, partPivot, type Point, type SvgPart } from '../src/rig/svg-parts';
@@ -64,56 +65,18 @@ describe('bean art contract (art/bean/*.svg)', () => {
     }
   });
 
+  // The drawing rules live in src/art/checks.ts, which pnpm art:check runs too; its own tests
+  // (art-checks.test.ts) re-introduce each slip.
   it('keeps the scarf tail on the bean’s left side in every direction', () => {
-    // Screen x of the tail's knot. Facing the camera (front), the bean's left is screen right;
-    // facing away (back), screen left. Facing screen-right (side), its left is the far side, so
-    // the tail is behind the body; facing screen-left it is the near side, in front of the body.
-    const knotX = (name: string, mirrored: boolean) => {
-      const p = view(name, mirrored).parts.find((q) => q.id === 'scarf-tail');
-      if (!p) throw new Error('no tail');
-      // Unmirrored parts are mirrored on screen; screen-space ones are drawn as seen.
-      return mirrored && !p.screenSpace ? -p.pivot.x : p.pivot.x;
-    };
-    const layer = (name: string, mirrored: boolean) => {
-      const ids = view(name, mirrored).parts.map((p) => p.id);
-      return ids.indexOf('scarf-tail') > ids.indexOf('body') ? 'in front' : 'behind';
-    };
-    expect(knotX('front', false)).toBeGreaterThan(0);
-    expect(knotX('back', false)).toBeLessThan(0);
-    expect(knotX('front-34', false)).toBeGreaterThan(0); // turned to its right: left side is screen right
-    expect(knotX('front-34', true)).toBeGreaterThan(0); // turned to its left: left side is screen right
-    expect(knotX('back-34', false)).toBeLessThan(0);
-    expect(knotX('back-34', true)).toBeLessThan(0);
-    expect(layer('side', false)).toBe('behind');
-    expect(layer('side', true)).toBe('in front');
+    expect(beanSpecProblems(spec)).toEqual([]);
   });
 
-  it('puts the near arm and foot on the side nearer the camera in the ¾ views', () => {
-    // Turned to its right towards the camera (front ¾), the bean's right side is near and on
-    // screen left; turned to its right away from the camera (back ¾), it is near and on screen right.
-    const pivotX = (name: string, id: string) => {
-      const p = view(name, false).parts.find((q) => q.id === id);
-      if (!p) throw new Error(`no ${id}`);
-      return p.pivot.x;
-    };
-    for (const id of ['arm-near', 'foot-near']) {
-      expect(pivotX('front-34', id), id).toBeLessThan(0);
-      expect(pivotX('back-34', id), id).toBeGreaterThan(0);
-    }
-    for (const id of ['arm-far', 'foot-far']) {
-      expect(pivotX('front-34', id), id).toBeGreaterThan(0);
-      expect(pivotX('back-34', id), id).toBeLessThan(0);
-    }
+  it('puts the near arm and foot on the side nearer the camera in the ¾ views, and the near arm in front', () => {
+    expect(beanDrawingProblems(spec.docs).filter((p) => /near|far/.test(p))).toEqual([]);
   });
 
-  it('keeps the eye highlights on the light side (up and to the right of each pupil)', () => {
-    for (const source of ['front', 'front-34', 'side', 'front-34-left', 'side-left']) {
-      const eyes = parseSvgParts(BEAN_SVGS[source] as string).parts.find((p) => p.id === 'eyes');
-      const pupils = [...(eyes?.inner ?? '').matchAll(/<ellipse cx="(-?[\d.]+)"/g)].map((m) => Number(m[1]));
-      const shines = [...(eyes?.inner ?? '').matchAll(/<circle cx="(-?[\d.]+)"/g)].map((m) => Number(m[1]));
-      expect(shines.length, source).toBe(pupils.length);
-      shines.forEach((s, i) => expect(s, source).toBeGreaterThan(pupils[i] as number));
-    }
+  it('keeps the eye highlights on the light side, and the face, belly and anchors on the body', () => {
+    expect(beanDrawingProblems(spec.docs)).toEqual([]);
   });
 
   it('reads pivots from data-pivot: shoulder for arms, foot and eye centres, (0, 0) for the body', () => {

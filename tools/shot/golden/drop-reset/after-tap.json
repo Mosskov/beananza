@@ -1,0 +1,33 @@
+{
+  "script": "drop-reset",
+  "shot": "after-tap",
+  "scene": "drop",
+  "layout": null,
+  "look": null,
+  "state": {
+    "gravity": 9.81,
+    "releaseHeight": 10,
+    "balls": [
+      {
+        "id": "light",
+        "massKg": 1,
+        "x": -1.5,
+        "y": 9.693437499999987,
+        "vy": -2.4525,
+        "landedAt": null
+      },
+      {
+        "id": "heavy",
+        "massKg": 10,
+        "x": 1.5,
+        "y": 9.693437499999987,
+        "vy": -2.4525,
+        "landedAt": null
+      }
+    ],
+    "tick": 15,
+    "rng": {
+      "s": 1
+    }
+  }
+}

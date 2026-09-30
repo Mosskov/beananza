@@ -67,6 +67,8 @@ export interface RunOptions {
   fpsMs: number;
   /** How long to wait for window.__ready. */
   timeoutMs: number;
+  /** More query parameters for scene shots (a tool scene's own, such as the clip sheet's). */
+  params?: Readonly<Record<string, string>>;
 }
 
 export const DEFAULT_RUN: Omit<RunOptions, 'outDir'> = {
@@ -331,13 +333,13 @@ export function errorMessage(err: unknown): string {
   return err instanceof Error ? (err.message.split('\n')[0] ?? String(err)) : String(err);
 }
 
-function sceneUrl(session: Session, scene: string, paused: boolean, look: string | null, layout: string | null, region: string | null = null): URL {
+function sceneUrl(session: Session, scene: string, paused: boolean, look: string | null, layout: string | null, params: Readonly<Record<string, string>> = {}): URL {
   const url = new URL(session.baseUrl);
   url.searchParams.set(URL_PARAM_SCENE, scene);
   if (paused) url.searchParams.set(URL_PARAM_PAUSED, '1');
   if (layout) url.searchParams.set(URL_PARAM_LAYOUT, layout);
-  if (region) url.searchParams.set(URL_PARAM_REGION, region);
   if (look) url.searchParams.set(URL_PARAM_LOOK, look);
+  for (const [k, v] of Object.entries(params)) url.searchParams.set(k, v);
   return url;
 }
 
@@ -348,7 +350,7 @@ function sceneUrl(session: Session, scene: string, paused: boolean, look: string
 export async function shootScene(session: Session, scene: string, t: number | undefined, run: RunOptions): Promise<ShotLog> {
   const base = t === undefined ? scene : `${scene}_t${t.toFixed(3)}`;
   const pngPath = join(run.outDir, `${base}.png`);
-  const url = sceneUrl(session, scene, t !== undefined, run.look, run.layout, run.region);
+  const url = sceneUrl(session, scene, t !== undefined, run.look, run.layout, { ...run.params, ...(run.region ? { [URL_PARAM_REGION]: run.region } : {}) });
   const { context, page, entries } = await openPage(session, run);
 
   const log: ShotLog = {

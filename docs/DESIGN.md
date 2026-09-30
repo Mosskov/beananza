@@ -113,6 +113,18 @@ with part ids: `art/bean/*.svg`. Origin (0, 0) is the point between the feet on 
 - **Sit:** hop onto the seat (0.35 s arc), feet dangle and swing; dozes (closed eyes, floating "z") after 5 s
 - **Reactions:** Thinking (during prediction), Eureka! (correct prediction: jump, lightbulb, sparkles),
   Oops (missed prediction: squish, dizzy stars; must feel funny, not punishing), Wave hi (reply to a ping)
+  - **The model (D26, confirmed):** one `bean.reaction` (kind and start tick) beside the act, for
+    what the sim alone knows or other players must see start: Eureka!, Oops, Wave hi (the `emote`
+    command, Q or a tap on your own bean) and dizzy. Durations are `REACTION_TICKS` in
+    `packages/sim/src/reactions.ts`. Thinking, the effort face, sweat, dust and the doze "z" are
+    derived from sim state in the client.
+  - A reaction is a face, an effect and optionally a body clip, laid over the act's clip. The
+    body part plays only when free and standing still. A reaction never blocks input, and
+    moving drops only its body part.
+  - A new reaction replaces a running one, but an emote never cuts off Eureka! or Oops.
+  - Reduced motion keeps the face and a still effect.
+  - Effects are drawn parts in `art/effects/` on effect slots, never text: the thought mark is
+    a shape, not a "?".
 - All motion should respect `prefers-reduced-motion`.
 
 **Companions, "Physics pals" (Explored, optional):** Spark (electricity), Drip (waves),
@@ -164,10 +176,10 @@ Use them as tuning starting points; the real sim should use SI units.
   hub sim as the authority for the whole hub (movement, carts, the bench, portals), not only
   movement; clients send commands and draw snapshots. Expedition rooms per group (2–4) run
   authoritative physics (not built).
-- Names: students pick a preset name ("Brave Otter"), never type one (D26).
+- Names: students pick a preset name ("Brave Otter"), never type one (D27).
 - Communication: preset pings only ("On my way", "Look here", "Need help", "Nice find!").
 - Name tags appear on proximity (built: within 3 m); groups shown by scarf color and a ground ring.
-- Beans pass through each other (D27, Open); a bench seat and the ridable cart take one bean each.
+- Beans pass through each other (D28, Open); a bench seat and the ridable cart take one bean each.
 - Teacher controls: broadcast banner, recall everyone to the hub, freeze, lock or unlock regions,
   assign expeditions, class progress view.
 - Region instancing (Open): private per group, fully shared, or private with visible traces of other groups.

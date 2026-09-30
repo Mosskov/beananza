@@ -14,9 +14,13 @@
     "verify": "tsx src/verify.ts",
     "sheet": "tsx src/sheet.ts",
     "art-sheet": "tsx src/art-sheet.ts",
-    "shot-multi": "tsx src/multi.ts"
+    "shot-multi": "tsx src/multi.ts",
+    "art-part": "tsx src/art-part.ts",
+    "art-check": "tsx src/art-check.ts",
+    "clip-sheet": "tsx src/clip-sheet.ts"
   },
   "dependencies": {
+    "@beananza/client": "workspace:*",
     "@beananza/server": "workspace:*",
     "@beananza/shared": "workspace:*",
     "@beananza/sim": "workspace:*",

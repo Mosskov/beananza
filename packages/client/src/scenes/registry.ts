@@ -1,5 +1,6 @@
 import { COLOUR_IDS, DEFAULT_LOOK, type BeanLook, type ColourId } from '@beananza/shared';
 import { BeanGalleryScene } from './BeanGalleryScene';
+import { ClipSheetScene } from './ClipSheetScene';
 import { PRIYA_COLOUR } from './classmates';
 import { DropScene } from './DropScene';
 import { EmptyScene } from './EmptyScene';
@@ -20,6 +21,7 @@ export const SCENES: Readonly<Record<string, SceneClass>> = {
   hub: HubScene,
   bean: BeanGalleryScene,
   looks: LooksGalleryScene,
+  clip: ClipSheetScene,
   /** A region's placeholder scene (D2), reached through its portal: `?scene=region&region=<id>`. */
   region: RegionScene,
 };

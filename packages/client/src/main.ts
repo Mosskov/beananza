@@ -14,13 +14,14 @@ import {
   parseLook,
 } from '@beananza/shared';
 import { HUB_LAYOUT_NAMES, REGION_IDS } from '@beananza/sim';
-import { GAME_HEIGHT, GAME_WIDTH, PALETTE } from './config';
+import { PALETTE } from './config';
 import { loadPropArt } from './art/props';
 import { loadBeanArt } from './rig/bean-art';
 import { HubConnection, hubServerUrl, setHubConnection } from './net/connection';
 import { showJoinOverlay, type JoinChoice } from './net/join-overlay';
 import { HubOnlineScene } from './scenes/HubOnlineScene';
 import { DEFAULT_SCENE, SCENE_NAMES, SCENES, coloursFor } from './scenes/registry';
+import { canvasSizeFor, initialRenderScale, installRenderScale } from './screen-scale';
 import type { SceneStartData, TestableScene } from './scenes/TestableScene';
 import { installTestHooks } from './test-hooks';
 
@@ -71,7 +72,7 @@ async function joinOnline(): Promise<boolean> {
       return null;
     } catch (err) {
       console.warn('Could not join the hub:', err);
-      return "Could not join. Check the class code, or try again in a moment.";
+      return 'Could not join. Check the class code, or try again in a moment.';
     }
   };
   const named = params.get(URL_PARAM_NAME);
@@ -89,17 +90,22 @@ async function joinOnline(): Promise<boolean> {
 }
 
 function startGame(key: string, scene: TestableScene, data: SceneStartData): void {
+  // The canvas has the screen's real pixels (see screen-scale.ts); scenes lay out in 1280×720.
+  const parent = document.getElementById('game');
+  if (!parent) throw new Error('index.html has no #game element.');
+  const size = canvasSizeFor(initialRenderScale(parent));
   const game = new Phaser.Game({
     type: Phaser.AUTO,
-    parent: 'game',
-    width: GAME_WIDTH,
-    height: GAME_HEIGHT,
+    parent,
+    width: size.width,
+    height: size.height,
     backgroundColor: PALETTE.cream,
     scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },
     banner: false,
     // No sound yet; this also keeps the browser autoplay warning out of the console.
     audio: { noAudio: true },
   });
+  installRenderScale(game, parent);
   installTestHooks(game, key, scene);
   game.scene.add(key, scene, true, data);
 }

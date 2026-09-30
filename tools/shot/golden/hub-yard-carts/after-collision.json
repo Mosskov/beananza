@@ -1,0 +1,127 @@
+{
+  "script": "hub-yard-carts",
+  "shot": "after-collision",
+  "scene": "hub",
+  "layout": "carts",
+  "look": null,
+  "state": {
+    "layout": {
+      "walkable": {
+        "points": [
+          {
+            "x": -5.8,
+            "y": -3
+          },
+          {
+            "x": 5.8,
+            "y": -3
+          },
+          {
+            "x": 5.8,
+            "y": 2
+          },
+          {
+            "x": -5.8,
+            "y": 2
+          }
+        ]
+      },
+      "props": [],
+      "benches": [],
+      "portals": [],
+      "start": {
+        "x": -2.5,
+        "y": -0.8
+      },
+      "rail": {
+        "y": -2.1,
+        "minX": -3.68,
+        "maxX": 3.68,
+        "carts": [
+          {
+            "id": "light",
+            "mass": 5,
+            "x": -2.1,
+            "ridable": true
+          },
+          {
+            "id": "heavy",
+            "mass": 20,
+            "x": 1.6,
+            "ridable": false
+          }
+        ]
+      }
+    },
+    "gravity": 9.81,
+    "beans": [
+      {
+        "id": "local",
+        "input": {
+          "x": 0,
+          "y": 0,
+          "run": false
+        },
+        "x": -1.4834111384111375,
+        "y": -2.1,
+        "z": 0,
+        "vx": 0,
+        "vy": 0,
+        "vz": 0,
+        "grounded": true,
+        "facingX": 1,
+        "facingY": 0,
+        "target": null,
+        "stuckSteps": 0,
+        "jumps": 0,
+        "lastJump": null,
+        "act": {
+          "kind": "free"
+        }
+      }
+    ],
+    "rail": {
+      "carts": [
+        {
+          "id": "light",
+          "mass": 5,
+          "riderMass": 0,
+          "x": 0.5926048395953396,
+          "v": -0.05078941730936687
+        },
+        {
+          "id": "heavy",
+          "mass": 20,
+          "riderMass": 0,
+          "x": 1.9872943730526864,
+          "v": 0.21694074014569587
+        }
+      ],
+      "collisions": [
+        {
+          "kind": "carts",
+          "time": 2.9172568139873385,
+          "carts": [
+            {
+              "id": "light",
+              "mass": 5,
+              "vBefore": 1.6615132283632936,
+              "vAfter": -0.3323026456726587
+            },
+            {
+              "id": "heavy",
+              "mass": 20,
+              "vBefore": 0,
+              "vAfter": 0.4984539685089881
+            }
+          ]
+        }
+      ],
+      "riders": []
+    },
+    "tick": 240,
+    "rng": {
+      "s": 1
+    }
+  }
+}

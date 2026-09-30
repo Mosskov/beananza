@@ -5,6 +5,7 @@ import { BeanRig, createBeanShadow } from '../rig/BeanRig';
 import type { ClipName } from '../rig/clips';
 import { samplePose, type Pose } from '../rig/player';
 import { viewForFacing } from '../rig/views';
+import { frameMainCamera, sharpText } from '../screen-scale';
 import type { TestableScene } from './TestableScene';
 
 const S = Math.SQRT1_2;
@@ -102,6 +103,7 @@ export class BeanGalleryScene extends Phaser.Scene implements TestableScene {
 
   create(): void {
     this.reducedMotion = prefersReducedMotion();
+    frameMainCamera(this);
     ROWS.forEach((row, r) =>
       row.forEach((cell, i) => {
         const x = COL_X(i);
@@ -114,16 +116,20 @@ export class BeanGalleryScene extends Phaser.Scene implements TestableScene {
         const pose = samplePose({ clip: cell.clip, t: cell.t, time: cell.time ?? 0, view: choice.view, reducedMotion: this.reducedMotion });
         rig.applyPose(pose);
         rig.root.setPosition(x, y).setScale(SCALE);
-        this.add
-          .text(x, y + 14, cell.label, { fontFamily: FONT, fontSize: '13px', color: cssColor(PALETTE.inkSecondary) })
-          .setOrigin(0.5, 0);
+        sharpText(
+          this.add
+            .text(x, y + 14, cell.label, { fontFamily: FONT, fontSize: '13px', color: cssColor(PALETTE.inkSecondary) })
+            .setOrigin(0.5, 0),
+        );
         this.shown.push({ cell, view: choice.view, mirrored: choice.mirrored, pose });
       }),
     );
     if (this.reducedMotion) {
-      this.add
-        .text(1270, 8, 'prefers-reduced-motion', { fontFamily: FONT, fontSize: '13px', color: cssColor(PALETTE.labelAccent) })
-        .setOrigin(1, 0);
+      sharpText(
+        this.add
+          .text(1270, 8, 'prefers-reduced-motion', { fontFamily: FONT, fontSize: '13px', color: cssColor(PALETTE.labelAccent) })
+          .setOrigin(1, 0),
+      );
     }
   }
 

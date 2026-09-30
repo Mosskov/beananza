@@ -1,0 +1,140 @@
+{
+  "script": "hub-depth",
+  "shot": "behind-prop",
+  "scene": "hub",
+  "layout": "plaza",
+  "look": null,
+  "state": {
+    "layout": {
+      "walkable": {
+        "points": [
+          {
+            "x": -5.8,
+            "y": -3
+          },
+          {
+            "x": 5.8,
+            "y": -3
+          },
+          {
+            "x": 5.8,
+            "y": 2
+          },
+          {
+            "x": -5.8,
+            "y": 2
+          }
+        ]
+      },
+      "props": [
+        {
+          "id": "tree",
+          "art": "tree",
+          "x": 2.2,
+          "y": 0.2,
+          "halfWidth": 0.25,
+          "halfDepth": 0.2
+        }
+      ],
+      "benches": [
+        {
+          "id": "bench",
+          "art": "bench",
+          "usable": true,
+          "x": -3.6,
+          "y": 1.2,
+          "halfWidth": 0.8,
+          "halfDepth": 0.225,
+          "seatHeight": 0.3,
+          "seatDy": -0.15,
+          "seats": [
+            {
+              "id": "west",
+              "dx": -0.4
+            },
+            {
+              "id": "east",
+              "dx": 0.4,
+              "taken": true
+            }
+          ]
+        }
+      ],
+      "portals": [],
+      "start": {
+        "x": -2.5,
+        "y": -0.8
+      },
+      "rail": {
+        "y": -2.1,
+        "minX": -3.68,
+        "maxX": 3.68,
+        "carts": [
+          {
+            "id": "light",
+            "mass": 5,
+            "x": -2.1,
+            "ridable": true
+          },
+          {
+            "id": "heavy",
+            "mass": 20,
+            "x": 1.6,
+            "ridable": false
+          }
+        ]
+      }
+    },
+    "gravity": 9.81,
+    "beans": [
+      {
+        "id": "local",
+        "input": {
+          "x": 0,
+          "y": 0,
+          "run": false
+        },
+        "x": 2.2,
+        "y": 0.8,
+        "z": 0,
+        "vx": 0,
+        "vy": 0,
+        "vz": 0,
+        "grounded": true,
+        "facingX": 0.9466499060501437,
+        "facingY": 0.3222637978043052,
+        "target": null,
+        "stuckSteps": 0,
+        "jumps": 0,
+        "lastJump": null,
+        "act": {
+          "kind": "free"
+        }
+      }
+    ],
+    "rail": {
+      "carts": [
+        {
+          "id": "light",
+          "mass": 5,
+          "riderMass": 0,
+          "x": -2.1,
+          "v": 0
+        },
+        {
+          "id": "heavy",
+          "mass": 20,
+          "riderMass": 0,
+          "x": 1.6,
+          "v": 0
+        }
+      ],
+      "collisions": [],
+      "riders": []
+    },
+    "tick": 150,
+    "rng": {
+      "s": 1
+    }
+  }
+}

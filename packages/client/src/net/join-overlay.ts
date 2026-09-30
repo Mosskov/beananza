@@ -3,7 +3,7 @@ import { PALETTE, UI_FONT, cssColor } from '../config';
 
 /**
  * Joining a class's hub (M2), before the game starts: the class code (from the teacher's link,
- * or typed) and a name picked from preset names (D26), never typed. Plain HTML over the page, so
+ * or typed) and a name picked from preset names (D27), never typed. Plain HTML over the page, so
  * game scenes keep their no-text rule. PLACEHOLDER style until the UI has one.
  */
 

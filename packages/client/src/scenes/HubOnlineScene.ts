@@ -4,6 +4,7 @@ import { EARTH_GRAVITY, HUB_LAYOUTS, SIM_HZ, hubStateFromSnapshot, type HubState
 import { PALETTE, UI_FONT, cssColor } from '../config';
 import { hubConnection, type HubConnection } from '../net/connection';
 import { showDisconnected } from '../net/join-overlay';
+import { sharpText } from '../screen-scale';
 import { HubWorldView, UI_DEPTH } from './HubWorldView';
 import { HubControls } from './hub-controls';
 import { HUB_HINT, LEAVE_DELAY_MS } from './HubScene';
@@ -14,7 +15,7 @@ import type { TestableScene } from './TestableScene';
 export const NAME_TAG_RANGE_M = 3;
 /** Gap between a bean's head and its name tag (art units). */
 const TAG_GAP_UNITS = 10;
-/** A name tag (D17's text exception, extended to names: D26). PLACEHOLDER style. */
+/** A name tag (D17's text exception, extended to names: D27). PLACEHOLDER style. */
 const TAG_STYLE = {
   fontFamily: UI_FONT,
   fontSize: '15px',
@@ -110,7 +111,7 @@ export class HubOnlineScene extends Phaser.Scene implements TestableScene {
         continue;
       }
       if (!tag) {
-        tag = this.add.text(0, 0, name, TAG_STYLE).setOrigin(0.5, 1).setDepth(UI_DEPTH - 3);
+        tag = sharpText(this.add.text(0, 0, name, TAG_STYLE).setOrigin(0.5, 1).setDepth(UI_DEPTH - 3));
         this.tags.set(bean.id, tag);
       }
       seen.add(bean.id);

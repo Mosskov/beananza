@@ -27,6 +27,8 @@ export const HUB_LAYOUTS: Readonly<Record<string, PlazaLayout>> = {
   plaza: DEFAULT_PLAZA,
   /** The sky island (D2): the hexagon hub with the rail, the bench and trees. */
   island: ISLAND,
+  /** The island's ground and sky with nothing on it: its edges, cliffs and camera on their own. */
+  'bare-island': { ...ISLAND, props: [], benches: [], portals: [], rail: null },
   /** The bench with Priya (D24), nothing else. */
   bench: yard({ benches: DEFAULT_PLAZA.benches }),
   /** The rail and both carts (D19, D23), nothing else. */

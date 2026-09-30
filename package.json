@@ -26,6 +26,9 @@
     "shot:sheet": "pnpm --filter @beananza/shot sheet",
     "art:sheet": "pnpm --filter @beananza/shot art-sheet",
     "shot:multi": "pnpm --filter @beananza/shot shot-multi",
+    "art:part": "node --import tsx tools/shot/src/art-part.ts",
+    "art:check": "node --import tsx tools/shot/src/art-check.ts",
+    "clip:sheet": "node --import tsx tools/shot/src/clip-sheet.ts",
     "share": "pnpm --filter @beananza/share share",
     "share:preview": "pnpm --filter @beananza/share preview",
     "share:dry-run": "pnpm share && pnpm --filter @beananza/share cf-check",
@@ -39,6 +42,7 @@
     "@types/node": "24.19.0",
     "eslint": "10.11.0",
     "globals": "17.12.0",
+    "tsx": "4.23.15",
     "typescript": "6.0.3",
     "typescript-eslint": "8.70.1",
     "vitest": "5.0.2"

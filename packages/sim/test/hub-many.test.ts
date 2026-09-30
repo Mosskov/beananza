@@ -203,5 +203,5 @@ describe('many beans in one hub (M2)', () => {
     // Informational: the server steps this 60 times a second.
     console.info(`hub with 30 beans: ${a.msPerStep.toFixed(3)} ms per step`);
     expect(a.msPerStep).toBeLessThan(16);
-  });
+  }, 30_000); // about 2 s alone; generous for pnpm verify, which runs the browsers alongside
 });

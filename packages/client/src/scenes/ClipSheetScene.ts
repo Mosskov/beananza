@@ -72,7 +72,7 @@ export class ClipSheetScene extends Phaser.Scene implements TestableScene {
         rig.setView(dir.choice);
         for (const [part, visible] of Object.entries(CLIP_PARTS[this.clipName] ?? {})) rig.setPartVisible(part, visible);
         // Blinking runs on its own time; 0 keeps the eyes open.
-        const pose = samplePose({ clip: this.clipName, t, time: 0, view: dir.choice.view, reducedMotion: this.reducedMotion });
+        const pose = samplePose({ clip: this.clipName, t, time: 0, view: dir.choice.view, mirrored: dir.choice.mirrored, reducedMotion: this.reducedMotion });
         rig.applyPose(pose);
         rig.root.setPosition(x, feetY).setScale(scale);
         sharpText(this.add.text(x, feetY + 18 * scale + 2, `t=${t.toFixed(3)}`, { fontFamily: FONT, fontSize: '10px', color: ink }).setOrigin(0.5, 0));

@@ -337,11 +337,15 @@ const layer = (group: ReactionGroup, track: Track): Track => ({ ...track, group 
  * crouch; this plays once, so it ends at rest. Under reduced motion the jump goes and the squash
  * holds at the prototype's crouch (1.06, 0.94).
  */
+const EUREKA_JUMP = keys([0, 0], [0.2, -42], [0.35, -46], [0.55, 0], [1, 0]);
 const EUREKA = same({
   duration: 1.8,
   loop: false,
   tracks: [
-    layer('body', body('y', keys([0, 0], [0.2, -42], [0.35, -46], [0.55, 0], [1, 0]))),
+    layer('body', body('y', EUREKA_JUMP)),
+    // The feet leave the ground with the body (the prototype moves the whole bean).
+    layer('body', t('footA', 'y', EUREKA_JUMP, { motion: true })),
+    layer('body', t('footB', 'y', EUREKA_JUMP, { motion: true })),
     layer('body', body('scaleX', keys([0, 1.06], [0.2, 0.95], [0.35, 1], [0.55, 1.08], [0.68, 1], [1, 1]), { still: 1.06 })),
     layer('body', body('scaleY', keys([0, 0.94], [0.2, 1.05], [0.35, 1], [0.55, 0.92], [0.68, 1], [1, 1]), { still: 0.94 })),
   ],

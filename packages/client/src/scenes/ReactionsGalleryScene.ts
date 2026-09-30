@@ -140,7 +140,7 @@ export class ReactionsGalleryScene extends Phaser.Scene implements TestableScene
         const choice = viewForFacing(bean.facingX, bean.facingY);
         const { clip, t } = chooseClip(bean, TIME_S, state.gravity, look.clip);
         const reaction = chooseReaction(state, TIME_S);
-        const pose = samplePose({ clip, t, time: TIME_S, view: choice.view, reducedMotion: this.reducedMotion, reaction });
+        const pose = samplePose({ clip, t, time: TIME_S, view: choice.view, mirrored: choice.mirrored, reducedMotion: this.reducedMotion, reaction });
 
         if (look.shadow) createBeanShadow(this).setPosition(x, feetY).setScale(SCALE);
         const rig = new BeanRig(this);

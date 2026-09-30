@@ -213,6 +213,16 @@ describe('reaction clips (D26)', () => {
     expect(pose('eureka', 1.8).body).toEqual({ x: 0, y: 0, rotation: 0, scaleX: 1, scaleY: 1 });
   });
 
+  it('eureka: the feet rise and land with the body (the whole bean jumps), in every view family', () => {
+    for (const view of ['front', 'front-34', 'side'] as const) {
+      for (const t of [0, 0.2, 0.36, 0.63, 0.9, 1.8]) {
+        const p = pose('eureka', t, view);
+        expect(p.footA.y, `${view} ${t}`).toBeCloseTo(p.body.y, 12);
+        expect(p.footB.y, `${view} ${t}`).toBeCloseTo(p.body.y, 12);
+      }
+    }
+  });
+
   it('oops: three 0.5 s shakes of ±8°, and a squish over the last one', () => {
     expect(pose('oops', 0.125).body.rotation).toBeCloseTo(-8, 12);
     expect(pose('oops', 0.375).body.rotation).toBeCloseTo(8, 12);
@@ -247,6 +257,8 @@ describe('reaction clips (D26)', () => {
     for (const t of SAMPLES) {
       for (const name of ['eureka', 'oops'] as const) {
         expect(pose(name, t, 'side', true).body, `${name} ${t}`).toEqual({ x: 0, y: 0, rotation: 0, scaleX: 1.06, scaleY: 0.94 });
+        expect(pose(name, t, 'side', true).footA.y, `${name} ${t}`).toBe(0);
+        expect(pose(name, t, 'side', true).footB.y, `${name} ${t}`).toBe(0);
       }
       expect(pose('waveHi', t, 'front', true).armB.rotation, `${t}`).toBe(-110);
       expect(pose('waveHi', t, 'side', true).armA.rotation, `${t}`).toBe(-165);
@@ -270,11 +282,34 @@ describe('reaction clips (D26)', () => {
       expect(over('walk', 0.14, { kind: 'eureka', t: 0.63, groups: ['face', 'effect', 'arms'] })).toEqual(act);
     });
 
-    it('the body part plays over a still bean and leaves the feet and the blink alone', () => {
+    it('the body part plays over a still bean: the feet leave the ground with the body, and the blink is left alone', () => {
       const jumping = over('idle', 0, { kind: 'eureka', t: 0.63, groups: ['body'] }, 'front', 3.76);
       expect(jumping.body.y).toBeCloseTo(-46, 12);
+      expect(jumping.footA.y).toBeCloseTo(-46, 12);
+      expect(jumping.footB.y).toBeCloseTo(-46, 12);
       expect(jumping.eyes.scaleY).toBeCloseTo(0.1, 12);
-      expect(jumping.footA).toEqual(pose('idle', 0, 'front').footA);
+      // Only the feet's height changes: their x stays the idle pose's.
+      expect(jumping.footA.x).toBe(pose('idle', 0, 'front').footA.x);
+    });
+
+    it('the wave keeps the screen-right arm in the mirrored front-34 view: the near arm, rotated the other way', () => {
+      const wave = (view: BeanView, mirrored: boolean) =>
+        samplePose({ clip: 'idle', t: 0, time: 0, view, mirrored, reducedMotion: false, reaction: { kind: 'waveHi', t: 0.27, groups: ['arms'] } });
+      expect(wave('front-34', false).armB.rotation).toBeCloseTo(-138, 12);
+      expect(wave('front-34', false).armA.rotation).toBe(0);
+      expect(wave('front-34', true).armA.rotation).toBeCloseTo(138, 12);
+      expect(wave('front-34', true).armB.rotation).toBe(0);
+      // Other views are not swapped: the symmetric front and back, the side view's near arm, and
+      // back-34 (where the swap swings the arm across the back).
+      for (const view of ['front', 'back', 'back-34'] as const) expect(wave(view, true).armB.rotation, view).toBeCloseTo(-138, 12);
+      expect(wave('side', true).armA.rotation).toBeCloseTo(-193, 12);
+      expect(wave('side', true).armB.rotation).toBe(0);
+    });
+
+    it('reduced motion keeps the raised arm on the screen-right side of the mirrored front-34 view too', () => {
+      const still = samplePose({ clip: 'idle', t: 0, time: 0, view: 'front-34', mirrored: true, reducedMotion: true, reaction: { kind: 'waveHi', t: 0.27, groups: ['arms'] } });
+      expect(still.armA.rotation).toBe(110);
+      expect(still.armB.rotation).toBe(0);
     });
 
     it('no reaction: the same pose as before', () => {

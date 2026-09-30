@@ -108,7 +108,7 @@ with part ids: `art/bean/*.svg`. Origin (0, 0) is the point between the feet on 
 - **Push:** side view, lean 10° (light) or 16° (heavy), both arms forward; heavy adds effort face, sweat drop, slower steps
 - **Sit:** hop onto the seat (0.35 s arc), feet dangle and swing; dozes (closed eyes, floating "z") after 5 s
 - **Reactions:** Thinking (during prediction), Eureka! (correct prediction: jump, lightbulb, sparkles),
-  Oops (missed prediction: squish, dizzy stars; must feel funny, not punishing), Wave hi (reply to a ping)
+  Oops (missed prediction: squish, sweat drop; no stars, which read as a knock on the head; must feel funny, not punishing), Wave hi (reply to a ping)
   - **The model (D26, confirmed):** one `bean.reaction` (kind and start tick) beside the act, for
     what the sim alone knows or other players must see start: Eureka!, Oops, Wave hi (the `emote`
     command, Q or a tap on your own bean) and dizzy. Durations are `REACTION_TICKS` in

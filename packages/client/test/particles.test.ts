@@ -35,10 +35,10 @@ describe('effect particles (D26): the dizzy stars', () => {
     expect(starOffsets(0.7, 1234, true)).toEqual(starOffsets(0, 1234, false));
   });
 
-  it('show for dizzy and Oops only, and only while the act lets the effect play', () => {
+  it('show for dizzy only (not Oops), and only while the act lets the effect play', () => {
     expect(Object.keys(particleOffsets({ kind: 'dizzy', t: 0.3, groups: ['effect'], since: 9 }, false))).toEqual([...STAR_PARTS]);
-    expect(Object.keys(particleOffsets({ kind: 'oops', t: 0.3, groups: ['face', 'effect'] }, false))).toEqual([...STAR_PARTS]);
-    expect(particleOffsets({ kind: 'oops', t: 0.3, groups: ['face'] }, false)).toEqual({});
+    expect(particleOffsets({ kind: 'dizzy', t: 0.3, groups: ['face'] }, false)).toEqual({});
+    expect(particleOffsets({ kind: 'oops', t: 0.3, groups: ['face', 'effect'] }, false)).toEqual({});
     expect(particleOffsets({ kind: 'eureka', t: 0.3, groups: ['effect'] }, false)).toEqual({});
     expect(particleOffsets(null, false)).toEqual({});
     expect(clipParticles('dizzy', 0.3, false)).toEqual(starOffsets(0.3, 0, false));

@@ -14,8 +14,9 @@ describe('reaction parts (D26)', () => {
     expect(reactionParts(null)).toEqual({});
     expect(reactionParts(layer('eureka', ['face', 'effect', 'body']))).toEqual({ ...REACTION_PARTS.eureka.face, ...REACTION_PARTS.eureka.effect });
     expect(reactionParts(layer('oops', ['face']))).toEqual({ eyes: false, 'eyes-sleep': false, mouth: false, 'eyes-squeeze': true, 'mouth-wavy': true });
-    expect(reactionParts(layer('oops', ['effect']))).toEqual({ 'doze-z': false, 'sweat-drop': true, 'dizzy-star-1': true, 'dizzy-star-2': true, 'dizzy-star-3': true });
+    expect(reactionParts(layer('oops', ['effect']))).toEqual({ 'doze-z': false, 'sweat-drop': true });
     expect(reactionParts({ kind: 'dizzy', t: 0.5, groups: ['effect'] })).toEqual({ 'doze-z': false, 'dizzy-star-1': true, 'dizzy-star-2': true, 'dizzy-star-3': true });
+    expect(reactionParts({ kind: 'dizzy', t: 0.5, groups: ['face'] })).toEqual({ eyes: false, 'eyes-sleep': false, mouth: false, 'eyes-spiral': true, 'mouth-wavy': true });
     expect(reactionParts(layer('eureka', ['arms', 'body']))).toEqual({});
   });
 
@@ -28,7 +29,7 @@ describe('reaction parts (D26)', () => {
   it('face parts are drawn in every view with a face, hidden until a reaction shows them', () => {
     const spec = buildBeanArtSpec(BEAN_SVGS);
     const shown = Object.values(REACTION_PARTS).flatMap((g) => Object.entries(g.face ?? {}).filter(([, on]) => on).map(([id]) => id));
-    expect(shown.sort()).toEqual(['eyes-happy', 'eyes-squeeze', 'mouth-open', 'mouth-wavy']);
+    expect([...new Set(shown)].sort()).toEqual(['eyes-happy', 'eyes-spiral', 'eyes-squeeze', 'mouth-open', 'mouth-wavy']);
     for (const view of spec.views.filter((v) => ['front', 'front-34', 'side'].includes(v.view))) {
       for (const id of shown) expect(view.parts.find((p) => p.id === id)?.hiddenByDefault, `${view.view}: ${id}`).toBe(true);
     }
@@ -41,7 +42,7 @@ describe('reaction parts (D26)', () => {
     expect(EFFECTS['sweat-drop']?.slot).toBe('fxBrow');
     expect(moves('oops', 'fxBrow')).toBe(true);
     expect(EFFECTS['dizzy-stars']?.slot).toBe('fxHead');
-    expect(moves('oops', 'fxHead')).toBe(true);
+    expect(moves('oops', 'fxHead')).toBe(false); // no stars on Oops (DESIGN.md §6)
     expect(CLIPS.dizzy.front.tracks.some((tr) => tr.slot === 'fxHead' && tr.group === 'effect')).toBe(true);
   });
 });

@@ -35,7 +35,8 @@ exploration) and are not loaded yet.
   seated beans always face the camera, so only the front view needs it. (The doze "z" is an
   effect, see "Effects" below.)
 - **Reaction faces (D26):** the views with a face (`front`, `front-34`, `side`) also have
-  `eyes-happy` and `mouth-open` (Eureka!) and `eyes-squeeze` and `mouth-wavy` (Oops), hidden
+  `eyes-happy` and `mouth-open` (Eureka!) and `eyes-squeeze` and `mouth-wavy` (Oops), and `eyes-spiral` (dizzy, with Oops's
+  `mouth-wavy`), hidden
   until a reaction shows them in place of `eyes` and `mouth` (`REACTION_PARTS`,
   `packages/client/src/rig/reaction-parts.ts`). They have no highlight, so no `-left` drawings.
 - **Effect anchors (D26, D22):** every view has `anchor-fx-head` (above and beside the head, where
@@ -104,7 +105,7 @@ it in `effect-sources.ts`; `pnpm art:check` finds a file that is not registered.
 - `eureka-bulb.svg`: Eureka!'s lightbulb with rays, on `fxHead`, drawn back over the head's
   middle (30 units in from the anchor) and popping about its own centre (`data-pivot`).
 - `sweat-drop.svg`: Oops's sweat drop, on `fxBrow`; the clip slides it down the head.
-- `dizzy-stars.svg`: three four-point stars (parts `dizzy-star-1` to `-3`) for dizzy and Oops, on
+- `dizzy-stars.svg`: three four-point stars (parts `dizzy-star-1` to `-3`) for dizzy, on
   `fxHead`, each drawn at the orbit's centre over the head's middle (32 units in, 4 up from the
   anchor, the showcase's y = −128). The rig moves each star round a 24 × 7 orbit on its own
   (`packages/client/src/rig/particles.ts`); the clip pops them in and out.

@@ -5,7 +5,7 @@
 Updated in place by every session's branch (CLAUDE.md, "How we work"). History is in git, the
 pull requests, and `docs/archive/`.
 
-**Last updated:** 2026-09-30, dizzy's stars (also on Oops), on `main`.
+**Last updated:** 2026-09-30, dizzy's face, stars and sway (and no stars on Oops), on `main`.
 
 **What works** (M1 so far):
 - **The hub plaza:** walking and running, jumping, two carts on a rail (push, ride, the hop in
@@ -17,7 +17,8 @@ pull requests, and `docs/archive/`.
   `reactions` gallery scene and the `hub-wave` script. Eureka!, Oops and dizzy have no trigger
   in play until predictions (D9) and the catapult exist.
 - **Reaction faces and effects:** Eureka! (happy eyes, open smile, a popping lightbulb) and Oops
-  (squeezed eyes, wavy mouth, a sweat drop, the stars), and dizzy's stars, shown by `REACTION_PARTS`
+  (squeezed eyes, wavy mouth, a sweat drop) and dizzy (spiral eyes, the wavy mouth, the stars
+  and a sway that dies down, only while standing still), shown by `REACTION_PARTS`
   (`packages/client/src/rig/reaction-parts.ts`) only for the groups the act allows, in the hub,
   the `reactions` gallery and the `anim` viewer; reduced motion holds the effects still. The
   three stars each circle the head on their own (`packages/client/src/rig/particles.ts`, the
@@ -46,8 +47,7 @@ pull requests, and `docs/archive/`.
 - `pnpm art:sheet --base` cannot compare a change that adds a new art requirement (its "before"
   runs the current code on old art); use a scratch worktree of main for the before images.
 - Reactions: the wave reads weakly in the side and back-¾ views (the arm art stays in front of
-  the body). Not drawn yet: dizzy's face and sway, sparkles, dust, Thinking, the heavy-push
-  effort face. The stars always draw in front of the head (no pass behind it; the back of the
+  the body). Not drawn yet: sparkles, dust, Thinking, the heavy-push effort face. The stars always draw in front of the head (no pass behind it; the back of the
   orbit is only smaller).
   The lightbulb sits on tall headwear (with the sprout it reads as the sprout's flower): lifting
   head effects above the headwear would be a new rule.
@@ -59,6 +59,6 @@ pull requests, and `docs/archive/`.
 - PR #6 (a student's multiplayer hub, D2 and D5) is open and on hold.
 
 **Next:** more reaction art: sparkles for Eureka! (placed by a hash of the start tick, D26, as
-the stars are), dust, dizzy's face and sway; then Thinking and the heavy-push effort
+the stars are), dust; then Thinking and the heavy-push effort
 face and sweat. The first expedition moved later and will not be the projectile launch: D9 is
 Open with its topic open (the old questions are in `docs/archive/D9-options-projectile.md`).

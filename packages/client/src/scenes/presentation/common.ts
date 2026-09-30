@@ -16,6 +16,7 @@ export const PART_DEFAULTS = {
   'mouth-open': false,
   'eyes-squeeze': false,
   'mouth-wavy': false,
+  'eyes-spiral': false,
   'eureka-bulb': false,
   'sweat-drop': false,
   'dizzy-star-1': false,

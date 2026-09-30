@@ -20,10 +20,13 @@ export const REACTION_PARTS: { readonly [K in ReactionKind]: Partial<Record<Reac
   },
   oops: {
     face: { eyes: false, 'eyes-sleep': false, mouth: false, 'eyes-squeeze': true, 'mouth-wavy': true },
-    effect: { 'doze-z': false, 'sweat-drop': true, ...STARS },
+    effect: { 'doze-z': false, 'sweat-drop': true },
   },
   waveHi: {},
-  dizzy: { effect: { 'doze-z': false, ...STARS } },
+  dizzy: {
+    face: { eyes: false, 'eyes-sleep': false, mouth: false, 'eyes-spiral': true, 'mouth-wavy': true },
+    effect: { 'doze-z': false, ...STARS },
+  },
 };
 
 /** The parts a running reaction shows or hides, for the groups it may play; none without one. */

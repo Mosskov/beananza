@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { DIZZY_S, EUREKA_S, OOPS_S, Sim, WAVE_HI_S, createHubScenario, type HubAct, type HubCommand, type HubState, type ReactionKind } from '@beananza/sim';
 import { BLINK, CLIPS, CLIP_NAMES, LAND_DURATION, REACTION_CLIP_NAMES, familyOf } from '../src/rig/clips';
-import { chooseClip, samplePose, type BeanMotion, type ReactionLayer } from '../src/rig/player';
+import { chooseClip, samplePose, sampleTrack, type BeanMotion, type ReactionLayer } from '../src/rig/player';
 import { chooseReaction } from '../src/rig/reactions';
 import { VIEWS, type BeanView } from '../src/rig/views';
 
@@ -269,13 +269,21 @@ describe('reaction clips (D26)', () => {
     expect(pose('waveHi', 0.27, 'front-34').armB.rotation).toBeCloseTo(-138, 12);
   });
 
-  it('dizzy has only the stars so far (the sway waits for its own pass), popping in from the start', () => {
+  it('dizzy pops the stars in from the start and sways the body, less each way, ending upright', () => {
     for (const family of FAMILIES) {
-      const tracks = CLIPS.dizzy[family].tracks;
-      expect(tracks.every((tr) => tr.slot === 'fxHead' && tr.group === 'effect'), family).toBe(true);
-      const scale = tracks.find((tr) => tr.channel === 'scaleX');
-      expect(scale?.keys.map((k) => k.v)).toEqual([0, 1.15, 1, 1, 0]);
+      const clip = CLIPS.dizzy[family];
+      expect(clip.tracks.find((tr) => tr.slot === 'fxHead' && tr.channel === 'scaleX')?.keys.map((k) => k.v)).toEqual([0, 1.15, 1, 1, 0]);
+      const sway = clip.tracks.find((tr) => tr.slot === 'body' && tr.channel === 'rotation');
+      expect(sway?.group).toBe('body');
+      const swings = sway?.keys.map((k) => k.v).filter((v) => v !== 0) ?? [];
+      expect(swings.length).toBeGreaterThan(3);
+      swings.slice(1).forEach((v, i) => {
+        expect(Math.sign(v)).toBe(-Math.sign(swings[i] as number));
+        expect(Math.abs(v)).toBeLessThan(Math.abs(swings[i] as number));
+      });
+      if (sway) expect(sampleTrack(clip, sway, clip.duration)).toBe(0);
     }
+    expect(samplePose({ clip: 'dizzy', t: 0.3, time: 0, view: 'front', reducedMotion: true }).body.rotation).toBe(0);
   });
 
   it('reduced motion: no jump, no shake; the squash holds at 1.06 × 0.94 and the raised arm at −110° (−165° in the side view)', () => {

@@ -22,8 +22,8 @@ export const STAR_BACK_SCALE = 0.75;
 /** How far (a share of the orbit) each star may sit off even spacing, from its seed. */
 const STAR_JITTER = 0.08;
 
-/** The reactions that show the stars (dizzy; Oops as in the prototype, DESIGN.md §6). */
-export const STAR_REACTIONS: ReadonlySet<ReactionKind> = new Set(['dizzy', 'oops']);
+/** The reactions that show the stars: dizzy only (a knock on the head; not Oops, DESIGN.md §6). */
+export const STAR_REACTIONS: ReadonlySet<ReactionKind> = new Set(['dizzy']);
 
 /**
  * Each star's offset from the orbit's centre at `t` seconds into the reaction. Where the ring

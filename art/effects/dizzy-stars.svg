@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="-40 -12 42 16" width="168" height="64">
-  <!-- Dizzy's stars (D26; showcase "dazed"), also shown by Oops: three four-point stars circling over the head.
+  <!-- Dizzy's stars (D26; showcase "dazed"), a knock on the head: three four-point stars circling over the head.
        Origin (0, 0) is the effect's anchor, fx-head on the bean, so each star is drawn back at the orbit's centre
        over the head's middle (32 units in, 4 up: the showcase's orbit at y = -128). The rig moves each star round
        the orbit (rig/particles.ts, placed by the reaction's start tick) and scales it about its own centre

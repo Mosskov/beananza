@@ -367,23 +367,6 @@ const EUREKA = same({
  * 0, 25 %, 75 %, 100 % keys), and a squish over the last shake that settles back. Under reduced
  * motion the shake goes and the squish holds at (1.06, 0.94), a slump.
  */
-/**
- * The stars (`art/effects/dizzy-stars.svg` on `fxHead`, shown by Oops and dizzy): they pop in
- * past full size, circle the head (each star on its own, `particles.ts`) and shrink away over
- * the last sixth. The `x` and `y` keys hold them over the head when the doze "z"'s drift runs
- * underneath. Under reduced motion they show at full size and the ring holds still.
- */
-const starTracks = (appear: number): Track[] => {
-  const pop: [number, number][] = [[appear + 0.08, 1.15], [appear + 0.15, 1], [0.84, 1], [1, 0]];
-  const scale = appear > 0 ? keys([0, 0], [appear, 0], ...pop) : keys([0, 0], ...pop);
-  return [
-    layer('effect', t('fxHead', 'scaleX', scale, { motion: true, still: 1 })),
-    layer('effect', t('fxHead', 'scaleY', scale, { motion: true, still: 1 })),
-    layer('effect', t('fxHead', 'x', keys([0, 0], [1, 0]))),
-    layer('effect', t('fxHead', 'y', keys([0, 0], [1, 0]))),
-  ];
-};
-
 const shake = (s: number): [number, number][] => [
   [s / 3 + 0.25 / 3, -8],
   [s / 3 + 0.75 / 3, 8],
@@ -403,8 +386,6 @@ const OOPS = same({
     layer('effect', t('fxBrow', 'scaleY', SWEAT_SCALE, { motion: true, still: 1 })),
     layer('effect', t('fxBrow', 'y', keys([0, 0], [0.2, 0], [0.95, 20], [1, 20]), { motion: true, still: 0 })),
     layer('effect', t('fxBrow', 'x', keys([0, 0], [0.2, 0], [0.95, -6], [1, -6]), { motion: true, still: 0 })),
-    // The stars come in with the shaking, as the sweat drop does.
-    ...starTracks(0.08),
     layer('body', body('rotation', keys([0, 0], ...shake(0), ...shake(1), ...shake(2)))),
     layer('body', body('scaleX', keys([0, 1], [0.82, 1], [0.92, 1.1], [1, 1]), { still: 1.06 })),
     layer('body', body('scaleY', keys([0, 1], [0.82, 1], [0.92, 0.9], [1, 1]), { still: 0.94 })),
@@ -436,10 +417,27 @@ const WAVE_HI: Families = {
 };
 
 /**
- * Dizzy (D26, 1.6 s = `DIZZY_S`; set by a hard landing, the catapult's): the stars from the
- * start. The sway, a body track, waits for its own pass.
+ * Dizzy (D26, 1.6 s = `DIZZY_S`; set by a hard landing, the catapult's), a knock on the head:
+ * spiral eyes and the wavy mouth (`REACTION_PARTS`), the stars, and a sway that dies down.
+ * The stars (`art/effects/dizzy-stars.svg` on `fxHead`) pop in past full size, circle the head
+ * (each star on its own, `particles.ts`) and shrink away over the last sixth; the `x` and `y`
+ * keys hold them over the head when the doze "z"'s drift runs underneath. The sway rocks the
+ * body about the feet, 7° first and less each way, about three times a second. Under reduced
+ * motion the sway goes, and the stars show at full size with the ring holding still.
  */
-const DIZZY = same({ duration: 1.6, loop: false, tracks: starTracks(0) });
+const STAR_SCALE = keys([0, 0], [0.08, 1.15], [0.15, 1], [0.84, 1], [1, 0]);
+const DIZZY_SWAY = keys([0, 0], [0.08, -7], [0.2, 6], [0.32, -5], [0.44, 4], [0.56, -3], [0.68, 2], [0.8, -1], [0.9, 0], [1, 0]);
+const DIZZY = same({
+  duration: 1.6,
+  loop: false,
+  tracks: [
+    layer('effect', t('fxHead', 'scaleX', STAR_SCALE, { motion: true, still: 1 })),
+    layer('effect', t('fxHead', 'scaleY', STAR_SCALE, { motion: true, still: 1 })),
+    layer('effect', t('fxHead', 'x', keys([0, 0], [1, 0]))),
+    layer('effect', t('fxHead', 'y', keys([0, 0], [1, 0]))),
+    layer('body', body('rotation', DIZZY_SWAY)),
+  ],
+});
 
 export const CLIPS: Readonly<Record<ClipName, Families>> = {
   idle: IDLE,

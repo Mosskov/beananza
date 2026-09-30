@@ -7,6 +7,37 @@ import type { Rect } from '@beananza/sim';
  */
 export const RAIL_GAUGE_M = 0.2;
 
+/** Sky shown around a layout's edges when the camera follows (m): more to the south, for the cliffs. */
+export interface CameraMargin {
+  north: number;
+  south: number;
+  east: number;
+  west: number;
+}
+
+/**
+ * The ground point the camera centres on. Where the layout (plus its margin) fits the view on an
+ * axis, the camera stays on the middle of it (or on `fixed`, if given); otherwise it follows
+ * `focus` and stops where the margin's far edge meets the edge of the view. A pure function of its
+ * inputs, so paused and scripted shots always frame the same way (no easing on wall-clock time).
+ */
+export function cameraCentre(
+  focus: { x: number; y: number },
+  bounds: Rect,
+  view: { width: number; height: number },
+  margin: CameraMargin,
+  fixed?: { x: number; y: number },
+): { x: number; y: number } {
+  const axis = (f: number, lo: number, hi: number, size: number, rest: number | undefined) => {
+    if (hi - lo <= size) return rest ?? (lo + hi) / 2;
+    return Math.min(Math.max(f, lo + size / 2), hi - size / 2);
+  };
+  return {
+    x: axis(focus.x, bounds.minX - margin.west, bounds.maxX + margin.east, view.width, fixed?.x),
+    y: axis(focus.y, bounds.minY - margin.south, bounds.maxY + margin.north, view.height, fixed?.y),
+  };
+}
+
 /**
  * The hub's ¾ top-down projection (D1, D15). The sim has a ground plane (x east, y north)
  * plus a height z; the client draws north as up the screen and height as up the screen too.

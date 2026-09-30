@@ -1,5 +1,6 @@
 {
   "scene": "hub",
+  "layout": "plaza",
   "steps": [
     { "shot": "start" },
     { "keyDown": "ArrowRight" },

@@ -18,8 +18,9 @@ import {
 const SLOP = 0.006;
 
 describe('hub layouts', () => {
-  it('opens the plaza by default', () => {
-    expect(DEFAULT_LAYOUT).toBe('plaza');
+  it('opens the sky island by default and keeps the M1 plaza (D2)', () => {
+    expect(DEFAULT_LAYOUT).toBe('island');
+    expect(HUB_LAYOUTS.island).toBe(ISLAND);
     expect(HUB_LAYOUTS.plaza).toBe(DEFAULT_PLAZA);
   });
 

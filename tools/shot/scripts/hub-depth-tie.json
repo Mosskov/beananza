@@ -1,5 +1,6 @@
 {
   "scene": "hub",
+  "layout": "plaza",
   "steps": [
     { "tap": [910, 390] },
     { "wait": 2.5 },

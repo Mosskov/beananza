@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { DEFAULT_PLAZA, polygonBounds } from '@beananza/sim';
-import { cartStandOff, characterScreen, depthKey, depthScale, groundFromScreen, toScreen } from '../src/scenes/hub-view';
+import { cameraCentre, cartStandOff, characterScreen, depthKey, depthScale, groundFromScreen, toScreen } from '../src/scenes/hub-view';
 
 const walk = polygonBounds(DEFAULT_PLAZA.walkable);
 
@@ -40,6 +40,37 @@ describe('hub view projection', () => {
     expect(depthScale((walk.minY + walk.maxY) / 2, walk)).toBeCloseTo(0.77, 12);
     expect(depthScale(walk.maxY + 5, walk)).toBeCloseTo(0.62, 12);
     expect(depthScale(walk.minY - 5, walk)).toBeCloseTo(0.92, 12);
+  });
+
+  describe('camera', () => {
+    const view = { width: 12.8, height: 7.2 };
+    const margin = { north: 1, south: 3, east: 1, west: 1 };
+    const island = { minX: -12, maxX: 12, minY: -10, maxY: 10 };
+
+    it('keeps a layout that fits the view fixed, on the given centre', () => {
+      expect(cameraCentre({ x: 4, y: 1 }, walk, view, { north: 0, south: 0, east: 0, west: 0 }, { x: 0, y: -0.5 })).toEqual({ x: 0, y: -0.5 });
+    });
+
+    it('follows the bean in the middle of a big layout', () => {
+      expect(cameraCentre({ x: 2.5, y: -1 }, island, view, margin)).toEqual({ x: 2.5, y: -1 });
+    });
+
+    it('stops at the edges so only the margin of sky shows beyond them', () => {
+      const c = cameraCentre({ x: 12, y: -10 }, island, view, margin);
+      expect(c.x).toBeCloseTo(12 + 1 - 6.4, 12);
+      expect(c.y).toBeCloseTo(-10 - 3 + 3.6, 12);
+      const n = cameraCentre({ x: -12, y: 10 }, island, view, margin);
+      expect(n.x).toBeCloseTo(-12 - 1 + 6.4, 12);
+      expect(n.y).toBeCloseTo(10 + 1 - 3.6, 12);
+    });
+
+    it('lets a tap map back to the ground under a scrolled camera', () => {
+      // Phaser's pointer.worldX/Y add the camera scroll; groundFromScreen takes world pixels.
+      const centre = toScreen(5, -3);
+      const g = groundFromScreen(centre.x + 100, centre.y - 50);
+      expect(g.x).toBeCloseTo(6, 12);
+      expect(g.y).toBeCloseTo(-2.5, 12);
+    });
   });
 
   it('sorts things further south in front', () => {

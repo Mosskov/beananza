@@ -98,6 +98,11 @@ UI and world:
 | Plaza stone | `#E9DCC0` |
 | Grass | `#A9C98C` |
 | Water | `#86BCCB` |
+| Sky, top / horizon (hub island) | `#7FBDE6` / `#D6EEF8` |
+| Cloud / cloud shade | `#FDFCF8` / `#E3EEF4` |
+| Grass rim (island edge) | `#C4DCA8` |
+| Cliff lit / mid / shaded | `#B58360` / `#9C6C4C` / `#7F563D` |
+| Rock underside | `#6B4A36` |
 
 Bean colors (body / arm / foot / belly):
 | Name | Body | Arm | Foot | Belly |

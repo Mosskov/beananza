@@ -18,7 +18,8 @@ export function yard(content: Partial<Pick<PlazaLayout, 'props' | 'benches' | 'r
   };
 }
 
-export const DEFAULT_LAYOUT = 'plaza';
+/** The hub opens on the sky island (D2); `plaza` is the M1 plaza, kept for its scripts and evidence. */
+export const DEFAULT_LAYOUT = 'island';
 
 /** Every layout by name. A new yard is one line here (or its own file, imported here). */
 export const HUB_LAYOUTS: Readonly<Record<string, PlazaLayout>> = {

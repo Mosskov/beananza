@@ -12,12 +12,17 @@ import { SimScene } from './SimScene';
 import { CART_RIDER_DEPTH, CartView, drawRiderMask, drawRail, speedReadout } from './hub-carts';
 import { CLASSMATES, greetingAt, type Classmate } from './classmates';
 import { PART_DEFAULTS, presentAct, type Placement, type ToggledPart } from './hub-presentation';
-import { cartStandOff, characterScreen, depthKey, depthScale, groundFromScreen, toScreen } from './hub-view';
+import { cameraCentre, cartStandOff, characterScreen, depthKey, depthScale, groundFromScreen, toScreen, type CameraMargin } from './hub-view';
+import { SKY_LAYOUTS, SKY_MARGIN, SkyIsland } from './sky-island';
 
 const m = (meters: number) => meters * PIXELS_PER_METER;
 
-/** Ground point the camera centres on (m): the middle of the walkable area, a bit north. */
+/** Ground point the camera centres on (m) for a layout that fits the view: the plaza's middle, a bit north. */
 const VIEW_CENTER = { x: 0, y: -0.5 };
+/** Plaza ground has no margin: it fits the view, so the camera stays on VIEW_CENTER. */
+const NO_MARGIN: CameraMargin = { north: 0, south: 0, east: 0, west: 0 };
+/** The view in metres (the camera is not zoomed). */
+const VIEW_M = { width: GAME_WIDTH / PIXELS_PER_METER, height: GAME_HEIGHT / PIXELS_PER_METER };
 /** Ground, backdrop and shadows sit below everything that is depth-sorted. */
 const GROUND_DEPTH = -1e6;
 /**
@@ -33,7 +38,14 @@ const UI_DEPTH = 1e6;
 const READOUT_GAP_UNITS = 12;
 
 /** Controls hint, bottom right (allowed by the no-text rule). PLACEHOLDER style. */
-const HINT_STYLE = { fontFamily: UI_FONT, fontSize: '18px', color: cssColor(PALETTE.inkSecondary) };
+const HINT_STYLE = {
+  fontFamily: UI_FONT,
+  fontSize: '18px',
+  color: cssColor(PALETTE.inkSecondary),
+  // A light panel keeps it readable over grass, rock and sky alike.
+  backgroundColor: 'rgba(255, 248, 236, 0.88)',
+  padding: { x: 10, y: 5 },
+};
 /** A classmate's greeting bubble. PLACEHOLDER style. */
 const BUBBLE_STYLE = {
   fontFamily: UI_FONT,
@@ -102,8 +114,10 @@ export class HubScene extends SimScene<HubState, HubCommand> {
   private classmates: { who: Classmate; rig: BeanRig; bubble: Phaser.GameObjects.Text; greeting: number | null; clip: string }[] = [];
   /** The rider's mask shape (world coordinates), used while the bean is in a cart. */
   private riderMaskShape!: Phaser.GameObjects.Graphics;
-  /** The walkable area's bounding box (m), for the depth scale. */
+  /** The walkable area's bounding box (m), for the depth scale and the camera. */
   private bounds!: Rect;
+  /** The sky and clouds, for layouts drawn as the floating island (D2); null on plaza ground. */
+  private sky: SkyIsland | null = null;
 
   constructor() {
     super({ key: 'hub' });
@@ -123,7 +137,8 @@ export class HubScene extends SimScene<HubState, HubCommand> {
 
   protected createView(): void {
     const { layout } = this.sim.state;
-    this.drawGround();
+    if (SKY_LAYOUTS.has(this.layoutName)) this.sky = new SkyIsland(this, layout.walkable, GROUND_DEPTH);
+    else this.drawGround();
     // Props that never turn: every part of their drawing, origin at the middle of the footprint.
     for (const prop of [...layout.props, ...layout.benches]) {
       const parts = PROP_PARTS[prop.art];
@@ -148,9 +163,6 @@ export class HubScene extends SimScene<HubState, HubCommand> {
     this.bean.rig.root.enableFilters();
     this.bean.rig.root.filters?.internal.addMask(this.riderMaskShape, false, undefined, 'world');
     this.bean.rig.root.renderFilters = false;
-
-    const center = toScreen(VIEW_CENTER.x, VIEW_CENTER.y);
-    this.cameras.main.centerOn(center.x, center.y);
 
     // Controls hint only (allowed by the no-text rule). PLACEHOLDER UI font and style.
     this.add
@@ -244,6 +256,11 @@ export class HubScene extends SimScene<HubState, HubCommand> {
     // Animation runs on sim time (interpolated like the positions), never on wall-clock time,
     // so paused and scripted shots are deterministic. Idle keeps the last facing.
     const time = this.sim.time - (1 - alpha) * FIXED_DT;
+    // The camera follows the drawn bean on a big layout and stays put on one that fits (D2).
+    const centre = cameraCentre({ x, y }, this.bounds, VIEW_M, this.sky ? SKY_MARGIN : NO_MARGIN, VIEW_CENTER);
+    const centreScreen = toScreen(centre.x, centre.y);
+    this.cameras.main.centerOn(centreScreen.x, centreScreen.y);
+    this.sky?.update(time, this.reducedMotion);
     const look = presentAct(act, this.sim.state, time);
     this.drawClassmates(time);
     const inCart = look.placement.kind === 'cart' ? look.placement.cart : null;

@@ -20,7 +20,7 @@ history; no new ones are added.
   pieces, glasses). Test yards per interaction (`?layout=bench`, `?layout=carts`).
 - Tool scenes: `bean`, `looks` and `reactions` galleries, the `clip` sheet, the `drop` test.
 - **Workflow:** CI on every push (check and verify); golden sim states in
-  `tools/shot/golden/` (76 files); `art:check`, `art:part`, `clip:sheet`; skills for each
+  `tools/shot/golden/` (81 files); `art:check`, `art:part`, `clip:sheet`; skills for each
   procedure, the `reviewer` agent, the PR template, and a guard hook. At most two lanes (one
   art, one behaviour) at a time (CLAUDE.md).
 

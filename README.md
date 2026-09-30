@@ -347,6 +347,8 @@ Scripts in `tools/shot/scripts/`:
 | `hub-bench.json` | Tap the bench: walk over to the free (west) seat, hop on, sit next to Priya, who says "Hi!" and waves for 2.4 s (feet swinging, two phases), then no greeting, a doze after 5 s, then → stands up and walks off |
 | `hub-bench-depth.json` | On the bench's row (drawn in front), behind it (drawn behind), in front of it, then E to sit |
 | `hub-bench-around.json` | From behind the bench, a tap on it: the bean walks out past its west end and round to the front, then sits |
+| `hub-wave.json` | Q while standing (the wave), Q while walking (the arm only), Q again after the wave ends, then to the cart: Q is ignored mid-hop in, the wave while riding, Q ignored mid-hop out. The logs carry `bean.reaction` |
+| `hub-wave-tap.json` | A tap on your own standing bean waves (it does not walk); tap the bench to sit, then a tap on the seated bean waves (it stays seated) |
 
 After the three cart scripts, `pnpm shot:check-carts` recomputes from their logs the push
 accelerations (F/m − 0.26 m/s²), the cap, momentum and restitution of the collision, the riding

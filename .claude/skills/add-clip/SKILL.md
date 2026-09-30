@@ -13,9 +13,19 @@ been looked at: the clip sheet is how.
 - [ ] Add the name to `CLIP_NAMES` and the clip to `CLIPS`. A clip is one `Clip` per view family
       (`front` for front and back, `three-quarter`, `side`); `same(clip)` when all three agree.
 - [ ] A `Clip` is `{ duration, loop, tracks }`. Each track: `slot` (`body`, `footA`, `footB`,
-      `armA`, `armB`, `eyes`, `tail`, `fx`), `channel` (`x`, `y`, `rotation` in degrees
-      clockwise, `scaleX`, `scaleY`), `keys` from 0 to 1, and optionally `ease: 'linear'`,
-      `period` (own cycle in s), `offset` (share of a cycle).
+      `armA`, `armB`, `eyes`, `tail`, and the effect slots `fxHead`, `fxBrow`, `fxGround`;
+      `SLOTS` in `rig/views.ts`), `channel` (`x`, `y`, `rotation` in degrees clockwise,
+      `scaleX`, `scaleY`), `keys` from 0 to 1, and optionally `ease: 'linear'`, `period` (own
+      cycle in s), `offset` (share of a cycle). In the ¾ views `armA` and `armB` are the near
+      and far arm, not left and right.
+- [ ] **A reaction clip (D26)** is a clip named like the sim's `ReactionKind` (`eureka`, `oops`,
+      `waveHi`, `dizzy`; also in `REACTION_CLIP_NAMES`), played as a layer over the act's clip.
+      Every track sets `group` (`face`, `effect`, `arms` or `body`) and replaces only the
+      channels it names, and only when the act's table row allows the group
+      (`REACTION_RULES` in `packages/sim/src/reactions.ts`). A body jump must move `footA` and
+      `footB` too (the feet are ground parts). `pnpm clip:sheet <reaction>` plays it alone.
+      `arms` tracks are moved to the other arm, with the rotation flipped, in the mirrored
+      `front-34` view (`samplePose`).
 - [ ] Use the builders already there (`body`, `pair`, `swing`, `flap`, `bob`, `waddle`,
       `lift`, `step`) rather than writing keys by hand; they carry the right defaults.
 - [ ] Units: art units (100 = 1 m) and degrees. Prototype numbers come from `docs/DESIGN.md` §6

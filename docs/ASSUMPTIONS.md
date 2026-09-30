@@ -39,8 +39,25 @@ sim, the clips and the effect slots were built by parallel forks in separate wor
   `WAVE_UP_SIDE` −165° (tuned on the sheet).
 - The wave arm ramps up from 0 over the first 8 %, because a reaction track replaces a channel
   and cannot see the act's arm angle; walking shows a small pop at the start.
-- A tap on your own bean is a hit test on the rig's feet-to-top rectangle and the body span of
-  the current view (`HubScene.hitsOwnBean`), checked before props and ground taps.
+- A tap on your own bean (`hitsBeanBody` in `rig/hit.ts`, unit tested; `HubScene.hitsOwnBean`)
+  is checked before props and ground taps. The hit area is the bean's bullet shape: a rectangle
+  for the lower half and a half ellipse for the dome, from the body part's bounds in the current
+  view (`bodySpan()` and `bodyTop()`), so it is the same for every look: with `drawnTop()`, which
+  headwear raises, the `hub-depth-tie` tap waved instead of walking in the sprout look, and
+  `looks-compare` caught it. The first version treated the
+  span's west reach as a signed offset and never hit; found in review, fixed, and covered by
+  `hub-wave-tap`.
+- Consequences of that tap rule, which D24 did not cover: tapping your own seated bean waves
+  (it used to stand you up; tapping the bench outside the bean, any movement key, E or Space
+  still stand you up), and tapping your own bean while it stands in front of the bench waves
+  instead of walking to a seat (tap the bench or press E). The bean is drawn in front, so a tap
+  on it is a tap on the bean.
+- `eureka` moves `footA` and `footB` with the body (same `y` keys), so the whole bean jumps as
+  in the prototype; reduced motion drops it (`motion`).
+- `samplePose` takes `mirrored`. In the mirrored `front-34` view the wave moves to the near arm
+  with its rotation flipped, so the screen-right arm waves in SE and SW. In `back-34` the same
+  move swings the arm across the back (seen on the sheet), so that view is left as it was. `front`
+  and `back` are never mirrored; the side view's near arm needs no swap.
 - `gallery`: the `reactions` scene draws the bean on open ground with the act's own clip and
   parts (no props, carts or bench), samples each reaction at 15 %, 40 % and 70 %, uses animation
   time 10 s with acts started 1 s earlier, and faces the walking and pushing rows east.
@@ -61,14 +78,17 @@ sim, the clips and the effect slots were built by parallel forks in separate wor
 - In the side views (E, W, and while walking, pushing or riding) the wave lifts the arm from
   mid-torso to about eye level but keeps it in front of the body, so it reads weakly. A clear
   side-view wave needs a side arm drawn to reach outside the silhouette.
-- The back-¾ views show the wave faintly for the same reason (short arm, partly behind the body).
-- In mirrored front-¾ views the screen-left arm waves (the clip names a slot, not a screen side).
+- The back-¾ views show the wave faintly for the same reason (short arm, partly behind the body),
+  and the mirrored back-¾ view (NW) is not corrected (see above).
 
 ### Tooling gaps found
 - `hub-interaction` says to run `pnpm verify --update-golden --scripts <new script>`, but that
   run includes `pnpm check`, whose golden completeness test fails until the files exist, and
-  `--update-golden` refuses to write after a failed step. Adding `hub-wave` needed `writeGolden`
-  called directly for that script (12 files added, no other file touched).
+  `--update-golden` refuses to write after a failed step. Adding `hub-wave` and `hub-wave-tap`
+  needed `writeGolden` called directly for those scripts (12 and 5 files added, no other file
+  touched).
+- The `add-clip` skill listed the removed `fx` slot and knew nothing of reaction clips or
+  `Track.group`; updated.
 - `pnpm art:sheet --base` cannot compare the anchors change: its "before" runs the current code
   on old art, which fails the new anchor requirement. The slice 3 fork used a scratch worktree
   of main for the before images.

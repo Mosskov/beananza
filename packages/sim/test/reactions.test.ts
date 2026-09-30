@@ -268,11 +268,14 @@ describe('reactions (D26): the compatibility table', () => {
     expect(Object.keys(REACTION_RULES).sort()).toEqual([...ALL_ACTS].sort());
   });
 
-  it('does not compile without a row for an act kind', () => {
-    const row: ActReactionRules = REACTION_RULES.free;
-    // @ts-expect-error a row for every act kind is required
-    const missing: { readonly [K in HubActKind]: ActReactionRules } = { free: row };
-    expect(Object.keys(missing)).toEqual(['free']);
+  it('is typed by act kind, so a missing row does not compile (checked on the real table)', () => {
+    // The assertion is on `typeof REACTION_RULES` itself: if it were loosened (a Partial, or a
+    // Record<string, …>), or a row were removed, its keys would stop equalling `HubActKind` and
+    // this line would fail `pnpm typecheck`.
+    type Equal<A, B> = (<T>() => T extends A ? 1 : 2) extends <T>() => T extends B ? 1 : 2 ? true : false;
+    const keysAreExactlyTheActKinds: Equal<keyof typeof REACTION_RULES, HubActKind> = true;
+    const rowsAreRules: typeof REACTION_RULES extends { readonly [K in HubActKind]: ActReactionRules } ? true : false = true;
+    expect([keysAreExactlyTheActKinds, rowsAreRules]).toEqual([true, true]);
   });
 
   it('accepts emotes in exactly the acts that are not hops, and face and effect play everywhere', () => {

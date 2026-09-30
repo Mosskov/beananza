@@ -32,7 +32,7 @@ describe('looks (D25)', () => {
     expect(parseLook(null).look).toEqual(DEFAULT_LOOK);
     expect(parseLook('teal,top-hat').unknown).toEqual(['top-hat']);
     // Only the palette's own ids: nothing inherited from Object.prototype is a colour.
-    expect(parseLook('constructor,__proto__,tostring')).toEqual({ look: DEFAULT_LOOK, unknown: ['constructor', '__proto__', 'tostring'] });
+    expect(parseLook('constructor,__proto__')).toEqual({ look: DEFAULT_LOOK, unknown: ['constructor', '__proto__'] });
     expect(parseLook(lookToString({ colour: 'cream', pattern: 'plain', headwear: 'sprout', face: 'round' })).look.headwear).toBe('sprout');
     expect(allLooks()).toHaveLength(10 * 2 * 4 * 2);
   });

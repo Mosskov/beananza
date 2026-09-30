@@ -3,6 +3,8 @@ import { BEAN_SVGS } from '../src/rig/bean-art-sources';
 import { buildBeanArtSpec } from '../src/rig/bean-contract';
 import { EFFECT_ANCHORS, EFFECT_SLOTS, EFFECT_SLOT_ANCHORS, HIDDEN_BY_DEFAULT, SLOTS, VIEWS } from '../src/rig/views';
 import { EFFECTS, EFFECT_SVGS, buildEffectArtSpec, effectKey } from '../src/art/effects';
+import { effectSeed, seedUnit } from '../src/rig/effect-seed';
+import effectSeedSource from '../src/rig/effect-seed.ts?raw';
 
 describe('effect art contract (art/effects/*.svg, D26)', () => {
   const spec = buildEffectArtSpec(EFFECT_SVGS);
@@ -44,6 +46,30 @@ describe('effect art contract (art/effects/*.svg, D26)', () => {
     for (const s of EFFECT_SLOTS) expect(SLOTS).toContain(s);
     expect(SLOTS).not.toContain('fx');
     expect(HIDDEN_BY_DEFAULT.has('doze-z')).toBe(false); // an effect, not a bean part; the rig hides every effect
+  });
+
+  it('seeds particle placement from the reaction start and the index only: stable across frames, same for the same state', () => {
+    // Every frame of a 1.8 s reaction (108 ticks) asks again for the same particles.
+    const first = [0, 1, 2, 3, 4].map((i) => effectSeed(1234, i));
+    for (let frame = 0; frame < 108; frame++) expect([0, 1, 2, 3, 4].map((i) => effectSeed(1234, i))).toEqual(first);
+    // Integers in [0, 2^32), and seedUnit maps them into [0, 1).
+    for (const s of first) {
+      expect(Number.isInteger(s)).toBe(true);
+      expect(s).toBeGreaterThanOrEqual(0);
+      expect(s).toBeLessThan(2 ** 32);
+      expect(seedUnit(s)).toBeGreaterThanOrEqual(0);
+      expect(seedUnit(s)).toBeLessThan(1);
+    }
+    // A different particle or start gives a different seed (no collisions over a small grid), and a fixed value
+    // pins the hash so that a change is noticed (client and server, M2, must agree).
+    const grid = new Set<number>();
+    for (let since = 0; since < 50; since++) for (let i = 0; i < 12; i++) grid.add(effectSeed(since, i));
+    expect(grid.size).toBe(600);
+    expect(effectSeed(0, 0)).toBe(effectSeed(0, 0));
+    expect(effectSeed(1234, 0)).not.toBe(effectSeed(1234, 1));
+    expect(effectSeed(1234, 0)).not.toBe(effectSeed(1235, 0));
+    // Never of the clock or of randomness.
+    expect(effectSeedSource.replace(/\/\*[\s\S]*?\*\//g, '')).not.toMatch(/Math\.random|Date\.now|performance\.now/);
   });
 
   it('rejects an effect that breaks the contract', () => {

@@ -78,6 +78,10 @@ export function viewForFacing(facingX: number, facingY: number): ViewChoice {
  * `art/effect-contract.ts`) and placed at one of the view's effect anchors. Clips move and scale
  * an effect in its slot about the anchor. The head and brow slots ride with the body (bob,
  * squash); the ground slot stays on the ground like the feet.
+ *
+ * Derived effects (D26) get no sim field: the sweat on `fxBrow` reads the `pushing` row
+ * (`presentation/cart.ts`, `HEAVY_PUSH_KG`), the dust on `fxGround` reads `lastJump.landedAt`
+ * (`player.ts`), and Thinking on `fxHead` will read the pending prediction once D9 exists.
  */
 export const EFFECT_SLOTS = ['fxHead', 'fxBrow', 'fxGround'] as const;
 export type EffectSlot = (typeof EFFECT_SLOTS)[number];

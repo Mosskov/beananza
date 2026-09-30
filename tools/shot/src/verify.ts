@@ -1,20 +1,24 @@
 // pnpm verify: the whole verification pass in one command, with one dev server and one browser.
-//   pnpm verify [--no-check] [--scripts a,b] [--baseline <dir>] [--jobs <n>] [--port <n>] [--reuse]
+//   pnpm verify [--no-check] [--scripts a,b] [--baseline <dir>] [--update-golden [--timed scene@t,…]]
+//               [--jobs <n>] [--port <n>] [--reuse]
 // Runs `pnpm check` (in the background while the scripts run), every script, the hub scripts in
-// the check-looks looks, every scene live plus the baseline's timed shots, then check-carts,
-// the looks comparison and compare-states against the newest docs/status/ folder. Prints the
+// the check-looks looks, every scene live plus the golden timed shots, then check-carts, the
+// looks comparison and compare-states against tools/shot/golden/ (golden.ts). Prints the
 // failures and a short summary; everything else goes to artifacts/verify/verify.log.
 // `--scripts` runs only those scripts (between slices) and skips what they don't feed.
+// `--update-golden` rewrites the golden files from this run instead of comparing (and only if
+// every step passed); `--baseline <dir>` compares against an old evidence folder instead.
 import { spawn } from 'node:child_process';
-import { createWriteStream, existsSync, mkdirSync, readdirSync, statSync, writeFileSync } from 'node:fs';
+import { createWriteStream, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { basename, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parseArgs, stripVTControlCharacters } from 'node:util';
 import { CART_SCRIPTS, checkCarts } from './check-carts';
 import { compareLooks, LOOKS, runLook, SHOTS } from './check-looks';
-import { compareStates } from './compare-states';
-import { scriptOutputName } from './script';
-import { allScripts, DEFAULT_RUN, describeShot, errorMessage, listScenes, openSession, REPO, shootScene, type Session } from './session';
+import { compareStates, compareStateSets, readStates, type SimState } from './compare-states';
+import { GOLDEN, goldenCompleteness, goldenFiles, goldenTimedShots, timedName, timedShots, writeGolden } from './golden';
+import { parseScript, scriptOutputName } from './script';
+import { allScripts, DEFAULT_RUN, describeShot, errorMessage, listScenes, openSession, REPO, SCRIPTS_DIR, shootScene, type Session } from './session';
 
 const OUT = join(REPO, 'artifacts/verify');
 
@@ -26,25 +30,22 @@ export interface Row {
   detail: string;
 }
 
-/** Folder names in natural order: m1-s9 before m1-s10. */
-export function naturalSort(names: readonly string[]): string[] {
-  return [...names].sort((a, b) => a.localeCompare(b, 'en', { numeric: true }));
-}
-
-/** The newest evidence folder under docs/status/ (natural order), or null. */
-export function newestStatusFolder(statusDir: string): string | null {
-  if (!existsSync(statusDir)) return null;
-  const dirs = readdirSync(statusDir).filter((n) => statSync(join(statusDir, n)).isDirectory());
-  const last = naturalSort(dirs).at(-1);
-  return last === undefined ? null : join(statusDir, last);
-}
-
-/** Timed scene shots (`drop_t1.000.json`) at the top of an evidence folder, as scene and time. */
-export function timedShots(fileNames: readonly string[]): { scene: string; t: number }[] {
-  return fileNames.flatMap((f) => {
-    const m = /^([a-z0-9-]+)_t(\d+(?:\.\d+)?)\.json$/.exec(f);
-    return m ? [{ scene: m[1] as string, t: Number(m[2]) }] : [];
+/** `--timed drop@2,hub@0.5`: extra timed scene shots for `--update-golden`. */
+export function parseTimed(arg: string | undefined): { scene: string; t: number }[] {
+  if (!arg) return [];
+  return arg.split(',').map((item) => {
+    const m = /^\s*([a-z0-9-]+)@(\d+(?:\.\d+)?)\s*$/.exec(item);
+    if (!m) throw new Error(`--timed wants scene@seconds (for example drop@1.5), got "${item}"`);
+    return { scene: m[1] as string, t: Number(m[2]) };
   });
+}
+
+/** Each script's JSON, by output name. */
+const scriptJson = (names: readonly string[]) => new Map(names.map((n) => [n, JSON.parse(readFileSync(join(SCRIPTS_DIR, `${n}.json`), 'utf8')) as unknown]));
+
+/** Only the entries of `states` that this run's scripts and timed shots produce. */
+export function pickStates(states: ReadonlyMap<string, SimState>, scripts: readonly string[], timedFiles: readonly string[]): Map<string, SimState> {
+  return new Map([...states].filter(([rel]) => (rel.includes('/') ? scripts.includes(rel.split('/')[0] as string) : timedFiles.includes(rel))));
 }
 
 /** The script names `--scripts` asks for, checked against the ones that exist. */
@@ -95,6 +96,8 @@ async function main(): Promise<number> {
       'no-check': { type: 'boolean', default: false },
       scripts: { type: 'string' },
       baseline: { type: 'string' },
+      'update-golden': { type: 'boolean', default: false },
+      timed: { type: 'string' },
       jobs: { type: 'string', default: '4' },
       port: { type: 'string' },
       reuse: { type: 'boolean', default: false },
@@ -114,7 +117,15 @@ async function main(): Promise<number> {
   const names = pickScripts(values.scripts, available);
   const scripts = names.map((n) => ({ path: join(REPO, 'tools/shot/scripts', `${n}.json`), outName: n }));
   const hub = scripts.filter((s) => s.outName.startsWith('hub'));
-  const baseline = values.baseline ? resolve(REPO, values.baseline) : newestStatusFolder(join(REPO, 'docs/status'));
+  const updateGolden = values['update-golden'];
+  if (updateGolden && values.baseline) throw new Error('--update-golden writes tools/shot/golden/; it does not take --baseline');
+  if (values.timed && !updateGolden) throw new Error('--timed adds timed shots to the golden files, so it needs --update-golden');
+  // Against an old evidence folder (--baseline), or the golden files.
+  const baseline = values.baseline ? resolve(REPO, values.baseline) : null;
+  const extraTimed = parseTimed(values.timed);
+  const timed = baseline
+    ? timedShots(readdirSync(baseline))
+    : [...goldenTimedShots(), ...extraTimed.filter((x) => !goldenTimedShots().some((g) => timedName(g.scene, g.t) === timedName(x.scene, x.t)))];
 
   // 1. pnpm check, in the background while the scripts run (they need no fps).
   const checkStart = Date.now();
@@ -159,14 +170,13 @@ async function main(): Promise<number> {
     // 4. pnpm check must finish before the scenes, so their fps samples run on a quiet machine.
     await awaitCheck();
 
-    // 5. Every scene live, plus the baseline's timed shots (e.g. drop at t = 1.0 and 1.5 s).
+    // 5. Every scene live, plus the golden timed shots (e.g. drop at t = 1.0 and 1.5 s).
     phase = 'scenes';
     if (partial) {
       rows.push({ step: 'scenes', ok: null, seconds: null, detail: 'skipped with --scripts' });
     } else {
       t = Date.now();
       const scenes = (await listScenes(session, DEFAULT_RUN.timeoutMs)).all;
-      const timed = baseline ? timedShots(readdirSync(baseline)) : [];
       const run = { ...DEFAULT_RUN, outDir: SHOTS };
       let failures = 0;
       const fps: string[] = [];
@@ -215,9 +225,40 @@ async function main(): Promise<number> {
       cmp.lines.forEach(log);
       const rel = relative(REPO, baseline).replaceAll('\\', '/');
       rows.push({ step: 'compare-states', ok: cmp.failures === 0, seconds: null, detail: `${cmp.compared} sim states against ${rel}, ${cmp.failures} differ or missing` });
+    } else if (updateGolden) {
+      goldenUpdate();
     } else {
-      rows.push({ step: 'compare-states', ok: null, seconds: null, detail: 'no docs/status/ folder' });
+      goldenChecks();
     }
+  }
+
+  /** The golden folder is complete, and this run's sim states equal it. */
+  function goldenChecks(): void {
+    const problems = goldenCompleteness(goldenFiles(), scriptJson(available));
+    problems.forEach((p) => log(`FAIL golden ${p}`));
+    rows.push({ step: 'golden', ok: problems.length === 0, seconds: null, detail: problems.length ? `${problems.length} problem(s), e.g. ${problems[0]}` : `complete for ${available.length} scripts and ${timed.length} timed shots` });
+    const timedFiles = partial ? [] : timed.map((s) => timedName(s.scene, s.t));
+    const cmp = compareStateSets(pickStates(readStates(GOLDEN), names, timedFiles), pickStates(readStates(SHOTS), names, timedFiles), {
+      baseName: 'tools/shot/golden/',
+      freshName: 'artifacts/shots/',
+      extras: { hint: 'if it is meant, run pnpm verify --update-golden' },
+    });
+    cmp.lines.forEach(log);
+    rows.push({ step: 'compare-states', ok: cmp.failures === 0, seconds: null, detail: `${cmp.compared} sim states against tools/shot/golden/, ${cmp.failures} differ or missing` });
+  }
+
+  /** Rewrite the golden files from this run, if every step passed. */
+  function goldenUpdate(): void {
+    if (rows.some((r) => r.ok === false)) {
+      rows.push({ step: 'update-golden', ok: false, seconds: null, detail: 'not written: a step failed, and golden states come only from a passing run' });
+      return;
+    }
+    const layouts = scripts.map((s) => ({ name: s.outName, layout: parseScript(JSON.parse(readFileSync(s.path, 'utf8'))).layout ?? null }));
+    const u = writeGolden(SHOTS, layouts, partial ? [] : timed, !partial);
+    for (const [what, list] of [['changed', u.changed], ['added', u.added], ['removed', u.removed]] as const) for (const rel of list) log(`golden ${what} tools/shot/golden/${rel}`);
+    const detail = `${u.written} files: ${u.changed.length} changed, ${u.added.length} added, ${u.removed.length} removed; review with git diff tools/shot/golden`;
+    rows.push({ step: 'update-golden', ok: true, seconds: null, detail });
+    for (const line of [...u.changed.map((r) => `changed ${r}`), ...u.added.map((r) => `added   ${r}`), ...u.removed.map((r) => `removed ${r}`)]) console.log(`golden ${line}`);
   }
 
   const failed = rows.some((r) => r.ok === false);

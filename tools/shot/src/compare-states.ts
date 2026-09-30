@@ -69,31 +69,49 @@ const RENAMES: { since: string; apply: (state: Json, fresh: Json) => void }[] = 
   },
 ];
 
-/** Every shot log (not the scripts' run.json) under `dir`, by path relative to it. */
-function logs(dir: string): string[] {
-  const out: string[] = [];
-  for (const name of readdirSync(dir)) {
-    const path = join(dir, name);
-    if (statSync(path).isDirectory()) {
-      // Only the scripts' folders; skip other evidence folders such as reduced-motion or software-gl.
-      if (existsSync(join(path, 'run.json'))) for (const f of readdirSync(path)) if (f.endsWith('.json') && f !== 'run.json') out.push(relative(dir, join(path, f)));
-    } else if (name.endsWith('.json')) {
-      out.push(name);
-    }
-  }
-  return out.sort();
-}
+/** A log's sim state; null for scenes without a sim; `'live'` for a shot on wall-clock time. */
+export type SimState = Json | null | 'live';
 
 /**
- * The sim state of a log, or null for scenes without a sim. Live shots (the sim running on
- * wall-clock time, `sceneState.paused` false) land on whatever tick the browser reached, so
- * they are skipped: `'live'`.
+ * The sim state in one file: a shot log (`sceneState.state`), or a golden file (a top-level
+ * `state`, `golden.ts`). Live shots (the sim running on wall-clock time, `sceneState.paused`
+ * false) land on whatever tick the browser reached, so they are `'live'` and never compared.
  */
-const simState = (file: string): Json | null | 'live' => {
-  const log = JSON.parse(readFileSync(file, 'utf8')) as { sceneState?: { paused?: boolean; state?: Json } };
+export function simStateOf(json: unknown): SimState {
+  const log = json as { sceneState?: { paused?: boolean; state?: Json }; state?: Json };
+  if (log.sceneState === undefined && log.state !== undefined) return log.state;
   if (log.sceneState?.state && log.sceneState.paused === false) return 'live';
   return log.sceneState?.state ?? null;
+}
+
+const isGoldenFile = (json: unknown) => {
+  const j = json as Json | null;
+  return !!j && typeof j === 'object' && !('sceneState' in j) && 'state' in j;
 };
+
+/**
+ * Every sim state under `dir`, by path relative to it (`hub-walk/start.json`, `drop_t1.000.json`):
+ * the top-level shot logs, and the logs in each script's folder (one with a run.json, or one of
+ * golden files). Other evidence folders, such as reduced-motion or software-gl, are skipped.
+ */
+export function readStates(dir: string): Map<string, SimState> {
+  const out = new Map<string, SimState>();
+  const read = (path: string) => JSON.parse(readFileSync(path, 'utf8')) as unknown;
+  for (const name of readdirSync(dir).sort()) {
+    const path = join(dir, name);
+    if (statSync(path).isDirectory()) {
+      const isScript = existsSync(join(path, 'run.json'));
+      for (const f of readdirSync(path).sort()) {
+        if (!f.endsWith('.json') || f === 'run.json') continue;
+        const json = read(join(path, f));
+        if (isScript || isGoldenFile(json)) out.set(`${name}/${f}`, simStateOf(json));
+      }
+    } else if (name.endsWith('.json')) {
+      out.set(name, simStateOf(read(path)));
+    }
+  }
+  return out;
+}
 
 /** Every differing leaf path between two JSON values (none when equal). */
 function diffs(a: unknown, b: unknown, path = ''): string[] {
@@ -115,23 +133,34 @@ export interface Comparison {
   lines: string[];
 }
 
-/**
- * Compare the sim states of every stepped shot log under `base` with the same log under
- * `fresh`. `scripts` limits it to those scripts' folders (for example when `fresh` only ran the
- * hub scripts).
- */
-export function compareStates(base: string, fresh: string, scripts?: readonly string[]): Comparison {
+export interface CompareOptions {
+  /** Only these scripts' folders (for example when `fresh` only ran the hub scripts). */
+  scripts?: readonly string[];
+  /** How the base is named in the lines (a folder, or `tools/shot/golden/`). */
+  baseName: string;
+  freshName: string;
+  /**
+   * Also fail on a stepped state in a script folder of `fresh` that `base` lacks (a new shot
+   * without a golden file). Evidence folders from older sessions have fewer scripts, so off
+   * for them.
+   */
+  extras?: { hint: string };
+}
+
+/** Compare every stepped sim state in `base` with the same one in `fresh`. */
+export function compareStateSets(base: ReadonlyMap<string, SimState>, fresh: ReadonlyMap<string, SimState>, opts: CompareOptions): Comparison {
   const result: Comparison = { compared: 0, failures: 0, lines: [] };
-  const wanted = (rel: string) => !scripts || scripts.includes(rel.split(/[\\/]/)[0] ?? '');
-  for (const rel of logs(base).filter(wanted)) {
-    const other = join(fresh, rel);
-    if (!existsSync(other)) {
+  const scriptOf = (rel: string) => (rel.includes('/') ? (rel.split('/')[0] as string) : null);
+  const wanted = (rel: string) => !opts.scripts || opts.scripts.includes(scriptOf(rel) ?? '');
+  for (const [rel, stored] of [...base].filter(([rel]) => wanted(rel))) {
+    if (!fresh.has(rel)) {
       result.failures += 1;
-      result.lines.push(`MISSING ${rel} (not in ${relative(REPO, fresh)})`);
+      result.lines.push(`MISSING ${rel} (in ${opts.baseName}, not in ${opts.freshName})`);
       continue;
     }
-    const before = simState(join(base, rel));
-    const after = simState(other);
+    // Copies: the renames edit them.
+    const before = structuredClone(stored);
+    const after = structuredClone(fresh.get(rel) as SimState);
     if (!before && !after) continue; // scenes without a sim (empty, the galleries)
     if (before === 'live' || after === 'live') {
       result.lines.push(`live    ${rel} (skipped: a live shot's tick depends on wall-clock time)`);
@@ -143,9 +172,16 @@ export function compareStates(base: string, fresh: string, scripts?: readonly st
     if (found.length) {
       result.failures += 1;
       const more = found.length > SHOW_DIFFS ? `; and ${found.length - SHOW_DIFFS} more` : '';
-      result.lines.push(`DIFF    ${rel}  ${found.slice(0, SHOW_DIFFS).join('; ')}${more}`);
+      result.lines.push(`DIFF    ${opts.baseName}${rel}  ${found.slice(0, SHOW_DIFFS).join('; ')}${more}`);
     } else {
       result.lines.push(`same    ${rel}`);
+    }
+  }
+  if (opts.extras) {
+    for (const [rel, state] of fresh) {
+      if (scriptOf(rel) === null || !wanted(rel) || base.has(rel) || state === null || state === 'live') continue;
+      result.failures += 1;
+      result.lines.push(`MISSING ${opts.baseName}${rel} (a new shot; ${opts.extras.hint})`);
     }
   }
   if (result.compared === 0) {
@@ -155,7 +191,23 @@ export function compareStates(base: string, fresh: string, scripts?: readonly st
   return result;
 }
 
+const folderName = (dir: string) => `${relative(REPO, dir).replaceAll('\\', '/')}/`;
+
+/**
+ * Compare the sim states of every stepped shot log under `base` (an evidence folder or
+ * tools/shot/golden) with the same log under `fresh`. `scripts` limits it to those scripts'
+ * folders.
+ */
+export function compareStates(base: string, fresh: string, scripts?: readonly string[]): Comparison {
+  return compareStateSets(readStates(base), readStates(fresh), { scripts, baseName: folderName(base), freshName: folderName(fresh) });
+}
+
 export const RENAME_NOTES = RENAMES.map((r) => r.since);
+
+/** Map an older sim state onto the current fields, in place (`fresh`: a current state to copy drawing data from). */
+export function applyRenames(state: Json, fresh: Json): void {
+  for (const r of RENAMES) r.apply(state, fresh);
+}
 
 // Run as a command: compare-states <baseline dir> [<new dir>].
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {

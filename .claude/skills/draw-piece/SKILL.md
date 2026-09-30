@@ -58,8 +58,9 @@ shown to the user (D13), so plan for that from the start.
       - prop: import it in `packages/client/src/art/prop-sources.ts` and list its parts and
         anchors in `PROP_PARTS` / `PROP_ANCHORS` (`art/prop-contract.ts`);
       - bean view: `packages/client/src/rig/bean-art-sources.ts`.
-      `pnpm art:check` reports a file on disk that is not registered, and a registered id with
-      no file.
+      `pnpm art:check` reports a file on disk that is not registered (or not in a folder the
+      game loads), and a registered id or prop with no file. Ids are lowercase letters, digits
+      and `-` (`top-hat`, not `top_hat`).
 - [ ] **Show a new cosmetic in the `looks` gallery** (`packages/client/src/scenes/LooksGalleryScene.ts`):
       add a `directionRow(...)` for it, so `looks.png`, verify and `art:sheet` keep showing it.
       The gallery's colour row picks pieces by index from `HEADWEAR_IDS` / `PATTERN_IDS`, so

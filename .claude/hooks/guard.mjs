@@ -1,9 +1,9 @@
 // PreToolUse guard for Bash and PowerShell (.claude/settings.json). Blocks the commands a
 // session must ask the user about first: changing the share site (deploy, secrets, remote
-// migrations), force-pushing, and anything that lands on main (merging, rebasing or pulling on
-// main, pushing to main, merging a PR). Reads the hook payload on stdin; prints a deny
-// decision, or nothing to let the command through. Plain Node, no dependencies, so it runs the
-// same on Windows, in CI and in cloud sessions.
+// migrations), force-pushing, and anything that lands on or moves main (merging, rebasing,
+// pulling or resetting on main, pushing to main, moving the main branch, merging a PR). Reads
+// the hook payload on stdin; prints a deny decision, or nothing to let the command through.
+// Plain Node, no dependencies, so it runs the same on Windows, in CI and in cloud sessions.
 import { execFileSync } from 'node:child_process';
 import { isAbsolute, resolve } from 'node:path';
 
@@ -21,68 +21,122 @@ const at = (base, p) => {
   const path = unquote(p).replace(/^\/([a-zA-Z])\//, '$1:/'); // Git Bash /c/… paths
   return isAbsolute(path) ? path : resolve(base, path);
 };
+/** Quoted text blanked out, so a commit message or an echo that mentions a command is not that command. */
+const mask = (s) => s.replace(/"[^"]*"|'[^']*'/g, '""');
 
 const ASK = 'Ask the user before running it (CLAUDE.md: the user merges into main; never run pnpm share:deploy or pnpm share:password unless asked).';
 
+/** Split a command line into simple commands (;, &&, ||, |, newlines), ignoring separators inside quotes. */
+function segments(command) {
+  const out = [];
+  let cur = '';
+  let quote = null;
+  for (let i = 0; i < command.length; i++) {
+    const ch = command[i];
+    if (quote) {
+      if (ch === quote) quote = null;
+      cur += ch;
+    } else if (ch === '"' || ch === "'") {
+      quote = ch;
+      cur += ch;
+    } else if (ch === ';' || ch === '\n' || ch === '|' || ch === '&') {
+      if ((ch === '|' || ch === '&') && command[i + 1] === ch) i++;
+      out.push(cur);
+      cur = '';
+    } else {
+      cur += ch;
+    }
+  }
+  out.push(cur);
+  // Subshell parentheses and braces only group; the commands inside are what run.
+  return out.map((s) => s.trim().replace(/^[({]\s*/, '').replace(/\s*[)}]$/, '').trim()).filter(Boolean);
+}
+
 /** Why `command`, run in `cwd`, needs the user first, or null. */
-function verdict(command, cwd, branchOf = branchIn) {
-  // One segment per command in a chain (;, &&, ||, |, newlines), so flags are read per command.
-  const segments = command.split(/&&|\|\||[;|\n]/).map((s) => s.trim()).filter(Boolean);
+function verdict(command, cwd, depth = 0) {
   let dir = cwd;
   let switchedToMain = false;
-  for (const s of segments) {
+  for (const raw of segments(command)) {
+    const s = mask(raw);
+
+    // A nested shell: judge what it runs.
+    const nested = /^(?:bash|sh|zsh|pwsh|powershell(?:\.exe)?)\b.*?\s-(?:c|Command)\s+("[^"]*"|'[^']*')/i.exec(raw);
+    if (nested && depth < 3) {
+      const inner = verdict(unquote(nested[1]), dir, depth + 1);
+      if (inner) return inner;
+      continue;
+    }
+
     // Track `cd` / `Set-Location` so a later git command is judged in the right tree.
-    const cd = /^(?:cd|Set-Location|pushd)\s+(?:-Path\s+)?("[^"]+"|'[^']+'|\S+)\s*$/i.exec(s);
+    const cd = /^(?:cd|Set-Location|pushd)\s+(?:-Path\s+)?("[^"]+"|'[^']+'|\S+)\s*$/i.exec(raw);
     if (cd) {
       dir = at(dir, cd[1]);
       continue;
     }
 
-    // The share site: its deploy, secrets and remote database, through pnpm or wrangler.
-    if (/\bpnpm\b.*\b(share:deploy|share:password|share:migrate|cf-deploy|cf-password|cf-migrate)\b/.test(s)) {
-      return `Blocked: "${s}" changes the team share site. ${ASK}`;
+    // The share site: its deploy, secrets and remote database, through any runner or wrangler.
+    if (/\b(pnpm|npm|yarn|npx|bun)\b.*\b(share:deploy|share:password|share:migrate|cf-deploy|cf-password|cf-migrate)\b/.test(s)) {
+      return `Blocked: "${raw}" changes the team share site. ${ASK}`;
     }
     if (/\bwrangler\b/.test(s) && !/--dry-run\b/.test(s) && (/\b(deploy|publish|rollback|secret)\b/.test(s) || (/\bd1\b/.test(s) && /--remote\b/.test(s)))) {
-      return `Blocked: "${s}" changes the team share site's Cloudflare worker. ${ASK}`;
+      return `Blocked: "${raw}" changes the team share site's Cloudflare worker. ${ASK}`;
     }
 
     // Merging a pull request lands it on main.
-    if (/\bgh\b.*\bpr\s+merge\b/.test(s) || /\bgh\b.*\bapi\b.*\/merges?\b/.test(s)) {
-      return `Blocked: "${s}" merges a pull request. The user merges. ${ASK}`;
+    if (/^gh\b.*\bpr\s+merge\b/.test(s) || /^gh\b.*\bapi\b.*\/merges?\b/.test(s)) {
+      return `Blocked: "${raw}" merges a pull request. The user merges. ${ASK}`;
     }
 
-    const git = /\bgit\b((?:\s+-[Cc]\s+(?:"[^"]+"|'[^']+'|\S+)|\s+--?[\w-]+(?:=\S+)?)*)\s+([\w-]+)(.*)$/.exec(s);
+    const git = /^git((?:\s+-[Cc]\s+(?:"[^"]*"|'[^']*'|\S+)|\s+--?[\w-]+(?:=\S+)?)*)\s+([\w-]+)(.*)$/.exec(s);
     if (!git) continue;
-    const [, opts, sub, rest] = git;
-    const c = /-C\s+("[^"]+"|'[^']+'|\S+)/.exec(opts);
+    const [, , sub, rest] = git;
+    const c = /^git(?:\s+-[^C]\S*)*\s+-C\s+("[^"]+"|'[^']+'|\S+)/.exec(raw);
     const where = c ? at(dir, c[1]) : dir;
-    const onMain = switchedToMain || branchOf(where) === 'main';
+    const onMain = switchedToMain || branchIn(where) === 'main';
     const args = rest.trim().split(/\s+/).filter(Boolean).map(unquote);
-    const toMain = (a) => /^\+?[^:]*:(refs\/heads\/)?main$/.test(a);
+    const words = args.filter((a) => !a.startsWith('-'));
+    const isMain = (r) => r === 'main' || r === 'refs/heads/main' || (onMain && (r === 'HEAD' || r === '@'));
+    const toMain = (r) => {
+      const ref = r.replace(/^\+/, '');
+      const target = ref.includes(':') ? ref.slice(ref.indexOf(':') + 1) : ref;
+      return isMain(target);
+    };
 
     if (sub === 'checkout' || sub === 'switch') {
-      if (args.filter((a) => !a.startsWith('-')).at(-1) === 'main' || args[0] === 'main') switchedToMain = true;
+      const create = args.findIndex((a) => /^-[bBcC]$/.test(a));
+      if (create >= 0) {
+        // -B / -C main resets main to another commit; -b / -c x creates x and switches to it.
+        if (/^-[BC]$/.test(args[create]) && args[create + 1] === 'main') return `Blocked: "${raw}" moves the main branch. ${ASK}`;
+        continue;
+      }
+      if (words[0] === 'main') switchedToMain = true;
+      else if (words.length) switchedToMain = false;
       continue;
     }
     if (sub === 'push') {
-      if (args.some((a) => /^--force(-with-lease|-if-includes)?(=.*)?$/.test(a) || /^-[A-Za-z]*f[A-Za-z]*$/.test(a) || /^\+/.test(a))) {
-        return `Blocked: "${s}" force-pushes, which can discard others' commits. ${ASK}`;
+      if (args.some((a) => /^--(force(-with-lease|-if-includes)?|mirror)(=.*)?$/.test(a) || /^-[A-Za-z]*f[A-Za-z]*$/.test(a) || /^\+/.test(a))) {
+        return `Blocked: "${raw}" force-pushes (or mirrors), which can discard others' commits. ${ASK}`;
       }
-      const refs = args.filter((a) => !a.startsWith('-')).slice(1); // after the remote
-      const deleting = args.includes('--delete') || args.includes('-d');
-      if (refs.some((r) => toMain(r) || r === 'main' || r === 'refs/heads/main') || (deleting && refs.includes('main')) || (refs.length === 0 && onMain)) {
-        return `Blocked: "${s}" pushes to main. Changes reach main through a pull request the user merges. ${ASK}`;
+      const refs = words.slice(1); // after the remote
+      if (args.includes('--all') || refs.some(toMain) || (refs.length === 0 && onMain)) {
+        return `Blocked: "${raw}" pushes to main. Changes reach main through a pull request the user merges. ${ASK}`;
       }
       continue;
     }
-    if (sub === 'fetch' && args.some(toMain)) {
-      return `Blocked: "${s}" writes the local main branch. ${ASK}`;
+    if (sub === 'fetch' && words.some((w) => w.includes(':') && toMain(w))) {
+      return `Blocked: "${raw}" writes the local main branch. ${ASK}`;
     }
-    if (['merge', 'rebase', 'pull', 'cherry-pick', 'am'].includes(sub) && onMain) {
-      return `Blocked: "${s}" changes main (${sub} while on main). The user merges into main. ${ASK}`;
+    if (sub === 'update-ref' && isMain(words[0] ?? '')) {
+      return `Blocked: "${raw}" moves the main branch. ${ASK}`;
     }
-    if (sub === 'branch' && args.some((a) => a === '-f' || a === '--force' || a === '-D' || a === '-M') && args.includes('main')) {
-      return `Blocked: "${s}" moves or deletes the main branch. ${ASK}`;
+    if (sub === 'branch' && words.includes('main') && args.some((a) => /^(-[fdDmM]|--force|--delete|--move)$/.test(a))) {
+      return `Blocked: "${raw}" moves or deletes the main branch. ${ASK}`;
+    }
+    if (sub === 'rebase' && words.length >= 2 && words.at(-1) === 'main') {
+      return `Blocked: "${raw}" checks out and rewrites main. ${ASK}`;
+    }
+    if (['merge', 'rebase', 'pull', 'cherry-pick', 'am', 'reset', 'revert'].includes(sub) && onMain) {
+      return `Blocked: "${raw}" changes main (${sub} while on main). The user merges into main. ${ASK}`;
     }
   }
   return null;

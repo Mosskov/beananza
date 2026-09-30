@@ -73,6 +73,44 @@ describe('the guard hook', { timeout: 30_000 }, () => {
     for (const [c, cwd, why] of cases) expect(run(c, cwd), c).toMatch(why);
   });
 
+  it('blocks the round 2 bypasses: HEAD on main, moving main, mirror and --all, other runners, nested shells', () => {
+    const cases: [string, string, RegExp][] = [
+      ['git push -u origin HEAD', onMain, /pushes to main/],
+      ['git push origin @', onMain, /pushes to main/],
+      ['git push origin HEAD:main', onBranch, /pushes to main/],
+      ['git checkout -B main tools/prep && git push origin', onBranch, /moves the main branch/],
+      ['git switch -C main tools/prep', onBranch, /moves the main branch/],
+      ['git update-ref refs/heads/main HEAD', onBranch, /moves the main branch/],
+      ['git branch -d main', onBranch, /main branch/],
+      ['git push --mirror origin', onBranch, /force-pushes \(or mirrors\)/],
+      ['git push --all origin', onBranch, /pushes to main/],
+      ['npm --prefix tools/share run cf-deploy', onBranch, /share site/],
+      ['cd tools/share && npm run cf-deploy', onBranch, /share site/],
+      ['yarn share:password', onBranch, /share site/],
+      [`(cd "${onMain}" && git merge x)`, onBranch, /while on main/],
+      [`bash -c 'cd "${onMain}" && git merge x'`, onBranch, /while on main/],
+      ['git rebase tools/prep main', onBranch, /rewrites main/],
+      ['git reset --hard HEAD~1', onMain, /reset while on main/],
+    ];
+    for (const [c, cwd, why] of cases) expect(run(c, cwd), c).toMatch(why);
+  });
+
+  it('does not block a command that only mentions a blocked one (round 2)', () => {
+    for (const c of [
+      'git commit -m "docs: never git push origin main"',
+      'echo "git push origin main" > notes.txt',
+      'git log --grep="gh pr merge"',
+      'git checkout -b x main && git merge tools/prep',
+      'git push -u origin HEAD',
+      'git log main..HEAD',
+      'git diff main...tools/prep',
+      'git worktree add -b x C:/bz-x main',
+      'git pull origin main',
+    ]) {
+      expect(run(c, onBranch), c).toBeNull();
+    }
+  });
+
   it('lets the everyday commands through', () => {
     for (const c of [
       'git status',

@@ -75,6 +75,12 @@ describe('the art contract checks (pnpm art:check)', () => {
     const noBow = { ...ART };
     delete (noBow as Record<string, string>)['art/bean/headwear/bow.svg'];
     expect(messages(noBow)).toContain('art/bean/headwear/bow.svg | headwear bow: in HEADWEAR_IDS but there is no drawing');
+    // A file the game can never load, and a new folder, are findings, not silently reference art.
+    expect(messages({ ...ART, 'art/bean/headwear/top_hat.svg': sprout }).join('\n')).toMatch(/top_hat\.svg: not a file the game loads/);
+    expect(messages({ ...ART, 'art/effects/sparkle.svg': sprout }).join('\n')).toMatch(/art\/effects\/sparkle\.svg: not a file the game loads/);
+    const noTree: Record<string, string> = { ...ART };
+    delete noTree['art/props/tree.svg'];
+    expect(messages(noTree)).toContain('art/props/tree.svg | tree: missing');
   });
 
   it('loads exactly the registered files: the sources match what is on disk', () => {

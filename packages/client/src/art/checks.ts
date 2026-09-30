@@ -25,12 +25,18 @@ export type ArtFileKind =
   | { kind: 'bean'; name: string }
   | { kind: 'cosmetic'; cosmetic: CosmeticKind; id: string }
   | { kind: 'prop'; id: string }
-  | { kind: 'reference' };
+  | { kind: 'reference' }
+  /** Under art/ but neither loaded nor listed as reference: a file the game will never see. */
+  | { kind: 'unknown' };
 
 const BEAN_NAMES: readonly string[] = [...VIEWS, ...MIRRORED_VIEWS.map(variantName)];
 
-/** What a file under art/ is: a bean view, a cosmetic, a prop, or reference art the game does not load. */
+/** Reference art from the design exploration, not loaded by the game (`art/README.md`). */
+export const REFERENCE_ART: readonly string[] = ['art/bean/forms.svg', 'art/baron/'];
+
+/** What a file under art/ is: a bean view, a cosmetic, a prop, reference art, or unknown. */
 export function artFileKind(path: string): ArtFileKind {
+  if (REFERENCE_ART.some((r) => (r.endsWith('/') ? path.startsWith(r) : path === r))) return { kind: 'reference' };
   const bean = /^art\/bean\/([a-z0-9-]+)\.svg$/.exec(path);
   if (bean && BEAN_NAMES.includes(bean[1] as string)) return { kind: 'bean', name: bean[1] as string };
   const cosmetic = /^art\/bean\/(patterns|headwear|faces)\/([a-z0-9-]+)\.svg$/.exec(path);
@@ -40,7 +46,7 @@ export function artFileKind(path: string): ArtFileKind {
   }
   const prop = /^art\/props\/([a-z0-9-]+)\.svg$/.exec(path);
   if (prop) return { kind: 'prop', id: prop[1] as string };
-  return { kind: 'reference' };
+  return { kind: 'unknown' };
 }
 
 /** The loaded art, sorted by kind: bean views by name, cosmetics by kind and id, props by id. */
@@ -236,16 +242,17 @@ const ID_LIST: Readonly<Record<CosmeticKind, string>> = { pattern: 'PATTERN_IDS'
  */
 export function registrationFindings(files: ArtFiles): ArtFinding[] {
   const out: ArtFinding[] = [];
-  const onDisk = { pattern: new Set<string>(), headwear: new Set<string>(), face: new Set<string>(), prop: new Set<string>() };
+  const onDisk = { pattern: new Set<string>(), headwear: new Set<string>(), face: new Set<string>() };
   for (const path of Object.keys(files)) {
     const k = artFileKind(path);
-    if (k.kind === 'cosmetic') {
+    if (k.kind === 'unknown') {
+      out.push({ file: path, message: `${path}: not a file the game loads (bean views, art/bean/patterns|headwear|faces/<id>.svg, art/props/<id>.svg; ids are lowercase letters, digits and "-") and not listed as reference art (REFERENCE_ART in packages/client/src/art/checks.ts)` });
+    } else if (k.kind === 'cosmetic') {
       onDisk[k.cosmetic].add(k.id);
       if (!COSMETIC_IDS[k.cosmetic].includes(k.id)) {
         out.push({ file: path, message: `${k.cosmetic} ${k.id}: not registered, so the game never loads it: add "${k.id}" to ${ID_LIST[k.cosmetic]} (packages/shared/src/look.ts) and import it in packages/client/src/rig/looks-sources.ts` });
       }
     } else if (k.kind === 'prop') {
-      onDisk.prop.add(k.id);
       if (!(k.id in PROP_PARTS)) {
         out.push({ file: path, message: `${k.id}: not registered, so the game never loads it: list its parts and anchors in PROP_PARTS and PROP_ANCHORS (packages/client/src/art/prop-contract.ts) and import it in packages/client/src/art/prop-sources.ts` });
       }
@@ -256,6 +263,8 @@ export function registrationFindings(files: ArtFiles): ArtFinding[] {
       if (!onDisk[kind].has(id)) out.push({ file: `art/bean/${COSMETIC_FOLDERS[kind]}/${id}.svg`, message: `${kind} ${id}: in ${ID_LIST[kind]} but there is no drawing` });
     }
   }
+  // A registered prop or bean view with no drawing is already a contract problem
+  // ("<prop>: missing", "<view>: missing"), so it is not repeated here.
   return out;
 }
 

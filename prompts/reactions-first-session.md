@@ -41,12 +41,9 @@ Nothing in docs/ is approved unless DECISIONS.md says so. Nothing here locks an 
 (D5, D8 and D9 stay Open; Thinking waits for D9's prediction state).
 
 # Step 0: set up and check the baseline (before changing anything)
-- **Worktree:** your own branch in your own worktree at a short path, never by switching
-  branches in the shared tree: `git worktree add -b feat/reactions E:/bz-react main` (if there
-  is no E: drive, any short path such as `C:/bz-react`), then `pnpm install` there.
-- **Baseline:** follow the `pr-ready` skill's baseline step: `pnpm verify` green against
-  `tools/shot/golden/`, zero console errors. Look at `artifacts/shots/hub.png`.
-- If anything fails, report it as a failure and fix it first, in its own commit.
+- **Skill `session-start`:** branch `feat/reactions`, worktree `C:/bz-react`, and the baseline
+  (`pnpm verify` green against `tools/shot/golden/`, zero console errors, `hub.png` looked at).
+  A failing baseline is fixed first, in its own commit.
 
 # Slice 1: the sim
 1. **`packages/sim/src/reactions.ts`:**

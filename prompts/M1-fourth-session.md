@@ -38,7 +38,7 @@ Nothing in docs/ is approved unless DECISIONS.md says so.
 # Step 0: set up and check the baseline (before changing anything)
 - **Check D9:** if D9 is still Open in `docs/DECISIONS.md` (the design pass has not run), stop
   and say so. Don't guess the answers.
-- **Skill `session-start`,** as the behaviour lane: branch `m1-s4`, worktree `C:/bz-s4`. After
+- **Skill `session-start`,** as the behaviour lane: branch `behaviour/m1-s4`, worktree `C:/bz-s4`. After
   the baseline, also look at `artifacts/shots/hub-bench/greeted.png`.
 
 # Scope for this session

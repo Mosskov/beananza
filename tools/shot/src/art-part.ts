@@ -119,6 +119,7 @@ Writes <out>/<file name>[--<look>].png and prints the anchors, pivots and contra
   const file = repoPath(positionals[0] as string);
   const kind = artFileKind(file);
   if (kind.kind === 'reference') throw new Error(`${file} is reference art; the game does not load it (art/README.md)`);
+  if (kind.kind === 'unknown') throw new Error(`${file} is not a file the game loads; run pnpm art:check ${file} for what it should be`);
   const zoom = Number(values.zoom);
   if (!Number.isFinite(zoom) || zoom <= 0) throw new Error(`--zoom must be above 0, got "${values.zoom}"`);
 
@@ -136,7 +137,7 @@ Writes <out>/<file name>[--<look>].png and prints the anchors, pivots and contra
     } catch {
       // Broken or unregistered: still drawn as it is; the findings say why.
     }
-    cells = [plainCell(drawn ?? doc, `${kind.id} (as drawn, every part)${drawn ? '' : ': the contract fails (findings below)'}`)];
+    cells = [plainCell(drawn ?? doc, `${kind.id} (as drawn, every part)${drawn && findings.length === 0 ? '' : ': the contract fails (findings below)'}`)];
   } else {
     const picked = lookFor(kind, values.look);
     look = picked.look;

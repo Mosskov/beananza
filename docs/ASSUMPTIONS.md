@@ -122,6 +122,16 @@ No decision changes. From `prompts/tools-prep-session.md`.
   row, D25 confirmation, effects not built yet, a new layout field, the clip log's path).
   Not changed: the geometry sampler's limits (no `transform`, compact arc flags), the one-point
   side-belly test, and CI running for both push and pull_request (two runs per PR push).
+- **Review round 2 fixes:** the guard now reads each simple command with its quoted text
+  blanked out (a commit message or `echo` that mentions `git push origin main` is not blocked),
+  splits chains outside quotes, looks inside subshells and `bash -c` / `powershell -Command`,
+  and blocks `HEAD` / `@` pushed from main, `push --mirror` and `--all`, `checkout -B main`,
+  `switch -C main`, `update-ref refs/heads/main`, `branch -d main`, `rebase <x> main`,
+  `reset` and `revert` on main, and share-site scripts run by npm, yarn, npx or bun as well as
+  pnpm. `checkout -b x main` no longer counts as switching to main. `art:check` names any SVG
+  under `art/` that the game cannot load (a new folder, an id with `_`) unless it is listed in
+  `REFERENCE_ART`. The reactions prompt's Step 0 names `session-start`, and the fourth
+  session's branch follows the lane pattern (`behaviour/m1-s4`).
 - **The lane file map** in CLAUDE.md assigns the drawing loaders, galleries and clip data to the
   art lane and the sim, hub scene, scripts and golden files to the behaviour lane; the five
   shared files get one-line additions only.

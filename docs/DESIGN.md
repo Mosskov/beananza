@@ -109,6 +109,18 @@ with part ids: `art/bean/*.svg`. Origin (0, 0) is the point between the feet on 
 - **Sit:** hop onto the seat (0.35 s arc), feet dangle and swing; dozes (closed eyes, floating "z") after 5 s
 - **Reactions:** Thinking (during prediction), Eureka! (correct prediction: jump, lightbulb, sparkles),
   Oops (missed prediction: squish, dizzy stars; must feel funny, not punishing), Wave hi (reply to a ping)
+  - **The model (D26, confirmed):** one `bean.reaction` (kind and start tick) beside the act, for
+    what the sim alone knows or other players must see start: Eureka!, Oops, Wave hi (the `emote`
+    command, Q or a tap on your own bean) and dizzy. Durations are `REACTION_TICKS` in
+    `packages/sim/src/reactions.ts`. Thinking, the effort face, sweat, dust and the doze "z" are
+    derived from sim state in the client.
+  - A reaction is a face, an effect and optionally a body clip, laid over the act's clip. The
+    body part plays only when free and standing still. A reaction never blocks input, and
+    moving drops only its body part.
+  - A new reaction replaces a running one, but an emote never cuts off Eureka! or Oops.
+  - Reduced motion keeps the face and a still effect.
+  - Effects are drawn parts in `art/effects/` on effect slots, never text: the thought mark is
+    a shape, not a "?".
 - All motion should respect `prefers-reduced-motion`.
 
 **Companions, "Physics pals" (Explored, optional):** Spark (electricity), Drip (waves),

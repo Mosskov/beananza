@@ -1,6 +1,23 @@
 import Phaser from 'phaser';
 import { PIXELS_PER_METER } from '@beananza/shared';
-import { CART_HALF_DEPTH, CART_HALF_LENGTH, DEFAULT_LAYOUT, FIXED_DT, HUB_BEAN_RADIUS_M, HUB_LAYOUTS, Sim, createHubScenario, polygonBounds, seatSpot, standSpot, type HubCommand, type HubInput, type HubState, type Rect } from '@beananza/sim';
+import {
+  CART_HALF_DEPTH,
+  CART_HALF_LENGTH,
+  DEFAULT_LAYOUT,
+  FIXED_DT,
+  HUB_BEAN_RADIUS_M,
+  HUB_LAYOUTS,
+  Sim,
+  createHubScenario,
+  polygonBounds,
+  portalExit,
+  seatSpot,
+  standSpot,
+  type HubCommand,
+  type HubInput,
+  type HubState,
+  type Rect,
+} from '@beananza/sim';
 import { prefersReducedMotion } from '../accessibility';
 import { PROP_PARTS, propAnchor, propPart } from '../art/props';
 import { GAME_HEIGHT, GAME_WIDTH, PALETTE, UI_FONT, cssColor } from '../config';
@@ -14,6 +31,8 @@ import { CLASSMATES, greetingAt, type Classmate } from './classmates';
 import { PART_DEFAULTS, presentAct, type Placement, type ToggledPart } from './hub-presentation';
 import { cameraCentre, cartStandOff, characterScreen, depthKey, depthScale, groundFromScreen, toScreen, type CameraMargin } from './hub-view';
 import { SKY_LAYOUTS, SKY_MARGIN, SkyIsland } from './sky-island';
+import { PortalView } from './hub-portals';
+import { regionUrl } from './regions';
 
 const m = (meters: number) => meters * PIXELS_PER_METER;
 
@@ -33,6 +52,10 @@ const CHARACTER_TIE_BREAK = 0.5;
 /** Seated classmates sort just behind a character on their row (Priya and the bean on the bench row). */
 const CLASSMATE_TIE_BREAK = 0.4;
 const UI_DEPTH = 1e6;
+/** After the bean has vanished into a portal, the page moves on to the region this much later (ms). */
+const LEAVE_DELAY_MS = 250;
+/** A vanishing bean shrinks to this share of its size (and fades out); reduced motion only fades. */
+const VANISH_MIN_SCALE = 0.15;
 
 /** Gap between a bean's head and the readout of the cart it is using (art units). */
 const READOUT_GAP_UNITS = 12;
@@ -83,6 +106,8 @@ interface RigShown {
   masked: boolean;
   /** Height drawn (m): the sim's z, or the flat hop under reduced motion. */
   drawnZ: number;
+  /** How far into a portal's swirl it has vanished (0..1). */
+  vanish: number;
   /** The feet's pose offsets (art units): dangling and swinging on the bench. */
   feet: { a: { x: number; y: number }; b: { x: number; y: number } };
   view: string;
@@ -118,6 +143,10 @@ export class HubScene extends SimScene<HubState, HubCommand> {
   private bounds!: Rect;
   /** The sky and clouds, for layouts drawn as the floating island (D2); null on plaza ground. */
   private sky: SkyIsland | null = null;
+  /** Region portals (D2), by id. */
+  private portals = new Map<string, PortalView>();
+  /** Set once the bean has gone through a portal and the page is on its way to the region. */
+  private leaving = false;
 
   constructor() {
     super({ key: 'hub' });
@@ -132,13 +161,22 @@ export class HubScene extends SimScene<HubState, HubCommand> {
     const layout = HUB_LAYOUTS[this.layoutName];
     if (!layout) throw new Error(`No hub layout "${this.layoutName}".`);
     this.bounds = polygonBounds(layout.walkable);
-    return new Sim(createHubScenario({ layout }), 1);
+    // Back from a region (`?from=`): in front of its portal. Unknown or absent: the layout's start.
+    const portal = layout.portals.find((p) => p.region === this.from);
+    return new Sim(createHubScenario({ layout, ...(portal ? { start: portalExit(portal) } : {}) }), 1);
   }
 
   protected createView(): void {
     const { layout } = this.sim.state;
-    if (SKY_LAYOUTS.has(this.layoutName)) this.sky = new SkyIsland(this, layout.walkable, GROUND_DEPTH);
+    if (SKY_LAYOUTS.has(this.layoutName)) this.sky = new SkyIsland(this, layout.walkable, GROUND_DEPTH, layout.portals.map(portalExit));
     else this.drawGround();
+    for (const spec of layout.portals) {
+      const view = new PortalView(this, spec);
+      this.portals.set(spec.id, view);
+      // Taps land on the ring and swirl; the debug log lists it with the props.
+      this.props.set(spec.id, view.back);
+      if (spec.usable) this.usable.add(spec.id);
+    }
     // Props that never turn: every part of their drawing, origin at the middle of the footprint.
     for (const prop of [...layout.props, ...layout.benches]) {
       const parts = PROP_PARTS[prop.art];
@@ -261,6 +299,14 @@ export class HubScene extends SimScene<HubState, HubCommand> {
     const centreScreen = toScreen(centre.x, centre.y);
     this.cameras.main.centerOn(centreScreen.x, centreScreen.y);
     this.sky?.update(time, this.reducedMotion);
+    for (const p of this.portals.values()) p.draw(time, this.reducedMotion);
+    // Through a portal in live play: on to the region's scene. Paused (tools/shot, stepping to
+    // exact times) the scene stays, so scripted shots are deterministic.
+    if (act.kind === 'gone' && !this.isPaused && !this.leaving) {
+      this.leaving = true;
+      const region = act.region;
+      this.time.delayedCall(LEAVE_DELAY_MS, () => window.location.assign(regionUrl(window.location.href, region)));
+    }
     const look = presentAct(act, this.sim.state, time);
     this.drawClassmates(time);
     const inCart = look.placement.kind === 'cart' ? look.placement.cart : null;
@@ -281,13 +327,20 @@ export class HubScene extends SimScene<HubState, HubCommand> {
       const seated = this.seatPlacement(look.placement, scale);
       if (seated) ({ feet, depth, drawnZ } = seated);
     }
-    rig.root.setPosition(feet.x, feet.y).setScale(scale).setDepth(depth);
+    // Into a portal's swirl: shrink and fade out (reduced motion: fade only), then gone.
+    const vanish = look.vanish ?? 0;
+    const shrink = this.reducedMotion ? 1 : 1 - (1 - VANISH_MIN_SCALE) * vanish;
+    rig.root.setPosition(feet.x, feet.y).setScale(scale * shrink).setDepth(depth).setAlpha(1 - vanish).setVisible(vanish < 1);
     if (cartView) drawRiderMask(this.riderMaskShape, cartView.screen);
     rig.root.renderFilters = cartView !== undefined;
     const ground = toScreen(x, y);
     // The shadow stays on the ground and shrinks as the bean rises.
     const lift = Math.max(0, 1 - drawnZ / SHADOW_FADE_M);
-    shadow.setPosition(ground.x, ground.y).setScale(scale * (SHADOW_MIN_SCALE + (1 - SHADOW_MIN_SCALE) * lift)).setVisible(look.shadow);
+    shadow
+      .setPosition(ground.x, ground.y)
+      .setScale(scale * shrink * (SHADOW_MIN_SCALE + (1 - SHADOW_MIN_SCALE) * lift))
+      .setAlpha(1 - vanish)
+      .setVisible(look.shadow && vanish < 1);
 
     const choice = viewForFacing(b.facingX, b.facingY);
     const { clip, t } = chooseClip(b, time, this.sim.state.gravity, look.clip);
@@ -325,6 +378,7 @@ export class HubScene extends SimScene<HubState, HubCommand> {
       placement: look.placement.kind,
       masked: rig.root.renderFilters,
       drawnZ: r(drawnZ),
+      vanish: r(vanish),
       feet: { a: { x: r(pose.footA.x), y: r(pose.footA.y) }, b: { x: r(pose.footB.x), y: r(pose.footB.y) } },
       view: choice.view,
       mirrored: choice.mirrored,

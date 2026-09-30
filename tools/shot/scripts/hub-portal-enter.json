@@ -1,0 +1,22 @@
+{
+  "scene": "hub",
+  "layout": "portals",
+  "steps": [
+    { "wait": 0.1 },
+    { "shot": "start" },
+    { "tap": [800, 150] },
+    { "wait": 1.0 },
+    { "shot": "walking-over" },
+    { "wait": 0.95 },
+    { "shot": "entering" },
+    { "wait": 0.25 },
+    { "shot": "vanishing" },
+    { "wait": 0.5 },
+    { "shot": "gone" },
+    { "keyDown": "ArrowLeft" },
+    { "press": "Space" },
+    { "wait": 0.5 },
+    { "keyUp": "ArrowLeft" },
+    { "shot": "still-gone" }
+  ]
+}

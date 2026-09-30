@@ -4,6 +4,7 @@ import { EARTH_GRAVITY } from '../constants';
 import type { Rail, RailCart, RailCollision } from '../rail';
 import type { BenchAct } from '../interactions/bench';
 import type { CartAct } from '../interactions/cart';
+import type { PortalAct, RegionId } from '../interactions/portal';
 import { closestPointInConvex, hexagon, insetConvex, polygonFromRect, type ConvexPolygon } from '../geometry';
 
 export type { ConvexPolygon, Point, Rect } from '../geometry';
@@ -91,11 +92,23 @@ export interface BenchSpec extends PropFootprint {
   seats: SeatSpec[];
 }
 
+/**
+ * A region portal (D2): a standing ring the bean walks into, centred on (x, y). Not solid: its
+ * footprint is only for drawing and taps. A tap on its drawing sends `use` with its id.
+ */
+export interface PortalSpec extends PropFootprint {
+  region: RegionId;
+  /** Closed for now (Crystal Caves): walking in bounces the bean back out. */
+  locked?: boolean;
+}
+
 export interface PlazaLayout {
   /** Where the bean's footprint may go: a convex polygon (the plaza's rectangle, the island's hexagon). */
   walkable: ConvexPolygon;
   props: PropFootprint[];
   benches: BenchSpec[];
+  /** Region portals (the island has one per region; the plaza none). */
+  portals: PortalSpec[];
   /** Where the bean starts. */
   start: { x: number; y: number };
   rail: RailLayout | null;
@@ -128,6 +141,7 @@ export const DEFAULT_PLAZA: PlazaLayout = {
       ],
     },
   ],
+  portals: [],
   start: { x: -2.5, y: -0.8 },
   // The prototype's rail (7.36 m) and cart spots, centred on x = 0. PLACEHOLDER layout (D2).
   rail: {
@@ -158,6 +172,13 @@ export const ISLAND: PlazaLayout = {
     { id: 'tree-south', art: 'tree', x: -0.8, y: -7.6, halfWidth: 0.25, halfDepth: 0.2 },
   ],
   benches: DEFAULT_PLAZA.benches.map((b) => ({ ...b, x: -5, y: -4.6, seats: b.seats.map((q) => ({ ...q })) })),
+  // One portal per region along the north half, Crystal Caves (locked) by the west corner.
+  portals: [
+    { id: 'portal-mechanics', art: 'portal', usable: true, region: 'mechanics', x: -6.2, y: 6.2, halfWidth: 0.65, halfDepth: 0.2 },
+    { id: 'portal-waves', art: 'portal', usable: true, region: 'waves', x: 0, y: 7.8, halfWidth: 0.65, halfDepth: 0.2 },
+    { id: 'portal-storm', art: 'portal', usable: true, region: 'storm', x: 6.2, y: 6.2, halfWidth: 0.65, halfDepth: 0.2 },
+    { id: 'portal-crystal', art: 'portal', usable: true, region: 'crystal', locked: true, x: -9.2, y: -0.8, halfWidth: 0.65, halfDepth: 0.2 },
+  ],
   start: { x: 0, y: -1 },
   // The plaza's rail (7.36 m) and cart spots, moved 4.2 m east and 3.9 m south.
   rail: {
@@ -186,7 +207,7 @@ export interface HubJump {
  * which defines it next to its code and owns its commands, timed transitions, position and
  * facing. A new interaction adds its act type here and its module to `../interactions/index.ts`.
  */
-export type HubAct = { kind: 'free' } | CartAct | BenchAct;
+export type HubAct = { kind: 'free' } | CartAct | BenchAct | PortalAct;
 
 export type HubActKind = HubAct['kind'];
 

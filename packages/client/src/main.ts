@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
-import { URL_PARAM_LAYOUT, URL_PARAM_LOOK, URL_PARAM_PAUSED, URL_PARAM_SCENE, parseLook } from '@beananza/shared';
-import { HUB_LAYOUT_NAMES } from '@beananza/sim';
+import { URL_PARAM_FROM, URL_PARAM_LAYOUT, URL_PARAM_LOOK, URL_PARAM_PAUSED, URL_PARAM_REGION, URL_PARAM_SCENE, parseLook } from '@beananza/shared';
+import { HUB_LAYOUT_NAMES, REGION_IDS } from '@beananza/sim';
 import { GAME_HEIGHT, GAME_WIDTH, PALETTE } from './config';
 import { loadPropArt } from './art/props';
 import { loadBeanArt } from './rig/bean-art';
@@ -17,6 +17,10 @@ if (unknownLook.length) console.warn(`Unknown look ids in ?look=: ${unknownLook.
 // A hub layout (the plaza or a test yard). Unknown names stop the boot: a typo must not quietly
 // show the plaza instead.
 const layout = params.get(URL_PARAM_LAYOUT) ?? undefined;
+// A region for the region scene (D2); a typo stops the boot like a layout's. `?from=` only picks
+// where the hub starts the bean, so an unknown one just starts at the layout's start.
+const region = params.get(URL_PARAM_REGION) ?? undefined;
+const from = params.get(URL_PARAM_FROM) ?? undefined;
 
 /** Logged as an error and flagged so tools/shot fails at once instead of timing out. */
 function bootError(message: string): void {
@@ -35,6 +39,8 @@ if (!SceneClass) {
   bootError(`Unknown scene "${sceneName}". Registered scenes: ${SCENE_NAMES.join(', ')}.`);
 } else if (layout !== undefined && !HUB_LAYOUT_NAMES.includes(layout)) {
   bootError(`Unknown layout "${layout}". Layouts: ${HUB_LAYOUT_NAMES.join(', ')}.`);
+} else if (region !== undefined && !(REGION_IDS as readonly string[]).includes(region)) {
+  bootError(`Unknown region "${region}". Regions: ${REGION_IDS.join(', ')}.`);
 } else if (artError) {
   bootError(`Could not load the art: ${artError}`);
 } else {
@@ -51,7 +57,7 @@ if (!SceneClass) {
   });
 
   const scene = new SceneClass();
-  const data: SceneStartData = { paused: params.get(URL_PARAM_PAUSED) === '1', look, layout };
+  const data: SceneStartData = { paused: params.get(URL_PARAM_PAUSED) === '1', look, layout, from, region };
   installTestHooks(game, sceneName, scene);
   game.scene.add(sceneName, scene, true, data);
 }

@@ -40,6 +40,11 @@ export interface Presentation {
    * straight line instead. Null when not hopping.
    */
   flatZ: number | null;
+  /**
+   * How far the bean has gone into a portal's swirl (0..1): it shrinks and fades out, and at 1 is
+   * not drawn at all. Absent is 0 (fully there).
+   */
+  vanish?: number;
 }
 
 /** One row of the table: how an act of kind K looks at animation time `time`. */

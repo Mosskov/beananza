@@ -40,6 +40,8 @@ function printHelp(): void {
                    to <out>/look-<ids>/ so it never overwrites the normal shots.
   --layout <name>  Hub layout for --scene shots: plaza or a test yard (?layout=). Output
                    goes to <out>/layout-<name>/. Scripts name theirs in the script.
+  --region <id>    Region for the region scene (?region=): mechanics, waves, storm or
+                   crystal. Output goes to <out>/region-<id>/.
 
 Writes <out>/<scene>[_t<time>].png and .json; a script writes
 <out>/<script name>/<shot name>.png and .json, plus run.json. Exits non-zero if any shot has a console
@@ -78,6 +80,7 @@ function parseOptions(): Options | null {
       'reduced-motion': { type: 'boolean', default: false },
       look: { type: 'string' },
       layout: { type: 'string' },
+      region: { type: 'string' },
       help: { type: 'boolean', short: 'h', default: false },
     },
     allowPositionals: false,
@@ -98,6 +101,8 @@ function parseOptions(): Options | null {
   }
   if (scripts.length > 0 && values.layout) throw new Error('--layout is for --scene shots; a script names its own "layout"');
   if (values.layout !== undefined && !/^[a-z0-9][a-z0-9_-]*$/.test(values.layout)) throw new Error(`--layout needs a layout name, got "${values.layout}"`);
+  if (scripts.length > 0 && values.region) throw new Error('--region is for --scene shots');
+  if (values.region !== undefined && !/^[a-z0-9][a-z0-9_-]*$/.test(values.region)) throw new Error(`--region needs a region id, got "${values.region}"`);
   return {
     scenes: values.scene ?? [],
     all: values.all,
@@ -118,11 +123,13 @@ function parseOptions(): Options | null {
         REPO,
         values.out,
         ...(values.layout ? [`layout-${values.layout}`] : []),
+        ...(values.region ? [`region-${values.region}`] : []),
         ...(values.look ? [`look-${lookFolder(values.look)}`] : []),
         ...(values['reduced-motion'] ? ['reduced-motion'] : []),
       ),
       look: values.look ?? null,
       layout: values.layout ?? null,
+      region: values.region ?? null,
       fpsMs: num('fps-ms', values['fps-ms']),
       width: num('width', values.width),
       height: num('height', values.height),

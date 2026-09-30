@@ -2,6 +2,7 @@ import type { HubAct, HubActKind, HubState } from '@beananza/sim';
 import { GROUND, type Presentation, type Row, type Rows } from './presentation/common';
 import { BENCH_ROWS } from './presentation/bench';
 import { CART_ROWS } from './presentation/cart';
+import { PORTAL_ROWS } from './presentation/portal';
 
 export { PART_DEFAULTS, hopAt, type Placement, type Presentation, type ToggledPart } from './presentation/common';
 export { HEAVY_PUSH_KG } from './presentation/cart';
@@ -17,6 +18,7 @@ const PRESENTATION: Rows<HubActKind> = {
   free: () => ({ ...GROUND, clip: null }),
   ...CART_ROWS,
   ...BENCH_ROWS,
+  ...PORTAL_ROWS,
 };
 
 /** The row for the bean's act, at animation time `time` (sim seconds, interpolated). */

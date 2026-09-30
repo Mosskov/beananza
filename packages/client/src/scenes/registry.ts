@@ -5,6 +5,7 @@ import { DropScene } from './DropScene';
 import { EmptyScene } from './EmptyScene';
 import { HubScene } from './HubScene';
 import { LooksGalleryScene } from './LooksGalleryScene';
+import { RegionScene } from './RegionScene';
 import type { TestableScene } from './TestableScene';
 
 export type SceneClass = new () => TestableScene;
@@ -19,6 +20,8 @@ export const SCENES: Readonly<Record<string, SceneClass>> = {
   hub: HubScene,
   bean: BeanGalleryScene,
   looks: LooksGalleryScene,
+  /** A region's placeholder scene (D2), reached through its portal: `?scene=region&region=<id>`. */
+  region: RegionScene,
 };
 
 /** Plain localhost:5180 opens the hub (D20). */

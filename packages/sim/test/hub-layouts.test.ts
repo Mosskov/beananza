@@ -64,7 +64,8 @@ describe('hub layouts', () => {
 });
 
 describe('the sky island (D2)', () => {
-  const newIsland = () => new Sim<HubState, HubCommand>(createHubScenario({ layout: { ...ISLAND, props: [], benches: [], rail: null } }), 1);
+  // Only the edges matter here: the island without its things (running north would enter a portal).
+  const newIsland = () => new Sim<HubState, HubCommand>(createHubScenario({ layout: { ...ISLAND, props: [], benches: [], portals: [], rail: null } }), 1);
   const centreArea = insetConvex(ISLAND.walkable, HUB_BEAN_RADIUS_M);
 
   it('is a flat-top hexagon 24 m across', () => {

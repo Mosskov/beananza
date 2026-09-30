@@ -14,6 +14,7 @@ import {
   URL_PARAM_LAYOUT,
   URL_PARAM_LOOK,
   URL_PARAM_PAUSED,
+  URL_PARAM_REGION,
   URL_PARAM_SCENE,
 } from '@beananza/shared';
 import { SIM_HZ } from '@beananza/sim';
@@ -60,6 +61,8 @@ export interface RunOptions {
   look: string | null;
   /** Hub layout for scene shots (`?layout=`), or null for the default. Scripts name their own. */
   layout: string | null;
+  /** Region for the region scene (`?region=`), or null for its default. */
+  region: string | null;
   /** How long to sample frame times on a scene shot. */
   fpsMs: number;
   /** How long to wait for window.__ready. */
@@ -73,6 +76,7 @@ export const DEFAULT_RUN: Omit<RunOptions, 'outDir'> = {
   reducedMotion: false,
   look: null,
   layout: null,
+  region: null,
   fpsMs: 2000,
   timeoutMs: 30000,
 };
@@ -327,11 +331,12 @@ export function errorMessage(err: unknown): string {
   return err instanceof Error ? (err.message.split('\n')[0] ?? String(err)) : String(err);
 }
 
-function sceneUrl(session: Session, scene: string, paused: boolean, look: string | null, layout: string | null): URL {
+function sceneUrl(session: Session, scene: string, paused: boolean, look: string | null, layout: string | null, region: string | null = null): URL {
   const url = new URL(session.baseUrl);
   url.searchParams.set(URL_PARAM_SCENE, scene);
   if (paused) url.searchParams.set(URL_PARAM_PAUSED, '1');
   if (layout) url.searchParams.set(URL_PARAM_LAYOUT, layout);
+  if (region) url.searchParams.set(URL_PARAM_REGION, region);
   if (look) url.searchParams.set(URL_PARAM_LOOK, look);
   return url;
 }
@@ -343,7 +348,7 @@ function sceneUrl(session: Session, scene: string, paused: boolean, look: string
 export async function shootScene(session: Session, scene: string, t: number | undefined, run: RunOptions): Promise<ShotLog> {
   const base = t === undefined ? scene : `${scene}_t${t.toFixed(3)}`;
   const pngPath = join(run.outDir, `${base}.png`);
-  const url = sceneUrl(session, scene, t !== undefined, run.look, run.layout);
+  const url = sceneUrl(session, scene, t !== undefined, run.look, run.layout, run.region);
   const { context, page, entries } = await openPage(session, run);
 
   const log: ShotLog = {

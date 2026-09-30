@@ -1,0 +1,19 @@
+{
+  "scene": "hub",
+  "layout": "island",
+  "steps": [
+    { "keyDown": "Shift" },
+    { "keyDown": "ArrowUp" },
+    { "wait": 1.0 },
+    { "shot": "towards-waves" },
+    { "wait": 0.7 },
+    { "shot": "at-the-portals" },
+    { "wait": 0.6 },
+    { "keyUp": "ArrowUp" },
+    { "keyUp": "Shift" },
+    { "wait": 0.3 },
+    { "shot": "into-waves" },
+    { "wait": 0.6 },
+    { "shot": "gone" }
+  ]
+}

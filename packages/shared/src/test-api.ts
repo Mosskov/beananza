@@ -16,6 +16,10 @@ export const URL_PARAM_SCENE = 'scene';
 export const URL_PARAM_PAUSED = 'paused';
 /** `?layout=<name>` opens the hub on a named layout: the plaza or a test yard. */
 export const URL_PARAM_LAYOUT = 'layout';
+/** `?scene=region&region=<id>` opens a region's placeholder scene (D2). */
+export const URL_PARAM_REGION = 'region';
+/** `?from=<region id>`: the hub starts the bean in front of that region's portal (coming back). */
+export const URL_PARAM_FROM = 'from';
 
 export interface GameTestApi {
   /** Name of the running scene (the `?scene=` value it was registered under). */

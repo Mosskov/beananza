@@ -282,6 +282,7 @@ function structuredCloneLayout(layout: PlazaLayout): PlazaLayout {
     walkable: { points: layout.walkable.points.map((p) => ({ ...p })) },
     props: layout.props.map((p) => ({ ...p })),
     benches: layout.benches.map((b) => ({ ...b, seats: b.seats.map((q) => ({ ...q })) })),
+    portals: layout.portals.map((p) => ({ ...p })),
     start: { ...layout.start },
     rail: layout.rail ? { ...layout.rail, carts: layout.rail.carts.map((c) => ({ ...c })) } : null,
   };

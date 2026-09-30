@@ -1,5 +1,6 @@
 import { BENCH_ACTS, benchInteraction } from './bench';
 import { CART_ACTS, cartInteraction } from './cart';
+import { PORTAL_ACTS, portalInteraction } from './portal';
 import type { ActRuleTable, HubInteraction } from './types';
 
 /**
@@ -10,11 +11,12 @@ import type { ActRuleTable, HubInteraction } from './types';
  */
 
 /** The interaction modules, in the order they are offered commands and run. */
-export const INTERACTIONS: readonly HubInteraction[] = [cartInteraction, benchInteraction];
+export const INTERACTIONS: readonly HubInteraction[] = [cartInteraction, benchInteraction, portalInteraction];
 
 /** How the hub treats every act kind: `free` is the hub's own walking. */
 export const ACT_RULES: ActRuleTable = {
   free: { walks: true, usesPlanck: true },
   ...CART_ACTS,
   ...BENCH_ACTS,
+  ...PORTAL_ACTS,
 };

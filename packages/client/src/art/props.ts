@@ -4,16 +4,18 @@ import type Phaser from 'phaser';
 import cart from '../../../../art/props/cart.svg?raw';
 import bench from '../../../../art/props/bench.svg?raw';
 import tree from '../../../../art/props/tree.svg?raw';
+import portal from '../../../../art/props/portal.svg?raw';
 import { insideViewBox, parseSvgParts, partPivot, type Point, type SvgDoc } from '../rig/svg-parts';
 import { addTextures, partImage, rasterizeParts, type PartTexture } from './raster';
 
-export const PROP_SVGS: Readonly<Record<string, string>> = { tree, cart, bench };
+export const PROP_SVGS: Readonly<Record<string, string>> = { tree, cart, bench, portal };
 
 /** Parts each prop must have, in the art contract (`art/README.md`). */
 export const PROP_PARTS: Readonly<Record<string, readonly string[]>> = {
   tree: ['shadow', 'trunk', 'canopy'],
   cart: ['shadow', 'back', 'rocks', 'front', 'wheel-west', 'wheel-east'],
   bench: ['shadow', 'back', 'seat'],
+  portal: ['shadow', 'base', 'swirl', 'ring', 'lock'],
 };
 
 /**
@@ -25,6 +27,7 @@ export const PROP_ANCHORS: Readonly<Record<string, readonly string[]>> = {
   tree: [],
   cart: ['floor', 'rim-west', 'rim-east', 'base-west', 'base-east'],
   bench: ['seat-west', 'seat-east'],
+  portal: ['swirl'],
 };
 
 export interface PropArtSpec {

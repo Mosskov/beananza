@@ -29,6 +29,8 @@ const UNDERSIDE_PROFILE = [0.25, 0.5, 0.35, 0.75, 0.55, 1, 0.7, 0.9, 0.5, 0.65, 
 const PAD_M = 3;
 const RIM_PX = 6;
 const PAD_EDGE_PX = 4;
+/** Width of the stone paths from the pad to the portals (m). */
+const PATH_M = 1.1;
 
 /** Clouds (m, world position), drawn with parallax behind the island. */
 const CLOUDS: readonly { x: number; y: number; size: number; speed: number }[] = [
@@ -51,8 +53,11 @@ const screenPoints = (poly: ConvexPolygon, dz = 0) => poly.points.map((p) => new
 export class SkyIsland {
   private readonly clouds: { image: Phaser.GameObjects.Graphics; x: number; speed: number }[] = [];
 
-  /** `groundDepth` is where the ground draws; the sky and clouds go below it. */
-  constructor(scene: Phaser.Scene, walkable: ConvexPolygon, groundDepth: number) {
+  /**
+   * `groundDepth` is where the ground draws; the sky and clouds go below it. `paths` are ground
+   * points (m) a stone path leads to from the arrival pad: the portals' exit spots.
+   */
+  constructor(scene: Phaser.Scene, walkable: ConvexPolygon, groundDepth: number, paths: readonly { x: number; y: number }[] = []) {
     const sky = scene.add.graphics().setScrollFactor(0).setDepth(groundDepth - 2);
     sky.fillGradientStyle(PALETTE.skyTop, PALETTE.skyTop, PALETTE.skyBottom, PALETTE.skyBottom, 1);
     sky.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
@@ -67,7 +72,7 @@ export class SkyIsland {
       this.clouds.push({ image: g, x: c.x, speed: c.speed });
     }
 
-    this.drawIsland(scene.add.graphics().setDepth(groundDepth), walkable);
+    this.drawIsland(scene.add.graphics().setDepth(groundDepth), walkable, paths);
   }
 
   /** Drift the clouds to sim time `time` (s). Still under reduced motion. */
@@ -79,7 +84,7 @@ export class SkyIsland {
     }
   }
 
-  private drawIsland(g: Phaser.GameObjects.Graphics, walkable: ConvexPolygon): void {
+  private drawIsland(g: Phaser.GameObjects.Graphics, walkable: ConvexPolygon, paths: readonly { x: number; y: number }[]): void {
     const pts = walkable.points;
     const b = polygonBounds(walkable);
     const south = toScreen(0, b.minY).y + m(CLIFF_M);
@@ -132,6 +137,16 @@ export class SkyIsland {
     const top = screenPoints(walkable);
     g.fillStyle(PALETTE.grass, 1).fillPoints(top, true);
     g.lineStyle(RIM_PX, PALETTE.grassRim, 1).strokePoints(top, true, true);
+    // Stone paths from the pad to each portal, with a soft edge, under the pad.
+    const centre = toScreen(0, 0);
+    for (const [colour, width] of [[PALETTE.cardShadow, PATH_M + 0.08], [PALETTE.stone, PATH_M]] as const) {
+      g.lineStyle(m(width), colour, 1);
+      for (const p of paths) {
+        const end = toScreen(p.x, p.y);
+        g.lineBetween(centre.x, centre.y, end.x, end.y);
+        g.fillStyle(colour, 1).fillCircle(end.x, end.y, m(width) / 2);
+      }
+    }
     const pad = screenPoints(hexagon(PAD_M));
     g.fillStyle(PALETTE.stone, 1).fillPoints(pad, true);
     g.lineStyle(PAD_EDGE_PX, PALETTE.cardShadow, 1).strokePoints(pad, true, true);

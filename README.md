@@ -40,9 +40,10 @@ Pick a scene with `?scene=<name>`:
 |---|---|---|
 | `empty` | http://localhost:5180/?scene=empty | Background only; proves the client boots |
 | `drop` | http://localhost:5180/?scene=drop | A 1 kg and a 10 kg ball released from 10 m, with a timer. R or tap: drop again |
-| `hub` (default) | http://localhost:5180/?scene=hub | The hub plaza in ¾ top-down view, with one tree to walk behind and in front of, and a rail with a 5 kg and a 20 kg cart (speed shown in m/s). Arrows or WASD move, Shift runs, Space jumps, tap or click walks to a spot. Walk into a cart's end to push it (Shift pushes harder); E hops in or out of the 5 kg cart, Space also gets out. Tap the bench, or press E near it, to walk over and sit next to Priya, a blue classmate, who says "Hi!" and waves (the bean dozes after 5 s); any movement, E or Space stands up. The bean, the tree, the carts and the bench are drawn art from `art/`; the plaza floor and the rail are placeholder shapes |
+| `hub` (default) | http://localhost:5180/?scene=hub | The hub (D2): a hexagon island floating in a blue sky, 24 m across, with a camera that follows the bean. Stone paths lead from the arrival pad to four region portals; walk into one, tap it or press E near it to float in and travel to its region (Crystal Caves is locked and bounces the bean back). With `&layout=plaza`, the M1 plaza in ¾ top-down view, with one tree to walk behind and in front of, and a rail with a 5 kg and a 20 kg cart (speed shown in m/s). Arrows or WASD move, Shift runs, Space jumps, tap or click walks to a spot. Walk into a cart's end to push it (Shift pushes harder); E hops in or out of the 5 kg cart, Space also gets out. Tap the bench, or press E near it, to walk over and sit next to Priya, a blue classmate, who says "Hi!" and waves (the bean dozes after 5 s); any movement, E or Space stands up. The bean, the tree, the carts and the bench are drawn art from `art/`; the plaza floor and the rail are placeholder shapes |
 | `bean` | http://localhost:5180/?scene=bean | Rig gallery for review: the 8 directions, then walk, run, jump, fall, land, breathing, a blink, sitting and dozing at fixed clip times (labelled; no sim) |
 | `looks` | http://localhost:5180/?scene=looks | Customization gallery for review: spots, the sprout, bear ears, the bow and glasses each on all 8 directions, then the 10 colours with mixed pieces (labelled; no sim) |
+| `region` | http://localhost:5180/?scene=region&region=waves | A region's placeholder scene, reached through its portal (`mechanics` default, `waves`, `storm`, `crystal`): the region's sky, ground and landscape, the bean, and a portal back. E, Space or a tap on the portal returns to the hub in front of that region's portal (`?from=<region>`). No sim |
 
 `&paused=1` starts the scene's sim paused at t = 0 (tools/shot uses this to step to an exact time).
 `&look=<ids>` sets the bean's look (D25), any of: a colour (`orange` default, `blue`, `green`,
@@ -51,9 +52,12 @@ Pick a scene with `?scene=<name>`:
 http://localhost:5180/?look=blue,spots,bow,glasses. Unknown ids are logged as a warning. The
 look is drawing only: the sim never sees it. There is no in-game wardrobe yet.
 
-`&layout=<name>` opens the hub on another layout: `plaza` (the default) or a **test yard**, the
-plaza's ground with one thing on it: `bench` (the bench and Priya) or `carts` (the rail and both
-carts), for example http://localhost:5180/?scene=hub&layout=bench. Layouts are in
+`&layout=<name>` opens the hub on another layout: `island` (the default, D2), `plaza` (the M1
+plaza, kept for its scripts and evidence) or a **test yard**, the plaza's ground with one thing
+on it: `bench` (the bench and Priya), `carts` (the rail and both carts) or `portals` (an open
+and a locked portal), for example http://localhost:5180/?scene=hub&layout=bench. Going through a
+portal loads the region scene, except while the sim is paused (`&paused=1`, tools/shot), so
+scripted shots stay on the hub. Layouts are in
 `packages/sim/src/scenarios/hub-layouts.ts`. An unknown name stops the boot with an error.
 An unknown scene name logs a console error listing the registered scenes. The bean art is
 checked against the art contract and rasterized before any scene starts; broken art is a boot
@@ -239,6 +243,8 @@ pnpm shot --script tools/shot/scripts/drop-reset.json
 A script is a JSON file naming a scene and a list of steps, each with exactly one action. An
 optional `"layout"` opens the hub on a test yard (`"layout": "bench"`); `pnpm shot --scene hub
 --layout <name>` does the same for scene shots, written to `artifacts/shots/layout-<name>/`.
+`pnpm shot --scene region --region <id>` shoots a region's scene into
+`artifacts/shots/region-<id>/`.
 
 ```json
 {

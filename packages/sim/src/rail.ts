@@ -283,8 +283,8 @@ function stepSpan(rail: Span, carts: RailCart[], push: RailPush | null, t0: numb
           kind: 'carts',
           time,
           carts: [
-            ...a.carts.map((k) => ({ id: k.id, mass: ma, vBefore: va, vAfter: vaAfter })),
-            ...b.carts.map((k) => ({ id: k.id, mass: mb, vBefore: vb, vAfter: vbAfter })),
+            ...a.carts.map((k) => ({ id: k.id, mass: totalMass(k), vBefore: va, vAfter: vaAfter })),
+            ...b.carts.map((k) => ({ id: k.id, mass: totalMass(k), vBefore: vb, vAfter: vbAfter })),
           ],
         });
       }

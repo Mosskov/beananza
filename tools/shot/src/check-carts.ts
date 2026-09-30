@@ -59,9 +59,10 @@ export function checkCarts(shots: string): { failures: number; lines: string[] }
     failures += 1;
     lines.push('FAIL hub-carts-push: no cart-cart collision logged');
   } else {
-    const [p, q] = hit.carts as [(typeof hit.carts)[0], (typeof hit.carts)[0]];
-    const before = p.mass * p.vBefore + q.mass * q.vBefore;
-    const after = p.mass * p.vAfter + q.mass * q.vAfter;
+    // West group first, east group last; every cart is logged with its own mass.
+    const [p, q] = [hit.carts[0], hit.carts[hit.carts.length - 1]] as [(typeof hit.carts)[0], (typeof hit.carts)[0]];
+    const before = hit.carts.reduce((s, k) => s + k.mass * k.vBefore, 0);
+    const after = hit.carts.reduce((s, k) => s + k.mass * k.vAfter, 0);
     lines.push(`     collision at t = ${hit.time} s: ${p.mass} kg ${p.vBefore} → ${p.vAfter} m/s, ${q.mass} kg ${q.vBefore} → ${q.vAfter} m/s`);
     check('hub-carts-push: momentum after − before (kg·m/s)', after - before, 0);
     check('hub-carts-push: restitution', (q.vAfter - p.vAfter) / (p.vBefore - q.vBefore), CART_RESTITUTION);

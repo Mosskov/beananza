@@ -13,7 +13,8 @@ import { installTestHooks } from './test-hooks';
 
 const params = new URLSearchParams(window.location.search);
 const sceneName = params.get(URL_PARAM_SCENE) ?? DEFAULT_SCENE;
-const SceneClass = SCENES[sceneName];
+// Own keys only: `?scene=constructor` must not find Object's constructor.
+const SceneClass = Object.hasOwn(SCENES, sceneName) ? SCENES[sceneName] : undefined;
 // The player's look (D25): drawing only. Unknown ids are reported, and the rest still apply.
 const { look, unknown: unknownLook } = parseLook(params.get(URL_PARAM_LOOK));
 if (unknownLook.length) console.warn(`Unknown look ids in ?look=: ${unknownLook.join(', ')}.`);

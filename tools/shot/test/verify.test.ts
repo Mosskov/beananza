@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { SimState } from '../src/compare-states';
+import { parseJobs } from '../src/session';
 import { formatRows, parseTimed, pickScripts, pickStates } from '../src/verify';
 
 describe('parseTimed', () => {
@@ -38,6 +39,19 @@ describe('pickScripts', () => {
   });
   it('rejects unknown names', () => {
     expect(() => pickScripts('hub-fly', have)).toThrow(/unknown script\(s\): hub-fly/);
+  });
+  it('rejects a script named twice (both runs would write the same folder)', () => {
+    expect(() => pickScripts('hub-walk,hub-jump,hub-walk.json', have)).toThrow(/named more than once: hub-walk/);
+  });
+});
+
+describe('parseJobs', () => {
+  it('takes a whole number of at least 1', () => {
+    expect(parseJobs('4')).toBe(4);
+    expect(parseJobs(' 1 ')).toBe(1);
+  });
+  it.each(['0', '-2', '1.5', 'abc', '', 'Infinity', '0x10', '1e1'])('rejects %j (it would run no scripts)', (arg) => {
+    expect(() => parseJobs(arg)).toThrow(/--jobs wants a whole number of at least 1/);
   });
 });
 

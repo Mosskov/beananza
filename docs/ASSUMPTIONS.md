@@ -49,6 +49,34 @@ No decision changes. From `prompts/tools-prep-session.md`.
   when a step fails.
 - **No retry.** The known flake (the browser closing mid-run) is recorded if it shows up.
 
+### The art toolkit (`art:check`, `art:part`) and the clip sheet
+- **The contract code became importable from Node** without moving it: the `?raw` imports
+  moved to `rig/looks-sources.ts` and `art/prop-sources.ts`, the prop contract to
+  `art/prop-contract.ts`, and `@beananza/client` exports `./art/*` and `./rig/*` for tools/shot.
+  The builders throw `ArtContractError` with the problem list, which `art:check` prints.
+- **One checks module** (`client/src/art/checks.ts`) for the CLI and the tests. The new drawing
+  rules and their numbers: near parts at pivot x < 0 in front ¾ and > 0 in back ¾ (far parts
+  opposite); the near arm after the body and the far arm before it in the ¾ and side views;
+  `belly`, `eyes`, `eyes-sleep`, `mouth`, `cheeks` and every anchor inside the body outline
+  within 1.5 units (curves sampled at 12 points, ellipses at 24); the side belly's frontmost
+  point within 2 units of the body's front edge. Current art: 0 findings. The session 3 slips,
+  re-introduced: the side belly gives 1 finding (6.5 units short at y −24), back ¾ gives 4.
+- **Why the side belly rule is about the front edge,** not "inside the outline": the old belly
+  was inside the body; its fault was being inset from the front (it read as a spot on the hip).
+- **`art:part` draws in headless Chromium,** the engine the game rasterizes with, and each part
+  as its own SVG image placed in its view's frame, as the game rasterizes each part on its own.
+  No new dependency. Timing on this machine, `pnpm art:part` for a headwear piece in all 8
+  views: 2.7 s wall, of which 0.7 s is the tool's own work; the rest is starting Node, tsx and
+  pnpm. Getting there: the root scripts run `node --import tsx` (one process, not pnpm → pnpm →
+  tsx → node: 5.0 s before), and the command exits without waiting for Chromium to close
+  (1.3 s on Windows). The headless shell was slower to use here (2.8 s in the tool).
+- **The clip sheet is a game scene** (`?scene=clip`), shot by tools/shot, so the real `BeanRig`
+  and `samplePose` draw it; a second renderer of poses in Node would be a second version of
+  the rig. Columns: a looping cycle split evenly, a one-shot clip start to end; the blink
+  overlay is off (time 0). Part overrides per clip (push: the pushing arm; doze: closed eyes and
+  "z") are a small table in the scene that mirrors the hub's presentation rows. Shot at 2×
+  device pixels so 8 × 8 cells stay readable. `verify` shoots it live with its defaults (idle).
+
 ## Hub refactor for parallel work (branch `refactor/hub-parallel`), 2026-09-29
 
 No behaviour change: 58 sim states identical to `docs/status/m1-s3`, and the view blocks and all

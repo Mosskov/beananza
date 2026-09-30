@@ -35,10 +35,15 @@ artist could take over later only if they keep to the same contract.
 - **No rasters and no text** inside drawings. Text such as the doze "z" is drawn as a shape.
 
 The contract is checked in tests, so a broken drawing fails `pnpm check` before anyone looks at
-it:
-- `packages/client/src/rig/bean-contract.ts` and `test/bean-art.test.ts`
-- `test/looks.test.ts`
-- `test/prop-art.test.ts`
+it, and by `pnpm art:check` (section 5), which runs the same code:
+- `packages/client/src/rig/bean-contract.ts`, `rig/looks.ts`, `art/prop-contract.ts`: what the
+  game needs to load the art (it runs these at boot);
+- `packages/client/src/art/checks.ts`: those as findings per file, plus the drawing rules the
+  game does not need but a reviewer would otherwise have to spot (near and far parts on the
+  correct side and layer, eye highlights, the scarf tail on the bean's left, body-hugging parts
+  and anchors inside the body outline, the side belly on the front edge);
+- `test/art-checks.test.ts` (each slip re-introduced), `test/bean-art.test.ts`,
+  `test/looks.test.ts`, `test/prop-art.test.ts`.
 
 ## 3. Customization is composed at load time
 
@@ -55,9 +60,47 @@ per-combination sprite sheets.
 Clips are keyframes per part, stored as data and played by the game's own rig player (D3: no
 Spine). Timings are in `docs/DESIGN.md` and `docs/IMPLEMENTATION.md`.
 
-## 5. Reviewing an art change
+**The clip sheet** shows one clip across its cycle without playing the game:
 
-Every art change is shown to the user as a review sheet, **before, after and the difference**:
+```sh
+pnpm clip:sheet walk                         # 8 phases × all 8 directions
+pnpm clip:sheet sit --phases 4 --reduced-motion
+pnpm clip:sheet push --views side --look blue
+```
+
+It opens the `clip` tool scene (`?scene=clip&clip=…&views=…&phases=…`), where the real rig
+and rig player draw each cell, so it is exactly what the game draws at that clip time. A
+looping clip's cycle is split evenly; a one-shot clip runs start to end. Blinking is left out
+(the eyes stay open). Parts a clip needs (the pushing arm, dozing's closed eyes and "z") are
+shown as the hub's presentation rows show them. `--reduced-motion` shows the `motion` tracks
+dropped and the `still` values held. Output: `artifacts/clips/<clip>[--<look>][-reduced-motion].png`,
+plus a `.json` log with every cell's pose (so "the feet hold at 12" can be read off it). An
+animation session looks at this sheet before it claims a clip reads right.
+
+## 5. Drawing and reviewing an art change
+
+While drawing, two commands run in a few seconds, without the game:
+
+```sh
+pnpm art:check                               # every loaded file in art/; or name files or folders
+pnpm art:part art/bean/headwear/bow.svg      # the piece in all 8 directions, as the game draws it
+pnpm art:part art/bean/side.svg --look blue,spots --views side --zoom 3
+```
+
+- **`pnpm art:check [files]`** prints one line per finding (`art/bean/side.svg: side: …`) and
+  exits non-zero if there is any. Reference art the game does not load (`forms.svg`, the Baron)
+  is skipped and says so.
+- **`pnpm art:part <file>`** renders one file with the contract applied by the game's own code:
+  key-colour swaps (`rig/colours.ts`), patterns clipped to the body, headwear at the anchors,
+  the `-left` drawings in the mirrored views and the draw order (`rig/looks.ts`). A cosmetic
+  file wears itself; `--look` adds a colour and other pieces; `--views` takes directions
+  (`S,SE,…`) or view names; props show as drawn. Output:
+  `artifacts/art/parts/<file>[--<look>].png`. It also prints the file's anchors, pivots and
+  parts, and its contract findings. Broken art still renders as drawn, labelled, so the problem
+  can be seen. It takes about 2.7 s in all 8 views (0.7 s of it the drawing).
+
+Then, before committing, every art change is shown to the user as a review sheet, **before,
+after and the difference**:
 
 ```sh
 pnpm art:sheet               # the working tree's art against HEAD (--base <ref> for another)
@@ -85,9 +128,9 @@ drawn flat. That part of D12 stays Open.
 1. **Clip the belly and scarf to the body outline** when rasterizing, as patterns already are.
    A new body shape is then the 5 outlines plus a few anchors per view, not about 10 hand-placed
    parts per view (`docs/TOPICS.md`, "Changing the bean's shape"; that choice is still Open).
-2. **More automatic checks** for slips that were caught late in M1 session 3:
-   - near and far parts on the correct side for each view (back ¾ had copied front ¾'s sides);
-   - anchors and body-hugging parts inside the body outline.
+2. ~~More automatic checks~~ for the slips caught late in M1 session 3: *done* (tools prep
+   session, `src/art/checks.ts`): near and far parts on the correct side and layer, anchors and
+   body-hugging parts inside the body outline, and the side belly on the front edge.
 3. **A generated body outline** (a few numbers projected to each view), as a small prototype
    when D7 (more body forms) comes up. Four forms × five views is where hand drawing gets
    expensive.

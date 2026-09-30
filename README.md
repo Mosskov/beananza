@@ -43,6 +43,7 @@ Pick a scene with `?scene=<name>`:
 | `hub` (default) | http://localhost:5180/?scene=hub | The hub plaza in ¾ top-down view, with one tree to walk behind and in front of, and a rail with a 5 kg and a 20 kg cart (speed shown in m/s). Arrows or WASD move, Shift runs, Space jumps, tap or click walks to a spot. Walk into a cart's end to push it (Shift pushes harder); E hops in or out of the 5 kg cart, Space also gets out. Tap the bench, or press E near it, to walk over and sit next to Priya, a blue classmate, who says "Hi!" and waves (the bean dozes after 5 s); any movement, E or Space stands up. The bean, the tree, the carts and the bench are drawn art from `art/`; the plaza floor and the rail are placeholder shapes |
 | `bean` | http://localhost:5180/?scene=bean | Rig gallery for review: the 8 directions, then walk, run, jump, fall, land, breathing, a blink, sitting and dozing at fixed clip times (labelled; no sim) |
 | `looks` | http://localhost:5180/?scene=looks | Customization gallery for review: spots, the sprout, bear ears, the bow and glasses each on all 8 directions, then the 10 colours with mixed pieces (labelled; no sim) |
+| `clip` | http://localhost:5180/?scene=clip&clip=walk&views=all&phases=8 | Clip sheet for review: one clip at n phases (columns) in the chosen directions (rows), drawn by the rig player; `pnpm clip:sheet` shoots it (labelled; no sim) |
 
 `&paused=1` starts the scene's sim paused at t = 0 (tools/shot uses this to step to an exact time).
 `&look=<ids>` sets the bean's look (D25), any of: a colour (`orange` default, `blue`, `green`,
@@ -205,7 +206,8 @@ pnpm art:sheet --base main   # against another ref
 Shoots the `bean` and `looks` galleries and the hub (paused at t = 0, for the props) at 2×
 twice: once with the working tree's art, once with the art of `--base`. Both are drawn by the
 current code. The second Vite server answers every `?raw` import under `art/` with
-`git show <ref>:art/…`, so no second checkout is needed.
+`git show <ref>:art/…`, so no second checkout is needed. While drawing, use `pnpm art:check`
+and `pnpm art:part` first (below); this sheet is the final before-and-after review.
 
 Output in `artifacts/art/`:
 - `sheet.png`: every scene as before, after and changed pixels (magenta over a faded picture);
@@ -215,6 +217,26 @@ Output in `artifacts/art/`:
 The command also prints the changed art files and, per scene, how many pixels changed and
 where. With no change, every scene is pixel-identical and the sheet says "no change". Every art
 change is reviewed with this sheet (`docs/ART_PIPELINE.md`).
+
+## Draw and animate without the game: `art:check`, `art:part`, `clip:sheet`
+
+```sh
+pnpm art:check                                  # the art contract on all of art/ (or name files)
+pnpm art:part art/bean/headwear/bow.svg         # one file in all 8 directions, as the game draws it
+pnpm art:part art/bean/side.svg --look blue,spots --views side,S --zoom 3
+pnpm clip:sheet walk                            # a clip at 8 phases in all 8 directions
+pnpm clip:sheet sit --phases 4 --reduced-motion # the motion tracks dropped, the still values held
+```
+
+- **`art:check`** prints one line per contract finding and exits non-zero on any. It runs
+  `packages/client/src/art/checks.ts`, the same checks as the contract tests.
+- **`art:part`** draws one art file with the game's contract code (colour swaps, patterns
+  clipped to the body, headwear at the anchors, `-left` drawings, draw order) into
+  `artifacts/art/parts/`, and prints its anchors, pivots, parts and findings. About 2.7 s.
+- **`clip:sheet`** shoots the `clip` tool scene, drawn by the real rig player, into
+  `artifacts/clips/<clip>….png`, with each cell's pose in the `.json` beside it.
+
+Details in `docs/ART_PIPELINE.md` (sections 4 and 5).
 
 ## tools/shot
 

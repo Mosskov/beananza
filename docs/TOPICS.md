@@ -29,7 +29,10 @@ Nothing is approved. "Explored" means discussed or mocked up with a leaning, not
 
 ## To return to (raised 2026-09-29, share-site session)
 
-### Blurry game at full screen
+### Blurry game at full screen (fixed 2026-09-29)
+**Fixed:** see "A sharp picture at full screen" in `docs/ASSUMPTIONS.md` and
+`packages/client/src/screen-scale.ts`. The problem and the plan below are kept as they were.
+
 **Problem:** the game draws into a fixed 1280×720 canvas (`Phaser.Scale.FIT` in
 `packages/client/src/main.ts`), and the browser stretches that image to fill the screen, so the
 bean, props and readouts look soft. Measured on the built game:
@@ -45,7 +48,7 @@ The art is rasterized at 2 texture pixels per art unit (`ART_RESOLUTION` in
 1280×720 and then stretched. The embedded game on the share site is barely affected (its frame is
 about 1280 wide); full screen and `play/` on its own page are.
 
-**Proposed fix, not started:**
+**Proposed fix (built as described, with k capped at 2.5 and `ART_RESOLUTION` 3):**
 - Size the canvas to the real screen pixels: factor k = fit scale × `devicePixelRatio`,
   recomputed on resize. Every camera zooms by k, so scenes keep their 1280×720 layout and
   coordinates.
@@ -53,9 +56,6 @@ about 1280 wide); full screen and `play/` on its own page are.
   up to 0.92× in the hub).
 - Render text readouts at resolution k.
 - Cap k at about 2.5 for weak Chromebooks, and check fps with `pnpm shot` on a large viewport.
-
-**When:** after the M1 session 3 work lands, because it touches the client code that session is
-editing (`main.ts`, `HubScene`, art loading).
 
 ### Changing the bean's shape (part of D13, still Open)
 **Problem:** the body outline is drawn separately in each of the 5 views (front, front ¾, back ¾ and

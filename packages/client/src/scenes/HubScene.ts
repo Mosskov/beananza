@@ -8,6 +8,7 @@ import { BeanRig, createBeanShadow } from '../rig/BeanRig';
 import { beanArt } from '../rig/bean-art';
 import { chooseClip, samplePose } from '../rig/player';
 import { viewForFacing } from '../rig/views';
+import { frameCamera, layoutCentre, sharpText, useRenderScale } from '../screen-scale';
 import { SimScene } from './SimScene';
 import { CART_RIDER_DEPTH, CartView, drawRiderMask, drawRail, speedReadout } from './hub-carts';
 import { CLASSMATES, greetingAt, type Classmate } from './classmates';
@@ -147,14 +148,18 @@ export class HubScene extends SimScene<HubState, HubCommand> {
     this.bean.rig.root.renderFilters = false;
 
     const center = toScreen(VIEW_CENTER.x, VIEW_CENTER.y);
-    this.cameras.main.centerOn(center.x, center.y);
+    // The camera never moves: it shows the 1280×720 layout window around `center`, at k canvas
+    // pixels per unit (screen-scale.ts).
+    useRenderScale(this, (k) => frameCamera(this.cameras.main, k, center));
 
-    // Controls hint only (allowed by the no-text rule). PLACEHOLDER UI font and style.
-    this.add
-      .text(GAME_WIDTH - 20, GAME_HEIGHT - 16, 'Move: arrows or WASD   Run: Shift   Jump: Space   Action: E', HINT_STYLE)
-      .setOrigin(1, 1)
-      .setScrollFactor(0)
-      .setDepth(UI_DEPTH);
+    // Controls hint only (allowed by the no-text rule). PLACEHOLDER UI font and style. It sits in
+    // the world at the window's bottom right corner, which stays put because the camera does.
+    sharpText(
+      this.add
+        .text(center.x + GAME_WIDTH / 2 - 20, center.y + GAME_HEIGHT / 2 - 16, 'Move: arrows or WASD   Run: Shift   Jump: Space   Action: E', HINT_STYLE)
+        .setOrigin(1, 1)
+        .setDepth(UI_DEPTH),
+    );
 
     this.setUpInput();
     this.beforeStep();
@@ -331,11 +336,13 @@ export class HubScene extends SimScene<HubState, HubCommand> {
       const scale = depthScale(seatSpot(bench, seat).y, this.sim.state.layout.walkable);
       // Just behind a bean on the same row (the player draws in front of a classmate on a tie).
       rig.root.setPosition(at.x + anchor.x, at.y + anchor.y).setScale(scale).setDepth(depthKey(bench.y) + CLASSMATE_TIE_BREAK);
-      const bubble = this.add
-        .text(rig.root.x, rig.root.y + (rig.drawnTop() - READOUT_GAP_UNITS) * scale, 'Hi!', BUBBLE_STYLE)
-        .setOrigin(0.5, 1)
-        .setDepth(UI_DEPTH - 2)
-        .setVisible(false);
+      const bubble = sharpText(
+        this.add
+          .text(rig.root.x, rig.root.y + (rig.drawnTop() - READOUT_GAP_UNITS) * scale, 'Hi!', BUBBLE_STYLE)
+          .setOrigin(0.5, 1)
+          .setDepth(UI_DEPTH - 2)
+          .setVisible(false),
+      );
       this.classmates.push({ who, rig, bubble, greeting: null, clip: 'sit' });
     }
   }
@@ -377,10 +384,11 @@ export class HubScene extends SimScene<HubState, HubCommand> {
 
   override debugState(): unknown {
     const base = super.debugState() as Record<string, unknown>;
-    const cam = this.cameras.main;
-    const onScreen = (o: Phaser.GameObjects.Components.Transform) => ({
-      x: Math.round((o.x - cam.scrollX) * 10) / 10,
-      y: Math.round((o.y - cam.scrollY) * 10) / 10,
+    // Where an object is in the 1280×720 layout window, whatever the canvas resolution.
+    const centre = layoutCentre(this.cameras.main);
+    const onScreen = (o: { x: number; y: number }) => ({
+      x: Math.round((o.x - (centre.x - GAME_WIDTH / 2)) * 10) / 10,
+      y: Math.round((o.y - (centre.y - GAME_HEIGHT / 2)) * 10) / 10,
     });
     const beanRoot = this.bean.rig.root;
     const beanDepth = beanRoot.depth;
@@ -398,7 +406,7 @@ export class HubScene extends SimScene<HubState, HubCommand> {
             v: c.v,
             readout: view?.readout.text ?? null,
             expectedReadout: speedReadout(c.v),
-            screen: view ? { x: Math.round((view.screen.x - cam.scrollX) * 10) / 10, y: Math.round((view.screen.y - cam.scrollY) * 10) / 10 } : null,
+            screen: view ? onScreen(view.screen) : null,
           };
         }),
         classmates: this.classmates.map((c) => ({

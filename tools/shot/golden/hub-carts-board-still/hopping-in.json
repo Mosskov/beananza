@@ -101,7 +101,8 @@
         "arc": 0.4389189304250032,
         "facingX": 0,
         "facingY": -1
-      }
+      },
+      "reaction": null
     },
     "rail": {
       "carts": [

@@ -71,7 +71,8 @@
         "endTick": 74,
         "fromX": -4,
         "fromY": 0.6749999999999999
-      }
+      },
+      "reaction": null
     },
     "rail": null,
     "tick": 60,

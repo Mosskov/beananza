@@ -5,6 +5,7 @@ import { EARTH_GRAVITY } from '../constants';
 import { CART_HALF_LENGTH, stepRail } from '../rail';
 import { ACT_RULES, INTERACTIONS } from '../interactions';
 import type { HubStep } from '../interactions/types';
+import { REACTION_RULES, clearFinishedReaction, startReaction } from '../reactions';
 import {
   CART_HALF_DEPTH,
   DEFAULT_PLAZA,
@@ -132,6 +133,7 @@ function initialBean(start: { x: number; y: number }): HubBean {
     jumps: 0,
     lastJump: null,
     act: { kind: 'free' },
+    reaction: null,
   };
 }
 
@@ -163,6 +165,12 @@ export function createHubScenario(options: HubOptions = {}): Scenario<HubState, 
         // Commands will one day arrive over the network: drop any with non-finite numbers.
         if ((c.type === 'move' || c.type === 'moveTo') && !(Number.isFinite(c.x) && Number.isFinite(c.y))) continue;
         if (c.type === 'use' && typeof c.id !== 'string') continue;
+        if (c.type === 'emote') {
+          // A reaction (D26): not an act command, so no interaction module sees it. It changes
+          // no act, position or velocity; the hop acts ignore it (D23).
+          if (c.kind === 'waveHi' && REACTION_RULES[bean.act.kind].emote) startReaction(state, c.kind);
+          continue;
+        }
         if (INTERACTIONS.some((m) => m.command(step, c))) continue;
         if (c.type === 'move') {
           state.input = { x: c.x, y: c.y, run: c.run };
@@ -285,6 +293,9 @@ export function createHubScenario(options: HubOptions = {}): Scenario<HubState, 
 
       if (ACT_RULES[bean.act.kind].walks) stepHeight(bean, state.gravity, state.tick);
       for (const m of INTERACTIONS) m.settle?.(step);
+      // Reactions (D26) are updated here and only here, after every module, so an act that
+      // starts mid-reaction leaves the reaction's timer alone.
+      clearFinishedReaction(state);
     },
   };
 }

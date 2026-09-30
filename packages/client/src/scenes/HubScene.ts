@@ -7,6 +7,7 @@ import { GAME_HEIGHT, GAME_WIDTH, PALETTE, UI_FONT, cssColor } from '../config';
 import { BeanRig, createBeanShadow } from '../rig/BeanRig';
 import { beanArt } from '../rig/bean-art';
 import { chooseClip, samplePose } from '../rig/player';
+import { chooseReaction } from '../rig/reactions';
 import { viewForFacing } from '../rig/views';
 import { frameCamera, layoutCentre, sharpText, useRenderScale } from '../screen-scale';
 import { SimScene } from './SimScene';
@@ -305,7 +306,8 @@ export class HubScene extends SimScene<HubState, HubCommand> {
     for (const [part, shown] of Object.entries(PART_DEFAULTS)) rig.setPartVisible(part, look.parts[part as ToggledPart] ?? shown);
     // Keep the readout of the cart in use above the bean's head (headwear included), with a gap.
     if (look.usingCart) this.carts.get(look.usingCart)?.keepReadoutAbove(feet.y + (rig.drawnTop() - READOUT_GAP_UNITS) * scale);
-    const pose = samplePose({ clip, t, time, view: choice.view, reducedMotion: this.reducedMotion });
+    const reaction = chooseReaction(this.sim.state, time);
+    const pose = samplePose({ clip, t, time, view: choice.view, reducedMotion: this.reducedMotion, reaction });
     rig.applyPose(pose);
     // The bean's body is wider than its footprint: next to a cart's end (pushing or not), draw
     // it back so the body meets the end instead of overlapping it. Drawing only (and its shadow).

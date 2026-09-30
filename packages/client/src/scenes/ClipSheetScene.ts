@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { prefersReducedMotion } from '../accessibility';
 import { GAME_HEIGHT, GAME_WIDTH, PALETTE, UI_FONT as FONT, cssColor } from '../config';
 import { BeanRig, createBeanShadow } from '../rig/BeanRig';
+import { CLIP_PARTS } from '../rig/clip-parts';
 import { CLIP_NAMES, CLIPS, familyOf, phaseTime, type ClipName } from '../rig/clips';
 import { samplePose, type Pose } from '../rig/player';
 import { pickDirections } from '../rig/views';
@@ -10,16 +11,6 @@ import type { SceneStartData, TestableScene } from './TestableScene';
 
 /** `?scene=clip` reads these (tools/shot's `pnpm clip:sheet` sets them). */
 export const CLIP_SHEET_PARAMS = { clip: 'clip', views: 'views', phases: 'phases' } as const;
-
-/**
- * Parts a clip needs shown, as the hub's presentation rows show them for the act that plays it
- * (`scenes/presentation/`): the pushing arm, and dozing's closed eyes and "z".
- */
-const CLIP_PARTS: Partial<Record<ClipName, Record<string, boolean>>> = {
-  push: { 'arm-far-push': true },
-  pushHeavy: { 'arm-far-push': true },
-  doze: { eyes: false, 'eyes-sleep': true, 'doze-z': true },
-};
 
 const LABEL_W = 96;
 /** The title on one line, the phase headers under it. */

@@ -5,7 +5,7 @@
 Updated in place by every pull request (CLAUDE.md, "How we work"). History is in git, the pull
 requests, and `docs/archive/`.
 
-**Last updated:** 2026-09-30, a lighter workflow (branch `tools/lighter-workflow`).
+**Last updated:** 2026-09-30, the animation viewer (branch `art/anim-viewer`).
 
 **What works** (M1 so far):
 - **The hub plaza:** walking and running, jumping, two carts on a rail (push, ride, the hop in
@@ -18,9 +18,10 @@ requests, and `docs/archive/`.
   in play until predictions (D9) and the catapult exist.
 - **Effect slots:** `fxHead`, `fxBrow`, `fxGround` with anchors in the bean views, effects as
   SVG files in `art/effects/` under their own contract (only the doze "z" so far).
-- **Tool scenes:** `bean`, `looks` and `reactions` galleries, the `clip` sheet, the `drop` test,
-  and a dev-only options panel in `pnpm dev` (scene, layout, look, paused;
-  `packages/client/src/dev-panel.ts`).
+- **Tool scenes:** `bean`, `looks` and `reactions` galleries, the `clip` sheet, the `anim`
+  viewer (one clip live, any direction or a ring of 8, a reaction over it, scrub and frame
+  steps), the `drop` test, and a dev-only options panel in `pnpm dev` (scene, layout, look,
+  paused; the anim viewer's controls, live; `packages/client/src/dev-panel.ts`).
 - **Workflow:** short sessions, one at a time, steered by the user (CLAUDE.md, "How we work").
   CI runs check and verify on every pull request and push to main (sessions don't wait for it); golden sim states in `tools/shot/golden/`;
   `art:check`, `art:part`, `art:sheet`, `clip:sheet`; skills for the technical recipes

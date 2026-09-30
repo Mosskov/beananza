@@ -23,7 +23,7 @@ Reference material is in `reference/` (open the HTML files in a browser) and lin
 - **Screenshot and interaction testing after every change.** Nearly every visual bug (carts
   leaving the rails, the bean poking out of the cart, a mouth hidden under a medal) was caught
   by looking at a screenshot or running a scripted playthrough. Build this into the real repo
-  (see `prompts/M0-first-session.md`).
+  (built in M0: `tools/shot` and `pnpm verify`).
 - **The tuned numbers** in section 6. They are the most valuable thing to carry over.
 
 **Does not scale, avoid:**

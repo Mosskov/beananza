@@ -53,33 +53,38 @@ describe('sections', () => {
 });
 
 describe('roadmap', () => {
-  const roadmap = '## Milestone 0: scaffold\n- a\n- **Done when:** it runs\n\n## Milestone 1: slice\n- b\n\n## Milestone 2: multiplayer\n- c\n';
+  const roadmap =
+    '## Milestone 0: scaffold\n- **Progress:** done\n- a\n- **Done when:** it runs\n\n## Milestone 1: slice\n- **Progress:** In progress\n- b\n\n## Milestone 2: multiplayer\n- c\n';
 
-  it('takes progress from the status reports', () => {
-    const status = '## M1, session 2: carts\n...\n## Milestone 0: scaffold and verification loop\n...';
-    expect(parseRoadmap(roadmap, status).map((m) => [m.number, m.progress])).toEqual([
+  it('takes progress from the Progress lines, planned when there is none', () => {
+    expect(parseRoadmap(roadmap).map((m) => [m.number, m.progress])).toEqual([
       [0, 'done'],
       [1, 'in-progress'],
       [2, 'planned'],
     ]);
   });
 
+  it('throws on an unknown progress', () => {
+    expect(() => parseRoadmap('## Milestone 0: x\n- **Progress:** nearly\n')).toThrow(/unknown progress "nearly"/);
+  });
+
   it('splits off the "Done when" line', () => {
-    const [m0, m1] = parseRoadmap(roadmap, '');
+    const [m0, m1] = parseRoadmap(roadmap);
     expect(m0?.body).toBe('- a');
     expect(m0?.doneWhen).toBe('it runs');
     expect(m1?.doneWhen).toBeNull();
   });
 
   it('keeps a wrapped "Done when" line together', () => {
-    const [m] = parseRoadmap('## Milestone 1: slice\n1. a\n2. b\n- **Done when:** a student can walk the\n  plaza and push the carts.\n', '');
+    const [m] = parseRoadmap('## Milestone 1: slice\n1. a\n2. b\n- **Done when:** a student can walk the\n  plaza and push the carts.\n');
     expect(m?.body).toBe('1. a\n2. b');
     expect(m?.doneWhen).toBe('a student can walk the plaza and push the carts.');
   });
 
-  it('reads docs/ROADMAP.md and docs/STATUS.md', () => {
-    const ms = parseRoadmap(doc('ROADMAP.md'), doc('STATUS.md'));
+  it('reads docs/ROADMAP.md', () => {
+    const ms = parseRoadmap(doc('ROADMAP.md'));
     expect(ms[0]).toMatchObject({ number: 0, progress: 'done' });
+    expect(ms[1]).toMatchObject({ number: 1, progress: 'in-progress' });
     expect(ms.length).toBeGreaterThan(1);
   });
 });

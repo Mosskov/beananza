@@ -1,5 +1,7 @@
 # Handover to Claude Code
 
+> Archive, frozen 2026-09-30: the original handover that started the repo. The prompts it names were removed; see git history.
+
 ## What's in here
 - `CLAUDE.md`: project instructions Claude Code loads automatically when it starts in this folder
 - `docs/DESIGN.md`: the design spec (everything explored so far, marked Explored / Proposed / Open / Parked)

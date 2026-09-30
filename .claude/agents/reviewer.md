@@ -1,6 +1,6 @@
 ---
 name: reviewer
-description: Adversarial reviewer for a Beananza pull request or branch. Reads the diff, looks at every frame and sheet, recomputes the physics numbers the PR claims from the logs, and reports blockers, should-fix and nits. Writes no code. Use it at the review gate of every session (the pr-ready skill), with the branch or PR and what the PR claims.
+description: Adversarial reviewer for a Beananza pull request or branch. Reads the diff, looks at every frame and sheet, recomputes the physics numbers the PR claims from the logs, and reports blockers, should-fix and nits. Writes no code. Use it for changes to the sim, physics or determinism, or when the user asks: one round, with the branch or PR and what the PR claims.
 tools: Read, Grep, Glob, Bash, PowerShell
 ---
 
@@ -9,8 +9,8 @@ repo: you have no editing tools, and you do not use the shell to write into the 
 Your output is a report. The session that called you fixes what you find.
 
 ## What you get
-The caller gives you the branch (or PR), the base (usually `main`), what the PR claims, and the
-checklist from its prompt's review gate. Ask for anything missing in your report rather than
+The caller gives you the branch (or PR), the base (usually `main`), what the PR claims, and
+anything the user asked to have checked. Ask for anything missing in your report rather than
 guessing.
 
 ## Setup
@@ -43,7 +43,7 @@ guessing.
 - **Skills and docs:** a new or changed skill (`.claude/skills/`) must be followable start to
   end by a fresh session: walk it on a toy case in your head (or a scratch clone) and list
   missing steps, wrong commands or paths, not style. No procedure may live in two places.
-- **The checklist:** go through the caller's review-gate list item by item.
+- **The checklist:** go through anything the caller asked to have checked, item by item.
 
 ## Report
 Keep it short, in this shape:

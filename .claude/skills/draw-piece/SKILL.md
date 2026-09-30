@@ -17,8 +17,8 @@ shown to the user (D13), so plan for that from the start.
       `fx-brow` and `fx-ground` anchors) have a folder, a loader and a contract
       (`packages/client/src/art/effect-contract.ts`; `art/README.md`, "Effects"): origin at the
       anchor, palette colours only, no text, registered in `EFFECTS` and `effect-sources.ts`.
-      `pnpm art:part art/effects/<id>.svg` draws one as it is. What to draw is the art lane's
-      call (D26).
+      `pnpm art:part art/effects/<id>.svg` draws one as it is. Which effects to draw first is
+      the user's call (D26): ask.
 - [ ] Read `art/README.md` (parts, units, key colours, anchors, palette) and
       `docs/ART_PIPELINE.md` §2.
 - [ ] Render the nearest existing piece so you draw to the same scale and style:
@@ -90,4 +90,4 @@ shown to the user (D13), so plan for that from the start.
       unless the piece is in the plaza.
 - [ ] Show the user the sheet (path and what changed) before committing. Commit the SVG, the
       registration and `art/README.md` (new parts, anchors, colours) together.
-- [ ] Say in the PR which sheets you looked at (`pr-ready`).
+- [ ] Say in the PR which sheets you looked at.

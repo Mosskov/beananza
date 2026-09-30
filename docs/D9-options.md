@@ -1,32 +1,13 @@
-# D9 design pass (the first expedition)
+# D9 options: the first expedition
 
-How to use: open Claude Code in this repo and paste everything below the line. It is a
-discussion, not a build session: nothing gets built. When it ends, the decisions are recorded,
-and `prompts/M1-fourth-session.md` can run through without waiting for answers.
+The questions D9 (Open) depends on. The session that builds the first expedition asks the ones
+its slice needs at the start (options plus one recommendation each, CLAUDE.md "How we work"),
+records what the user confirms in `docs/DECISIONS.md`, and leaves the rest Open.
 
----
-
-# Goal
-Settle D9 (the first expedition) and the questions it depends on, with me, and record them. Do
-not write code or art.
-
-Read first:
-- `CLAUDE.md`
-- `docs/DECISIONS.md`: above all D4 (the exact-integrator rule is still Open), D9, D2 and D17
-- `docs/DESIGN.md`: sections 1, 2, 4, 7 and 8 (predict, test, compare; the first expedition;
-  the field notebook)
-- `docs/IMPLEMENTATION.md`: sections 3, 6 (the catapult numbers) and 7
-- `docs/ROADMAP.md`: the M1 "done when"
-- `docs/STATUS.md`: the latest session's "next plan"
-- `reference/showcase.html`: the catapult, for behaviour only
-
-Nothing in docs/ is approved unless DECISIONS.md says so.
-
-# The questions
-Ask them in one message. For each, give:
-- the options;
-- your recommendation, with numbers where there are numbers;
-- what the choice changes.
+Read with: `docs/DECISIONS.md` (D4, D9, D2, D16, D17), `docs/DESIGN.md` §1, 2, 4, 7 and 8,
+`docs/IMPLEMENTATION.md` §6 (the catapult numbers), and `reference/showcase.html` (the catapult,
+behaviour only). For each question give the options, a recommendation with numbers where there
+are numbers, and what the choice changes.
 
 Ground the options in DESIGN.md §8, the prototype catapult (IMPLEMENTATION.md §6) and the core
 habit of predict, test, compare.
@@ -64,28 +45,7 @@ habit of predict, test, compare.
      concept id (DESIGN.md §11).
    - Where it lives now: local storage only, no personal data, nothing sent anywhere.
    - How a student sees it without instructional text: an overlay of readouts and drawn marks.
-7. **Optional slices after the expedition.** Which of these, if any, M1 session 4 includes, and
-   in what order:
-   - **On-screen touch buttons** (Action, Jump, Run), so phones can do everything. Needs icons
-     rather than words (D17 allows the controls hint only).
-   - **A sharp picture at full screen** (TOPICS.md "To return to": size the canvas to device
-     pixels, `ART_RESOLUTION` 3, cap for Chromebooks).
-   - **CI:** running `pnpm verify`, if there is a remote to run it on.
 
-Note as upcoming, and don't ask yet:
-- the D13 bean-shape approach (TOPICS.md)
-- D7 (other body forms), and the D12 prop part (paper 3D)
-- the in-game wardrobe design
-- the M2 needs from STATUS: `Math.hypot` and cross-engine determinism, and seat occupancy in
-  the state
-
-# When I have answered
-- Update `docs/DECISIONS.md` for the decisions I confirmed, and only those. D9 may be partly
-  confirmed. Anything I leave open stays Open, with my notes.
-- Write the optional slices I picked, in my order, into the "Optional slices" section of
-  `prompts/M1-fourth-session.md`.
-- If an answer changes the session 4 scope, adjust `prompts/M1-fourth-session.md` to match, and
-  tell me what changed.
-- Commit only these files, on your own branch in your own worktree, and ask before merging.
-
-Then stop.
+Later, not part of D9: on-screen touch buttons (Action, Jump, Run, as icons; D17), the D13
+bean-shape approach, D7 (other body forms), the D12 paper-3D props, the in-game wardrobe, and
+the M2 needs (`Math.hypot` and cross-engine determinism, seat occupancy in the state).

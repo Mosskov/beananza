@@ -106,7 +106,7 @@ function writePage(): void {
       const heading = headingText(design, 2, h);
       return { heading, body: section(design, 2, heading) };
     }),
-    milestones: parseRoadmap(doc('ROADMAP.md'), status),
+    milestones: parseRoadmap(doc('ROADMAP.md')),
     decisions: parseDecisions(doc('DECISIONS.md')),
     status: latestStatus(status),
     architecture: (() => {

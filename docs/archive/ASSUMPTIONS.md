@@ -1,5 +1,7 @@
 # Assumptions
 
+> Archive, frozen 2026-09-30: no new entries. Routine choices now go in the PR description.
+
 Routine choices made while building, logged so they can be reviewed and reversed. None of them
 changes a decision in `docs/DECISIONS.md`. Newest milestone first.
 

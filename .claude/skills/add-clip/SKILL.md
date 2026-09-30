@@ -61,7 +61,7 @@ been looked at: the clip sheet is how.
       look at that frame too (`pnpm verify --no-check --scripts <script>`).
 
 ## 4. Finish
-- [ ] Tuning numbers named in `docs/ASSUMPTIONS.md` (constant and file, not copied values).
+- [ ] Tuning numbers named in the PR description (constant and file, not copied values).
 - [ ] `pnpm verify`; golden states should not change for a clip (clips are drawing only). If
       one does, something reached the sim.
-- [ ] `pr-ready`, listing the clip sheets you looked at.
+- [ ] Finish as CLAUDE.md "How we work" says, listing the clip sheets you looked at in the PR.

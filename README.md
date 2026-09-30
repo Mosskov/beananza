@@ -8,7 +8,7 @@ or rides carts on a rail.
 
 Start with `CLAUDE.md` and `docs/` (design, decisions, implementation notes). Only what
 `docs/DECISIONS.md` marks as confirmed is approved; everything else is a proposal. Current
-state: `docs/STATUS.md`. Routine choices made while building: `docs/ASSUMPTIONS.md`.
+state: `docs/STATUS.md`; how sessions run: CLAUDE.md, "How we work".
 
 ## Requirements
 
@@ -62,7 +62,7 @@ checked against the art contract and rasterized before any scene starts; broken 
 error.
 
 The game follows `prefers-reduced-motion`: the bean loses its bob, squash, stretch, breathing
-and waddle, but still changes pose (see `docs/ASSUMPTIONS.md`, M1 session 2). Hops (into and out
+and waddle, but still changes pose (see `docs/archive/ASSUMPTIONS.md`, M1 session 2). Hops (into and out
 of a cart, onto and off the bench) move in a straight line without the arc, the feet on the
 bench hang still, and the doze "z" stays put.
 
@@ -400,9 +400,9 @@ Settings → Variables and Secrets), but saving there only creates a new version
 too, or run `pnpm --filter @beananza/share exec wrangler versions deploy <version id>@100%`.
 
 - **Page** (`index.html`): the pitch, the playable game, and sections for teachers (DESIGN.md
-  §1, 2, 8, 10, 11, 12), the roadmap (ROADMAP.md, with progress from STATUS.md), every decision
-  (DECISIONS.md, filterable, `#D9` opens D9) and developers (IMPLEMENTATION.md §3 and the newest
-  STATUS.md report). It is rendered from the docs on every run, so it never drifts from them.
+  §1, 2, 8, 10, 11, 12), the roadmap (ROADMAP.md, with each milestone's **Progress:** line), every decision
+  (DECISIONS.md, filterable, `#D9` opens D9) and developers (IMPLEMENTATION.md §3 and the "Current
+  state" section of STATUS.md). It is rendered from the docs on every run, so it never drifts from them.
   If a doc loses a heading the page uses, the build fails and names it.
 - **Game** (`play/`): a production build with relative paths, loaded only when a visitor
   presses Play. `play/?scene=looks`, `play/?scene=bean` and `play/?scene=drop` work too. A second
@@ -444,23 +444,21 @@ packages/
 tools/
   shot/     Playwright screenshot and log tool
   share/    builds the preview site for coworkers (docs, screenshots, playable build)
-docs/       design, decisions, implementation notes, assumptions, status
+docs/       design, decisions, implementation notes, status; archive/ for frozen history
 art/, reference/   design references only (never ported as code)
 ```
 
 ## How work is done: skills
 
-The repeated procedures are Claude Code skills in `.claude/skills/`, one copy each; a session
-prompt names the ones to use:
-- `session-start`: own branch and worktree, install, a passing baseline;
+How a session runs (short, one at a time, one slice, one PR) is in CLAUDE.md, "How we work".
+The technical recipes are Claude Code skills in `.claude/skills/`, one copy each:
 - `hub-interaction`: a new hub interaction (sim module and tests, test yard, scripts,
   presentation rows);
 - `draw-piece`: drawing or changing art (the contract, `art:check`, `art:part`, `art:sheet`);
-- `add-clip`: an animation clip (data, reduced motion, tests, `clip:sheet`);
-- `design-pass`: settling Open decisions with the user;
-- `pr-ready`: finishing: verify, the golden diff, docs, the PR, CI, the reviewer.
+- `add-clip`: an animation clip (data, reduced motion, tests, `clip:sheet`).
 
-The `reviewer` agent (`.claude/agents/reviewer.md`) reviews a PR without writing code. The PR
+The `reviewer` agent (`.claude/agents/reviewer.md`) reviews a PR without writing code, for sim,
+physics or determinism changes or when asked. The PR
 template is `.github/pull_request_template.md`. `.claude/settings.json` allows the everyday
 read-only commands and blocks (through `.claude/hooks/guard.mjs`) `pnpm share:deploy`,
 `pnpm share:password`, force-pushes, and merging or rebasing on main. In a Claude Code on the

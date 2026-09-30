@@ -22,6 +22,12 @@ describe('decisions', () => {
     ]);
   });
 
+  it('keeps an escaped pipe inside a cell', () => {
+    const [d] = parseDecisions('| D26 | Reactions | a, b | `x: { kind } \\| null` | Open |');
+    expect(d?.leaning).toBe('`x: { kind } | null`');
+    expect(d?.status).toBe('open');
+  });
+
   it('rejects a row with the wrong number of cells', () => {
     expect(() => parseDecisions('| D1 | Hub camera | Open |')).toThrow(/expected 5 cells/);
   });

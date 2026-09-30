@@ -162,6 +162,16 @@ export class BeanRig {
   }
 
   /**
+   * The top of the body part alone in the current view (art units above the feet, as a negative
+   * y): the same for every look, unlike `drawnTop`, which headwear raises. What a tap on the bean
+   * uses, because a cosmetic must never change what a tap does (the sim).
+   */
+  bodyTop(): number {
+    const tex = beanArt().textures.get(textureKey(this.look.colour, this.choice.view, 'body'));
+    return tex ? Math.min(0, tex.bounds.y) : 0;
+  }
+
+  /**
    * The highest point of the visible drawing in the current view (art units above the feet, as
    * a negative y), headwear included: what a label above the bean must clear. Ignores the pose.
    */

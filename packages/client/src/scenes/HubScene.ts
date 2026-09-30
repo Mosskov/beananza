@@ -7,6 +7,7 @@ import { GAME_HEIGHT, GAME_WIDTH, PALETTE, UI_FONT, cssColor } from '../config';
 import { BeanRig, createBeanShadow } from '../rig/BeanRig';
 import { beanArt } from '../rig/bean-art';
 import { chooseClip, samplePose } from '../rig/player';
+import { hitsBeanBody } from '../rig/hit';
 import { chooseReaction } from '../rig/reactions';
 import { viewForFacing } from '../rig/views';
 import { frameCamera, layoutCentre, sharpText, useRenderScale } from '../screen-scale';
@@ -220,20 +221,12 @@ export class HubScene extends SimScene<HubState, HubCommand> {
   }
 
   /**
-   * Whether a world point is on the bean's drawn body: from the feet (the rig root) up to the
-   * top of the drawing, and as wide as the body in the current view. Art units are pixels at
-   * the root's scale.
+   * Whether a world point is on the bean's body (`hitsBeanBody`), from the rig root (the feet) up.
+   * Only the body part counts, not headwear or an effect: a cosmetic never changes what a tap does.
    */
   private hitsOwnBean(worldX: number, worldY: number): boolean {
     const { rig } = this.bean;
-    const k = rig.root.scaleX;
-    const { west, east } = rig.bodySpan();
-    return (
-      worldX >= rig.root.x + west * k &&
-      worldX <= rig.root.x + east * k &&
-      worldY >= rig.root.y + rig.drawnTop() * k &&
-      worldY <= rig.root.y
-    );
+    return hitsBeanBody({ x: worldX, y: worldY }, { x: rig.root.x, y: rig.root.y }, rig.root.scaleX, rig.bodySpan(), rig.bodyTop());
   }
 
   /** Send a `move` command whenever the held direction or Run changes. */
@@ -307,7 +300,7 @@ export class HubScene extends SimScene<HubState, HubCommand> {
     // Keep the readout of the cart in use above the bean's head (headwear included), with a gap.
     if (look.usingCart) this.carts.get(look.usingCart)?.keepReadoutAbove(feet.y + (rig.drawnTop() - READOUT_GAP_UNITS) * scale);
     const reaction = chooseReaction(this.sim.state, time);
-    const pose = samplePose({ clip, t, time, view: choice.view, reducedMotion: this.reducedMotion, reaction });
+    const pose = samplePose({ clip, t, time, view: choice.view, mirrored: choice.mirrored, reducedMotion: this.reducedMotion, reaction });
     rig.applyPose(pose);
     // The bean's body is wider than its footprint: next to a cart's end (pushing or not), draw
     // it back so the body meets the end instead of overlapping it. Drawing only (and its shadow).

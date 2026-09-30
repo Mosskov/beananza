@@ -50,8 +50,8 @@ export function buildPropArtSpec(sources: Readonly<Record<string, string>>): Pro
       const doc = parseSvgParts(text);
       docs[prop] = doc;
       const ids = doc.parts.map((p) => p.id);
-      for (const id of PROP_PARTS[prop] ?? []) if (!ids.includes(id)) problems.push(`${prop}: missing part "${id}"`);
-      for (const name of PROP_ANCHORS[prop] ?? []) if (!doc.anchors[name]) problems.push(`${prop}: missing anchor "${name}"`);
+      for (const id of Object.hasOwn(PROP_PARTS, prop) ? PROP_PARTS[prop] ?? [] : []) if (!ids.includes(id)) problems.push(`${prop}: missing part "${id}"`);
+      for (const name of Object.hasOwn(PROP_ANCHORS, prop) ? PROP_ANCHORS[prop] ?? [] : []) if (!doc.anchors[name]) problems.push(`${prop}: missing anchor "${name}"`);
       for (const [name, p] of Object.entries(doc.anchors)) {
         if (!insideViewBox(p, doc.viewBox)) problems.push(`${prop}: anchor "${name}" is outside the viewBox`);
       }

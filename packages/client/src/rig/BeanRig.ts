@@ -65,6 +65,8 @@ export class BeanRig {
   readonly root: Phaser.GameObjects.Container;
   private readonly flip: Phaser.GameObjects.Container;
   private readonly built = new Map<string, BuiltView>();
+  /** Parts shown or hidden with `setPartVisible`, applied to views built later too. */
+  private readonly visibility = new Map<string, boolean>();
   private current: BuiltView | null = null;
   private choice: ViewChoice = { view: 'front', mirrored: false };
 
@@ -122,7 +124,7 @@ export class BeanRig {
       const sign = part.screenSpace ? -1 : 1;
       const image = partImage(this.scene, tex, part.pivot)
         .setPosition(base.x, base.y)
-        .setVisible(!part.hiddenByDefault);
+        .setVisible(this.visibility.get(part.id) ?? !part.hiddenByDefault);
       if (part.screenSpace) image.setScale(-1 / ART_RESOLUTION, 1 / ART_RESOLUTION);
       segment.add(image);
       parts.set(part.id, { image, base, sign, top: tex.bounds.y });
@@ -141,7 +143,7 @@ export class BeanRig {
       const anchor = anchors[EFFECT_SLOT_ANCHORS[ep.slot]] as Point;
       const base = { x: anchor.x + ep.pivot.x, y: anchor.y + ep.pivot.y };
       const sign = spec.mirrored ? -1 : 1;
-      const image = effectImage(this.scene, ep).setPosition(base.x, base.y).setScale(sign / ART_RESOLUTION, 1 / ART_RESOLUTION).setVisible(false);
+      const image = effectImage(this.scene, ep).setPosition(base.x, base.y).setScale(sign / ART_RESOLUTION, 1 / ART_RESOLUTION).setVisible(this.visibility.get(ep.partId) ?? false);
       (ep.slot === 'fxGround' ? ground : head).add(image);
       const placed = { image, base, sign, top: anchor.y + ep.texture.bounds.y } satisfies PartImage;
       parts.set(ep.partId, placed);
@@ -181,8 +183,9 @@ export class BeanRig {
     return top;
   }
 
-  /** Show or hide a part in every view, e.g. goggles or the pushing arm. */
+  /** Show or hide a part in every view, e.g. goggles or the pushing arm, including views built later. */
   setPartVisible(partId: string, visible: boolean): void {
+    this.visibility.set(partId, visible);
     for (const v of this.built.values()) v.parts.get(partId)?.image.setVisible(visible);
   }
 

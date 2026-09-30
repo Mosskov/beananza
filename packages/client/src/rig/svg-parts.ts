@@ -62,7 +62,8 @@ export function parseSvgParts(text: string): SvgDoc {
   const box = (parseAttrs(svgTag[1] as string).viewBox ?? '').trim().split(/[\s,]+/).map(Number);
   if (box.length !== 4 || box.some((n) => !Number.isFinite(n))) throw new Error('The <svg> needs a numeric viewBox.');
   const parts: SvgPart[] = [];
-  const anchors: Record<string, Point> = {};
+  // No prototype: an anchor named `constructor` or `__proto__` is just a name.
+  const anchors: Record<string, Point> = Object.create(null) as Record<string, Point>;
   for (const m of clean.matchAll(/<g\b([^>]*)>([\s\S]*?)<\/g>/g)) {
     const attrs = parseAttrs(m[1] as string);
     const inner = (m[2] as string).trim();
@@ -80,7 +81,8 @@ export function parseSvgParts(text: string): SvgDoc {
 }
 
 function parseAnchors(inner: string): Record<string, Point> {
-  const anchors: Record<string, Point> = {};
+  // No prototype: an anchor named `constructor` or `__proto__` is just a name.
+  const anchors: Record<string, Point> = Object.create(null) as Record<string, Point>;
   for (const m of inner.matchAll(/<(\w+)\b([^>]*)\/?>/g)) {
     const a = parseAttrs(m[2] as string);
     const name = /^anchor-([\w-]+)$/.exec(a.id ?? '')?.[1];
@@ -90,7 +92,7 @@ function parseAnchors(inner: string): Record<string, Point> {
     const x = Number(a.cx);
     const y = Number(a.cy);
     if (a.cx === undefined || a.cy === undefined || !Number.isFinite(x) || !Number.isFinite(y)) throw new Error(`Anchor "${name}" needs numeric cx and cy.`);
-    if (name in anchors) throw new Error(`Anchor "${name}" is defined twice.`);
+    if (Object.hasOwn(anchors, name)) throw new Error(`Anchor "${name}" is defined twice.`);
     anchors[name] = { x, y };
   }
   return anchors;

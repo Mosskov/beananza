@@ -88,6 +88,16 @@ describe('bean art contract (art/bean/*.svg)', () => {
     expect(partPivot(part('body')!)).toEqual({ x: 0, y: 0 });
   });
 
+  it('reads anchors named like Object.prototype members as plain anchors', () => {
+    const doc = parseSvgParts(
+      '<svg viewBox="0 0 10 10"><g id="anchors" display="none"><circle id="anchor-constructor" cx="1" cy="2" r="0"/><circle id="anchor-__proto__" cx="3" cy="4" r="0"/></g></svg>',
+    );
+    expect(Object.entries(doc.anchors)).toEqual([
+      ['constructor', { x: 1, y: 2 }],
+      ['__proto__', { x: 3, y: 4 }],
+    ]);
+  });
+
   it('moved no pivot: every data-pivot equals the rule it replaced (M1 session 2)', () => {
     for (const [name, text] of Object.entries({ ...BEAN_SVGS, ...PROP_SVGS })) {
       for (const part of parseSvgParts(text).parts) {

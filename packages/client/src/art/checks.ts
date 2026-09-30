@@ -266,11 +266,11 @@ export function registrationFindings(files: ArtFiles): ArtFinding[] {
         out.push({ file: path, message: `${k.cosmetic} ${k.id}: not registered, so the game never loads it: add "${k.id}" to ${ID_LIST[k.cosmetic]} (packages/shared/src/look.ts) and import it in packages/client/src/rig/looks-sources.ts` });
       }
     } else if (k.kind === 'prop') {
-      if (!(k.id in PROP_PARTS)) {
+      if (!Object.hasOwn(PROP_PARTS, k.id)) {
         out.push({ file: path, message: `${k.id}: not registered, so the game never loads it: list its parts and anchors in PROP_PARTS and PROP_ANCHORS (packages/client/src/art/prop-contract.ts) and import it in packages/client/src/art/prop-sources.ts` });
       }
     } else if (k.kind === 'effect') {
-      if (!(k.id in EFFECTS)) {
+      if (!Object.hasOwn(EFFECTS, k.id)) {
         out.push({ file: path, message: `${k.id}: not registered, so the game never loads it: list its slot and parts in EFFECTS (packages/client/src/art/effect-contract.ts) and import it in packages/client/src/art/effect-sources.ts` });
       }
     }

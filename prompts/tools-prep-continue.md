@@ -21,9 +21,10 @@ in `.claude/settings.json` blocks merging and pulling there once it is loaded: t
 does, and don't route around it.
 
 # Steps
-1. **Check before merging.** The PR is open, its head is still `259a630` (or say what changed),
-   GitHub reports it mergeable, and CI is green on the head commit (runs 36695679697 push and
-   36695685437 pull_request were green). If anything differs, stop and tell me.
+1. **Check before merging.** The PR is open, its newest commit is the one that adds this prompt
+   (nothing after it; otherwise say what changed), GitHub reports it mergeable, and CI is green
+   on that head commit, both the push and the pull_request runs. If anything differs, stop and
+   tell me.
 2. **Merge** PR #5 with a merge commit. If the tools here won't let you, stop and give me the
    one command or the web link to do it myself.
 3. **Update the shared tree** (`C:/Users/nima/OneDrive - EUC Nord/Projects/beananza`, on main):

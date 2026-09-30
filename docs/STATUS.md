@@ -18,8 +18,8 @@ history; no new ones are added.
   art, one behaviour) at a time (CLAUDE.md).
 
 **Open issues** (details in the dated sections below):
-- CI has not run yet: the branch could not be pushed from this machine (403 for the signed-in
-  GitHub account). The workflow is untested on GitHub's runners.
+- The SessionStart hook is untested in a real cloud container (tested on Windows only).
+- CI runs twice per push to a PR branch (push and pull_request).
 - The flaky browser close during long runs (seen once in M1 session 3 and once in the workflow
   session); no retry, recorded if it recurs.
 - From M1 session 3: the depth tie with Priya, the rim-line strip in mid-hop, the mask filter's

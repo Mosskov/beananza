@@ -1,25 +1,20 @@
 // Customization basics (D25): colour swaps, the spots pattern, three headwear pieces and the
 // glasses, composed onto the drawn views at load time (docs/ART_PIPELINE.md §4). Cosmetics are
 // drawing only: nothing here reaches the sim.
+// The drawings themselves are in looks-sources.ts, so this stays pure (the art tools run it in Node).
 import type { BeanLook } from '@beananza/shared';
-import glasses from '../../../../art/bean/faces/glasses.svg?raw';
-import bearEars from '../../../../art/bean/headwear/bear-ears.svg?raw';
-import bow from '../../../../art/bean/headwear/bow.svg?raw';
-import sprout from '../../../../art/bean/headwear/sprout.svg?raw';
-import spots from '../../../../art/bean/patterns/spots.svg?raw';
 import { variantName, type BeanArtSpec, type RigPart } from './bean-contract';
 import { usesKeyColours } from './colours';
-import { parseSvgParts, type SvgDoc, type SvgPart } from './svg-parts';
+import { ArtContractError, parseSvgParts, type SvgDoc, type SvgPart } from './svg-parts';
 import { MIRRORED_VIEWS, VIEWS, type BeanView } from './views';
 
 export type CosmeticKind = 'pattern' | 'headwear' | 'face';
 
-/** The cosmetic drawings, by kind and id (`art/bean/patterns/`, `headwear/`, `faces/`). */
-export const COSMETIC_SVGS: Readonly<Record<CosmeticKind, Readonly<Record<string, string>>>> = {
-  pattern: { spots },
-  headwear: { sprout, 'bear-ears': bearEars, bow },
-  face: { glasses },
-};
+/** Cosmetic drawings as SVG text, by kind and id (`art/bean/patterns/`, `headwear/`, `faces/`). */
+export type CosmeticSources = Readonly<Record<CosmeticKind, Readonly<Record<string, string>>>>;
+
+/** The folder under art/bean/ each kind's drawings live in. */
+export const COSMETIC_FOLDERS: Readonly<Record<CosmeticKind, string>> = { pattern: 'patterns', headwear: 'headwear', face: 'faces' };
 
 /** Views each kind must draw: every view, except faces, which only show where the eyes are. */
 export const COSMETIC_VIEWS: Readonly<Record<CosmeticKind, readonly BeanView[]>> = {
@@ -41,7 +36,7 @@ export interface CosmeticArt {
 export type CosmeticsSpec = Record<CosmeticKind, Record<string, CosmeticArt>>;
 
 /** Parse and check the cosmetic art (flat groups per view); throws with every problem found. */
-export function buildCosmeticsSpec(sources: typeof COSMETIC_SVGS = COSMETIC_SVGS): CosmeticsSpec {
+export function buildCosmeticsSpec(sources: CosmeticSources): CosmeticsSpec {
   const problems: string[] = [];
   const spec: CosmeticsSpec = { pattern: {}, headwear: {}, face: {} };
   for (const kind of Object.keys(sources) as CosmeticKind[]) {
@@ -73,7 +68,7 @@ export function buildCosmeticsSpec(sources: typeof COSMETIC_SVGS = COSMETIC_SVGS
       spec[kind][id] = { kind, id, groups, asymmetric };
     }
   }
-  if (problems.length) throw new Error(`Cosmetic art breaks the art contract:\n- ${problems.join('\n- ')}`);
+  if (problems.length) throw new ArtContractError('Cosmetic art', problems);
   return spec;
 }
 

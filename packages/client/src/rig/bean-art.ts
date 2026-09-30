@@ -5,6 +5,7 @@ import { BEAN_SVGS } from './bean-art-sources';
 import { buildBeanArtSpec, type BeanArtSpec } from './bean-contract';
 import { recolour, usesKeyColours } from './colours';
 import { buildCosmeticsSpec, cosmeticDocs, type CosmeticsSpec } from './looks';
+import { COSMETIC_SVGS } from './looks-sources';
 import type { SvgDoc } from './svg-parts';
 import { SHADOW_PART } from './views';
 
@@ -50,7 +51,7 @@ function select(docs: Record<string, SvgDoc>, colour: ColourId | null): Record<s
 export async function loadBeanArt(colours: readonly ColourId[] = [DEFAULT_LOOK.colour]): Promise<BeanArt> {
   if (!loaded) {
     const spec = buildBeanArtSpec(BEAN_SVGS);
-    const cosmetics = buildCosmeticsSpec();
+    const cosmetics = buildCosmeticsSpec(COSMETIC_SVGS);
     const docs = { ...spec.docs, ...cosmeticDocs(spec, cosmetics) };
     const textures = await rasterizeParts(select(docs, null), (file, part) => textureKey(null, file, part));
     loaded = { spec, cosmetics, docs, textures, colours: new Set() };

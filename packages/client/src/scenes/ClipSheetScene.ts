@@ -5,6 +5,7 @@ import { BeanRig, createBeanShadow } from '../rig/BeanRig';
 import { CLIP_NAMES, CLIPS, familyOf, phaseTime, type ClipName } from '../rig/clips';
 import { samplePose, type Pose } from '../rig/player';
 import { pickDirections } from '../rig/views';
+import { frameMainCamera, sharpText } from '../screen-scale';
 import type { SceneStartData, TestableScene } from './TestableScene';
 
 /** `?scene=clip` reads these (tools/shot's `pnpm clip:sheet` sets them). */
@@ -40,6 +41,7 @@ export class ClipSheetScene extends Phaser.Scene implements TestableScene {
 
   create(data: SceneStartData): void {
     this.reducedMotion = prefersReducedMotion();
+    frameMainCamera(this);
     const params = new URLSearchParams(window.location.search);
     const clip = params.get(CLIP_SHEET_PARAMS.clip) ?? 'idle';
     if (!(CLIP_NAMES as readonly string[]).includes(clip)) throw new Error(`Unknown clip "${clip}". Clips: ${CLIP_NAMES.join(', ')}.`);
@@ -53,15 +55,15 @@ export class ClipSheetScene extends Phaser.Scene implements TestableScene {
     const scale = Math.min(cellW / 150, (cellH - 14) / 175, 1);
     const ink = cssColor(PALETTE.inkSecondary);
     const title = `${clip}${this.reducedMotion ? ' (prefers-reduced-motion)' : ''}`;
-    this.add.text(8, 4, title, { fontFamily: FONT, fontSize: '14px', color: cssColor(this.reducedMotion ? PALETTE.labelAccent : PALETTE.ink) });
+    sharpText(this.add.text(8, 4, title, { fontFamily: FONT, fontSize: '14px', color: cssColor(this.reducedMotion ? PALETTE.labelAccent : PALETTE.ink) }));
     for (let k = 0; k < phases; k++) {
-      this.add.text(LABEL_W + cellW * (k + 0.5), HEADER_H - 18, `${k}/${phases}`, { fontFamily: FONT, fontSize: '12px', color: ink }).setOrigin(0.5, 0);
+      sharpText(this.add.text(LABEL_W + cellW * (k + 0.5), HEADER_H - 18, `${k}/${phases}`, { fontFamily: FONT, fontSize: '12px', color: ink }).setOrigin(0.5, 0));
     }
     dirs.forEach((dir, r) => {
       const family = familyOf(dir.choice.view);
       const data0 = CLIPS[this.clipName][family];
       const feetY = HEADER_H + cellH * (r + 1) - 14 - 18 * scale;
-      this.add.text(8, feetY - 40 * scale, `${dir.name}\n${dir.choice.view}${dir.choice.mirrored ? ' m' : ''}`, { fontFamily: FONT, fontSize: '12px', color: ink });
+      sharpText(this.add.text(8, feetY - 40 * scale, `${dir.name}\n${dir.choice.view}${dir.choice.mirrored ? ' m' : ''}`, { fontFamily: FONT, fontSize: '12px', color: ink }));
       for (let k = 0; k < phases; k++) {
         const x = LABEL_W + cellW * (k + 0.5);
         const t = phaseTime(data0.duration, data0.loop, k, phases);
@@ -73,7 +75,7 @@ export class ClipSheetScene extends Phaser.Scene implements TestableScene {
         const pose = samplePose({ clip: this.clipName, t, time: 0, view: dir.choice.view, reducedMotion: this.reducedMotion });
         rig.applyPose(pose);
         rig.root.setPosition(x, feetY).setScale(scale);
-        this.add.text(x, feetY + 18 * scale + 2, `t=${t.toFixed(3)}`, { fontFamily: FONT, fontSize: '10px', color: ink }).setOrigin(0.5, 0);
+        sharpText(this.add.text(x, feetY + 18 * scale + 2, `t=${t.toFixed(3)}`, { fontFamily: FONT, fontSize: '10px', color: ink }).setOrigin(0.5, 0));
         this.shown.push({ direction: dir.name, view: dir.choice.view, mirrored: dir.choice.mirrored, t, pose });
       }
     });

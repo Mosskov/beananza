@@ -6,8 +6,12 @@ import { partSvg, type Point, type SvgDoc } from '../rig/svg-parts';
  * drawn on its own canvas and cropped to its pixels. Phaser then draws plain images.
  */
 
-/** Texture pixels per art unit (100 units = 1 m = 100 px at scale 1): sharp up to scale 2. */
-export const ART_RESOLUTION = 2;
+/**
+ * Texture pixels per art unit (100 units = 1 m = 100 px at scale 1): sharp up to scale 3. The canvas
+ * has up to MAX_RENDER_SCALE (2.5) pixels per layout unit (screen-scale.ts), and the bean is drawn
+ * at up to 0.92 of full size in the hub, so 3 stays sharp at the cap.
+ */
+export const ART_RESOLUTION = 3;
 
 export interface PartTexture {
   key: string;

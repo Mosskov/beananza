@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { PIXELS_PER_METER } from '@beananza/shared';
 import { Sim, createDropScenario, type DropCommand, type DropState } from '@beananza/sim';
 import { GAME_HEIGHT, GAME_WIDTH, PALETTE, UI_FONT as FONT, cssColor } from '../config';
+import { frameCamera, sharpText, useRenderScale } from '../screen-scale';
 import { SimScene } from './SimScene';
 
 /** Side view: world metres to scene pixels. +Y up in the sim, +Y down on screen. */
@@ -57,9 +58,11 @@ export class DropScene extends SimScene<DropState, DropCommand> {
       ruler.lineBetween(rulerX, py(m), rulerX + (major ? 40 : 22), py(m));
       if (major) {
         world.push(
-          this.add
-            .text(rulerX - 18, py(m), `${m} m`, { fontFamily: FONT, fontSize: '40px', color: cssColor(PALETTE.inkSecondary) })
-            .setOrigin(1, 0.5),
+          sharpText(
+            this.add
+              .text(rulerX - 18, py(m), `${m} m`, { fontFamily: FONT, fontSize: '40px', color: cssColor(PALETTE.inkSecondary) })
+              .setOrigin(1, 0.5),
+          ),
         );
       }
     }
@@ -80,37 +83,47 @@ export class DropScene extends SimScene<DropState, DropCommand> {
       if (!look) throw new Error(`No look for ball "${ball.id}"`);
       const circle = this.add.circle(px(ball.x), py(ball.y + look.radiusM), px(look.radiusM), look.color);
       const side = ball.x < 0 ? -1 : 1;
-      const label = this.add
-        .text(0, 0, look.label, { fontFamily: FONT, fontSize: '44px', color: cssColor(PALETTE.ink) })
-        .setOrigin(side < 0 ? 1 : 0, 0.5);
+      const label = sharpText(
+        this.add.text(0, 0, look.label, { fontFamily: FONT, fontSize: '44px', color: cssColor(PALETTE.ink) }).setOrigin(side < 0 ? 1 : 0, 0.5),
+      );
       this.balls.set(ball.id, { circle, label, prevY: ball.y });
       world.push(circle, label);
     }
 
     const main = this.cameras.main;
-    main.setZoom(GAME_HEIGHT / px(VIEW_TOP_M - VIEW_BOTTOM_M));
-    main.centerOn(px(VIEW_CENTER_X_M), py((VIEW_TOP_M + VIEW_BOTTOM_M) / 2));
 
     // Readouts live on a second, unzoomed camera.
     // PLACEHOLDER UI: plain system-font text until the field-notebook overlay style exists.
-    this.timerText = this.add.text(32, 24, '', { fontFamily: FONT, fontSize: '40px', color: cssColor(PALETTE.ink) });
-    this.landedText = this.add.text(32, 76, '', {
-      fontFamily: FONT,
-      fontSize: '24px',
-      color: cssColor(PALETTE.inkSecondary),
-      lineSpacing: 6,
-    });
-    const hint = this.add
-      .text(GAME_WIDTH - 24, GAME_HEIGHT - 20, 'R or tap: drop again', {
+    this.timerText = sharpText(this.add.text(32, 24, '', { fontFamily: FONT, fontSize: '40px', color: cssColor(PALETTE.ink) }));
+    this.landedText = sharpText(
+      this.add.text(32, 76, '', {
         fontFamily: FONT,
-        fontSize: '20px',
+        fontSize: '24px',
         color: cssColor(PALETTE.inkSecondary),
-      })
-      .setOrigin(1, 1);
+        lineSpacing: 6,
+      }),
+    );
+    const hint = sharpText(
+      this.add
+        .text(GAME_WIDTH - 24, GAME_HEIGHT - 20, 'R or tap: drop again', {
+          fontFamily: FONT,
+          fontSize: '20px',
+          color: cssColor(PALETTE.inkSecondary),
+        })
+        .setOrigin(1, 1),
+    );
     const ui = [this.timerText, this.landedText, hint];
     const uiCamera = this.cameras.add(0, 0, GAME_WIDTH, GAME_HEIGHT);
     uiCamera.ignore(world);
     main.ignore(ui);
+
+    // Both cameras follow the canvas resolution (screen-scale.ts): the world one shows the
+    // framed range of metres, the readout one the plain 1280×720 layout.
+    const worldCentre = { x: px(VIEW_CENTER_X_M), y: py((VIEW_TOP_M + VIEW_BOTTOM_M) / 2) };
+    useRenderScale(this, (k) => {
+      frameCamera(main, k, worldCentre, GAME_HEIGHT / px(VIEW_TOP_M - VIEW_BOTTOM_M));
+      frameCamera(uiCamera, k, { x: GAME_WIDTH / 2, y: GAME_HEIGHT / 2 });
+    });
 
     // Input only becomes commands for the sim.
     const reset = () => this.sim.enqueue({ type: 'reset' });

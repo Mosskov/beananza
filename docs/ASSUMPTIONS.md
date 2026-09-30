@@ -136,6 +136,32 @@ No decision changes. From `prompts/tools-prep-session.md`.
   art lane and the sim, hub scene, scripts and golden files to the behaviour lane; the five
   shared files get one-line additions only.
 
+## A sharp picture at full screen, 2026-09-29
+
+Fixes the "Blurry game at full screen" topic in `docs/TOPICS.md`. No decision changes and no sim
+change: the sim states from `pnpm verify` still match `docs/status/m1-s3` (58 of 58), and the
+looks check still shows 177 of 177 identical.
+- **The canvas has the screen's real pixels.** `client/src/screen-scale.ts`: k = fit scale ×
+  `devicePixelRatio`, from the `#game` box, recomputed on every resize (`installRenderScale`).
+  `Phaser.Scale.FIT` stays, so the picture is shown at the same size and letterboxed as before;
+  only the canvas behind it grows. At 1280×720 and a ratio of 1, k is 1 and nothing changes.
+- **Scenes keep the 1280×720 layout.** Every camera is framed with `frameCamera` (size, zoom × k,
+  centred on the same point), so scene coordinates, taps and the `view` blocks in the shot logs
+  (`onScreen` in `HubScene.debugState`) are the same at every k. The hub's controls hint used
+  `setScrollFactor(0)`, which zooms about the camera's centre, so it now sits in the world at the
+  window's bottom right corner; the hub camera never moves.
+- **Text renders at resolution k** (`sharpText`), and follows k when the window changes.
+- **k is capped at 2.5** (`MAX_RENDER_SCALE`, for weak Chromebooks: a 2560×1440 screen at a ratio
+  of 1 needs 2, a 4K one 3) and floored at 0.5 (small phones need fewer pixels than the layout).
+- **`ART_RESOLUTION` 2 → 3**, so the bean (drawn up to 0.92 of full size in the hub) stays sharp at
+  the cap. At k = 1 the screenshots differ a little from the M1 session 3 evidence (sharper edges);
+  the logs do not. Texture memory for the parts is about 2.25 times what it was.
+- **Measured** (software GL, headless Chromium): the canvas is exactly the CSS size × ratio for
+  1280×720 at ratios 1 and 2, 1920×1080, 900×700 and a 390×700 phone at ratio 3, and follows live
+  window resizes. A tap at layout x = 800 at 1920×1080 sends the bean to sim x = 1.6 m.
+  Not measured: fps on real GPUs, Chromebooks and phones (the sandbox's software GL gives 3 to 30
+  fps run to run, before and after alike).
+
 ## Hub refactor for parallel work (branch `refactor/hub-parallel`), 2026-09-29
 
 No behaviour change: 58 sim states identical to `docs/status/m1-s3`, and the view blocks and all

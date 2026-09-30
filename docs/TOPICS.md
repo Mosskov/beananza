@@ -4,15 +4,9 @@ Nothing is approved. "Explored" means discussed or mocked up with a leaning, not
 
 ## Up next
 1. **First expedition** (Mechanics Valley, projectile): what students do, the prediction interface, measurement tools, success criteria. Blocks Milestone 1 (D9).
-2. **Tools prep session** (`prompts/tools-prep-session.md`): the pull request as the unit of
-   work. CI and golden sim states in the repo, the art toolkit (`art:part`, `art:check`) and
-   the clip sheet, the skills, reviewer agent, PR template and guard hooks, then the two-lane
-   rule (one art lane and one behaviour lane at a time). Runs before the asset, interaction
-   and animation lanes. Planned 2026-09-30.
-3. **Reaction model** (`prompts/reactions-design-pass.md`): where a reaction lives (sim state
-   or derived), how it combines with `act`, layering in the rig player, effects as drawn
-   parts, emotes as commands, and determinism for M2. A design pass, no art chosen; it writes
-   the first reactions build prompt. Planned 2026-09-30.
+2. **Tools prep:** done 2026-09-30 (PR #5): CI, golden sim states, the art toolkit, the clip
+   sheet, the reviewer agent, PR template and guard hooks.
+3. **Reaction model:** done 2026-09-30 (D26, PR #7). The reaction art is still to draw.
 4. **Teacher and classroom experience:** how a lesson runs start to finish, teacher controls, fitting a class period.
 5. **Progression and notebook:** what students collect or unlock, mastery tracking, reasons to return at home.
 6. **Onboarding:** a student's first five minutes (bean creation, controls, first prediction).
@@ -24,13 +18,13 @@ Nothing is approved. "Explored" means discussed or mocked up with a leaning, not
    `docs/ART_PIPELINE.md` §7.
 11. **Drawing tool:** answered 2026-09-29: Claude draws SVG text, so there is no tool and no
    exporter (D13).
-12. **Sim architecture sketch** in SI units, plus the first unit tests (`prompts/M0-first-session.md`).
+12. **Sim architecture sketch** in SI units, plus the first unit tests (done in M0).
 13. **Catapult as predict, test, compare:** a prediction marker, a trail of the real flight, and the gap between them. Deferred by the user for now.
 
 ## To return to (raised 2026-09-29, share-site session)
 
 ### Blurry game at full screen (fixed 2026-09-29)
-**Fixed:** see "A sharp picture at full screen" in `docs/ASSUMPTIONS.md` and
+**Fixed:** see "A sharp picture at full screen" in `docs/archive/ASSUMPTIONS.md` and
 `packages/client/src/screen-scale.ts`. The problem and the plan below are kept as they were.
 
 **Problem:** the game draws into a fixed 1280×720 canvas (`Phaser.Scale.FIT` in
@@ -84,9 +78,12 @@ four forms × five views is where hand drawing gets expensive.
 ## To return to (raised 2026-09-29, after M1 session 3)
 
 ### A smoother session workflow (done 2026-09-29, tools session)
+**Superseded 2026-09-30** by CLAUDE.md "How we work" (short steered sessions, one at a time,
+decisions asked in-session). Kept as it was:
+
 **Decided with the user:**
 - **Design passes run in a separate short chat** before a build session, so the build runs
-  without waiting on answers. The D9 questions are in `prompts/D9-design-pass.md`.
+  without waiting on answers. The D9 questions are now in `docs/D9-options.md`.
 - **Concurrent sessions each use their own git worktree** at a short path, on their own branch.
 - **Art changes are reviewed with `pnpm art:sheet`** (D13).
 

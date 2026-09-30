@@ -6,7 +6,7 @@
 
 ## Golden diff
 
-## Assumptions logged
+## Routine choices (constants and files)
 
 ## Open issues
 

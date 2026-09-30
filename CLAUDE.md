@@ -21,7 +21,10 @@ and at home.
 - `docs/IMPLEMENTATION.md`: lessons from the prototypes, architecture rules, rotation approach, engine options, behavior inventory and verified tuning numbers
 - `docs/ART_PIPELINE.md`: the art pipeline (Claude draws SVG text, contract checks, review sheets)
 - `docs/TOPICS.md`: design topics backlog
-- `prompts/M0-first-session.md`: the prepared prompt for the first build session
+- `docs/STATUS.md`: the current state (what works, open issues, next)
+- `docs/D9-options.md`: prepared options for D9 (the first expedition), asked in-session
+- `docs/archive/`: frozen history (old session reports, the assumptions log, the old prompts'
+  handover). Not maintained; read only when a detail is needed.
 - `reference/`: the showcase page and the bean rotation comparison (open in a browser). Behavior reference only; never port their code.
 - `art/`: the bean, cosmetic and prop SVGs the game loads by part id, with anchors and pivots in the files (see `art/README.md`), plus reference art (body forms, the Heavy Baron) and the palette.
 
@@ -81,7 +84,7 @@ Details in `README.md`.
 - `pnpm verify`: the whole pass in about a minute: check, every scene and script, the looks, and
   the sim states against `tools/shot/golden/` (`pnpm verify --update-golden` rewrites them; the
   diff is reviewed in the PR). Between steps use `pnpm verify --no-check --scripts <names>`.
-  CI runs it on every push (`.github/workflows/verify.yml`).
+  CI runs it on every pull request and on pushes to main (`.github/workflows/verify.yml`).
 - `pnpm shot --all` or `pnpm shot --scene drop --t 1.0`: PNG plus JSON log in `artifacts/shots/`.
   It starts its own server on a free port (`--reuse` for the one on 5180), and `--jobs 4` runs
   scripts in parallel.
@@ -91,42 +94,33 @@ Details in `README.md`.
 - `pnpm art:check`, `pnpm art:part <file>`, `pnpm clip:sheet <clip>`: the art contract, one
   piece in all views, one clip across its cycle, in seconds and without the game.
 - `pnpm art:sheet`: before, after and difference of the art against HEAD, for review.
-- Routine choices go in `docs/ASSUMPTIONS.md`; current state in the "Current state" section of
-  `docs/STATUS.md`.
 
-## How work runs
-- **Procedures are skills** (`.claude/skills/`): `session-start`, `hub-interaction`,
-  `draw-piece`, `add-clip`, `design-pass`, `pr-ready`. Follow the one for the work; a session
-  prompt is its scope plus the skills to use. README.md "How work is done: skills" lists them.
-- **The pull request is the unit of work.** CI (`.github/workflows/verify.yml`) runs check and
-  verify on every push; the `reviewer` agent reviews; **the user merges**. Never merge into
-  main, force-push, or run `pnpm share:deploy` / `pnpm share:password` without asking (a guard
-  hook in `.claude/settings.json` blocks them).
-- **Design passes** (questions that need the user's answers) run in a separate chat before a
-  build session (`design-pass`). The build prompt starts from what `docs/DECISIONS.md` records.
-
-## Lanes: at most two at a time
-Review capacity is the limit, not build capacity, so at most **two lanes** run at once: **one
-art** and **one behaviour**. Each is its own branch with its own PR: its own git worktree
-locally (never switch branches in a shared tree; `session-start` has the command), or a cloud
-session. CI must be green before review.
-
-What each lane owns (the other lane leaves these alone):
-- **Art lane:** `art/**` and `art/README.md`; the drawing loaders and cosmetics
-  (`packages/client/src/rig/looks*.ts`, `bean-art-sources.ts`, `colours.ts`, `clips.ts`,
-  `packages/client/src/art/prop-sources.ts`, `prop-contract.ts`, `checks.ts`); the galleries
-  and the clip sheet (`BeanGalleryScene.ts`, `LooksGalleryScene.ts`, `ClipSheetScene.ts`); the
-  look ids in `packages/shared/src/look.ts`.
-- **Behaviour lane:** `packages/sim/**`; the hub scene and its presentation
-  (`HubScene.ts`, `hub-*.ts`, `scenes/presentation/**`); `tools/shot/scripts/**` and
-  `tools/shot/golden/**`.
-- **Shared files, one-line additions only** (both lanes may add a line; nobody reorders or
-  rewrites them): the act union `HubAct` (`packages/sim/src/scenarios/hub-world.ts`), the
-  interactions index (`packages/sim/src/interactions/index.ts`), the presentation spread
-  (`packages/client/src/scenes/hub-presentation.ts`), the layouts table `HUB_LAYOUTS`
-  (`packages/sim/src/scenarios/hub-layouts.ts`), and the scene registry
-  (`packages/client/src/scenes/registry.ts`).
-- Docs: each lane writes its own heading in `docs/ASSUMPTIONS.md` and updates "Current state"
-  in `docs/STATUS.md` in its PR; the second PR to merge rebases those lines.
+## How we work
+The user's attention is the limit, so sessions are short, steered and one at a time.
+- **Start:** read "Current state" in `docs/STATUS.md` and `gh pr list` (with CI status; a red
+  run on an open PR comes first), say where things are in 3 lines, and agree with the user on **one slice** for the session.
+- **Branch:** one per session, `<area>/<topic>`, in the main checkout. Use a git worktree only
+  when the user deliberately runs a second session at the same time.
+- **Open decisions:** when one comes up, ask in the session (options plus one recommendation),
+  then record what the user confirms in `docs/DECISIONS.md`. No separate design chats.
+- **Size:** the hand-written diff (not golden files or generated output) should be reviewable in
+  about 15 minutes, roughly under 600 lines. If a slice grows, stop at a working point and open
+  the PR; the rest is the next session.
+- **While working:** `pnpm verify --no-check --scripts <the scripts the change touches>`. Look at
+  every screenshot or sheet before claiming a result. Updates are 1 to 2 lines, only at step
+  boundaries or when something breaks or needs the user.
+- **Technical recipes are skills** (`.claude/skills/`): `hub-interaction`, `draw-piece`,
+  `add-clip`. Show every art change as a `pnpm art:sheet` image.
+- **End:** full `pnpm verify` green (explain every golden change), update "Current state" in
+  `docs/STATUS.md` in place, commit, confirm `git status` is clean (so CI tests what was
+  tested locally), push, and open the PR from the template. Don't wait for CI
+  (`.github/workflows/verify.yml`): the user checks it before merging, and a red run is fixed
+  at the start of the next session. Show the key screenshot or sheet, then hand over in **at
+  most 10 lines**: PR link, what to look at, what failed, decisions needed. Routine choices go
+  in the PR description.
+- **Reviewer agent:** only for sim, physics or determinism changes, or when the user asks. One
+  round; what is left goes in the PR's open issues.
+- **The user merges.** Never merge into main, force-push, or run `pnpm share:deploy` /
+  `pnpm share:password` without asking (a guard hook in `.claude/settings.json` blocks them).
 
 @docs/DECISIONS.md

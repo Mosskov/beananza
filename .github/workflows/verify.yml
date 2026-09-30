@@ -1,4 +1,5 @@
-# The mechanical half of the review gate, on every push and pull request: a fresh clone,
+# The mechanical half of the review gate, on every pull request and every push to main (a
+# push to a PR branch runs once, as the pull_request event): a fresh clone,
 # install, pnpm check, then pnpm verify (every scene and script with zero console errors, the
 # cart and looks checks, and the sim states against tools/shot/golden/). Runners have no GPU,
 # so WebGL runs on software GL; the fps numbers in the summary are informational only.
@@ -7,6 +8,7 @@ name: verify
 
 on:
   push:
+    branches: [main]
   pull_request:
 
 concurrency:

@@ -78,17 +78,23 @@ export function headingText(md: string, level: number, heading: string): string 
   return line.slice(marker.length).trim();
 }
 
+const PROGRESS: Record<string, Milestone['progress']> = { done: 'done', 'in progress': 'in-progress', planned: 'planned' };
+
 /**
- * Milestones from docs/ROADMAP.md. Progress comes from docs/STATUS.md: a milestone is done when
- * STATUS has a "## Milestone N" report, in progress when it has "## MN, session …" reports only.
+ * Milestones from docs/ROADMAP.md. Progress comes from each milestone's
+ * "- **Progress:** done | in progress | planned" line (planned when there is none).
  */
-export function parseRoadmap(roadmap: string, status: string): Milestone[] {
-  const statusHeadings = status.split('\n').filter((l) => l.startsWith('## '));
+export function parseRoadmap(roadmap: string): Milestone[] {
   const found = [...roadmap.matchAll(/^## Milestone (\d+): (.+)$/gm)];
   if (found.length === 0) throw new Error('ROADMAP.md: no "## Milestone N: title" headings');
   return found.map((m) => {
     const number = Number(m[1]);
-    const lines = section(roadmap, 2, `Milestone ${number}:`).split('\n');
+    const all = section(roadmap, 2, `Milestone ${number}:`).split('\n');
+    const progressLine = all.find((l) => /^-\s*\*\*Progress:\*\*/.test(l));
+    const progressText = progressLine?.replace(/^-\s*\*\*Progress:\*\*\s*/, '').trim().toLowerCase() ?? 'planned';
+    const progress = PROGRESS[progressText];
+    if (!progress) throw new Error(`ROADMAP.md: unknown progress "${progressText}" in Milestone ${number}`);
+    const lines = all.filter((l) => l !== progressLine);
     // The "Done when" bullet plus its indented continuation lines.
     const start = lines.findIndex((l) => /\*\*Done when:\*\*/.test(l));
     let end = start + 1;
@@ -98,9 +104,7 @@ export function parseRoadmap(roadmap: string, status: string): Milestone[] {
       start >= 0
         ? lines.slice(start, end).map((l) => l.trim()).join(' ').replace(/^-\s*\*\*Done when:\*\*\s*/, '')
         : null;
-    const done = statusHeadings.some((h) => h.startsWith(`## Milestone ${number}:`));
-    const started = statusHeadings.some((h) => h.startsWith(`## M${number},`));
-    return { number, title: m[2]!.trim(), body, doneWhen, progress: done ? 'done' : started ? 'in-progress' : 'planned' };
+    return { number, title: m[2]!.trim(), body, doneWhen, progress };
   });
 }
 

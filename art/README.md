@@ -40,7 +40,7 @@ exploration) and are not loaded yet.
   outside the body (the body-outline check skips them). Effects are placed at them by slot
   (`fxHead`, `fxBrow`, `fxGround`, `packages/client/src/rig/views.ts`); head and brow ride with the
   body, ground stays on the ground. The positions are a first guess from the prototype (the "z"
-  and the sweat drop in `reference/showcase.html`); the art lane tunes them per view.
+  and the sweat drop in `reference/showcase.html`); they get tuned per view when the effects are drawn.
 - **Customization (D25), composed at load time, never per combination:**
   - **Colours:** the bean is drawn in orange key colours (body `#E08A5B`, arm `#C96F42`, foot
     `#B8622F`, belly `#F2B48C`, and the side and ¾ views' far foot `#A3572A` and far arm

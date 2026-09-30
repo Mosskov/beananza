@@ -11,7 +11,7 @@ its golden states stay untouched until the finished thing moves in (D2).
 
 ## 1. Settle the rules first
 - [ ] Read `docs/DECISIONS.md` for the interaction. If a behaviour or number it needs is Open,
-      stop and run the `design-pass` skill (or ask); don't pick numbers silently.
+      stop and ask the user (options plus one recommendation); don't pick numbers silently.
 - [ ] Read an existing module end to end: `packages/sim/src/interactions/bench.ts` (walk over,
       hop, sit) or `cart.ts`, and `interactions/types.ts` (`HubInteraction`: `command`,
       `drive`, `place`, `facing`, `settle`).
@@ -23,8 +23,8 @@ its golden states stay untouched until the finished thing moves in (D2).
       positions are a pure function of the tick (`hop.ts`). SI units, 60 Hz, no randomness
       outside the seeded RNG.
 - [ ] Add the act type to `HubAct` in `packages/sim/src/scenarios/hub-world.ts`, and the module
-      and its rules to `INTERACTIONS` and `ACT_RULES` in `interactions/index.ts`. One line each:
-      these are shared files another lane may be editing.
+      and its rules to `INTERACTIONS` and `ACT_RULES` in `interactions/index.ts`. One line each;
+      don't reorder or rewrite these shared lists.
 - [ ] Write `packages/sim/test/hub-<name>.test.ts` **before** the client work: each transition
       step by step in ticks, input ignored where it must be, out-of-reach cases, a mid-hop
       snapshot restored into a fresh scenario, and 10,000-step determinism with scripted input.
@@ -65,5 +65,5 @@ its golden states stay untouched until the finished thing moves in (D2).
       `pnpm verify --update-golden --scripts <the new scripts>` and read the new files.
 - [ ] At the end: the full `pnpm verify`. The plaza's golden states must show **no diff**; if one
       does, the interaction leaked into the plaza. Fix that rather than updating golden.
-- [ ] Log routine choices in `docs/ASSUMPTIONS.md`; describe the yard, scripts and tests in
-      `README.md` (tests list, scripts). Finish with `pr-ready`.
+- [ ] Put routine choices in the PR description; describe the yard, scripts and tests in
+      `README.md` (tests list, scripts). Finish as CLAUDE.md "How we work" says.

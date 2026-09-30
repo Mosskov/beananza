@@ -457,7 +457,9 @@ prompt names the ones to use:
 The `reviewer` agent (`.claude/agents/reviewer.md`) reviews a PR without writing code. The PR
 template is `.github/pull_request_template.md`. `.claude/settings.json` allows the everyday
 read-only commands and blocks (through `.claude/hooks/guard.mjs`) `pnpm share:deploy`,
-`pnpm share:password`, force-pushes, and merging or rebasing on main.
+`pnpm share:password`, force-pushes, and merging or rebasing on main. In a Claude Code on the
+web session, a SessionStart hook (`.claude/hooks/session-start.sh`) runs `pnpm install` and
+installs Playwright's Chromium if it is missing, so `pnpm verify` works in a fresh container.
 
 ## Adding a scene
 

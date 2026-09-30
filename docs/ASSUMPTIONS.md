@@ -77,6 +77,45 @@ No decision changes. From `prompts/tools-prep-session.md`.
   "z") are a small table in the scene that mirrors the hub's presentation rows. Shot at 2×
   device pixels so 8 × 8 cells stay readable. `verify` shoots it live with its defaults (idle).
 
+### Skills, the reviewer, the PR template, hooks
+- **Six skills, not five:** the five the prompt names plus `session-start` (worktree, install,
+  baseline), because the fourth-session prompt's setup and baseline sections had to become a
+  skill name too. Written by hand in the skill-creator's format (frontmatter with a
+  trigger-rich description, checklists that say why); its eval loop was skipped, as the
+  reviewer walks each skill on a toy case instead.
+- **"Adding a scene" stays in README** as the one copy: no skill covers a new scene on its own,
+  and the CLAUDE.md line that repeated it is gone. `hub-interaction` points at it.
+- **The reviewer agent** has Read, Grep, Glob, Bash and PowerShell; no Edit or Write. Its
+  instructions forbid writing into the repo through the shell; the tool list cannot enforce
+  that.
+- **The guard is a Node script** (`.claude/hooks/guard.mjs`), so it runs the same on Windows,
+  in CI and in cloud containers, and returns a PreToolUse `deny` with a reason that says to ask
+  the user. It splits a command on `;`, `&&`, `||`, `|` and newlines and checks each part:
+  `pnpm … share:deploy|share:password|cf-deploy|cf-password`; `git … push` with `--force`,
+  `--force-with-lease`, `--force-if-includes`, a short flag cluster containing `f`, or a `+`
+  refspec; `git merge|rebase` when the current branch (in the payload's `cwd`) is main, or
+  after a `git checkout|switch main` earlier in the same command. Known limits: it reads the
+  branch of `cwd`, not of a `cd` or `-C` path inside the command, and a commit message that
+  quotes a blocked command is blocked too (the user can then run it).
+- **The allowlist** names each command (`pnpm art:part`, `pnpm art:part *`, …) for both Bash
+  and PowerShell, rather than the legacy `:*` prefix form, which reads ambiguously next to
+  script names with colons.
+- **No render-on-save hook,** as the prompt says: the skills call `art:part` when it matters.
+
+### Cloud sessions and lanes
+- **SessionStart hook** (`.claude/hooks/session-start.sh`): only when `CLAUDE_CODE_REMOTE` is
+  `true`; `pnpm install --frozen-lockfile` (enabling corepack if pnpm is missing); Playwright's
+  Chromium only if `chromium.executablePath()` does not exist (so a `PLAYWRIGHT_BROWSERS_PATH`
+  that already has it is used), then `playwright install-deps chromium` where the container
+  allows it. It calls Playwright through `pnpm exec`, not `pnpm shot:install`, to avoid a nested
+  pnpm. Tested here on Windows with `CLAUDE_CODE_REMOTE=true`: with the browser present it
+  skips it (5 s); with an empty `PLAYWRIGHT_BROWSERS_PATH` it installed Chromium and the
+  headless shell (2 min 25 s) and the next run skipped it. **Not tested in a real cloud
+  container.**
+- **The lane file map** in CLAUDE.md assigns the drawing loaders, galleries and clip data to the
+  art lane and the sim, hub scene, scripts and golden files to the behaviour lane; the five
+  shared files get one-line additions only.
+
 ## Hub refactor for parallel work (branch `refactor/hub-parallel`), 2026-09-29
 
 No behaviour change: 58 sim states identical to `docs/status/m1-s3`, and the view blocks and all

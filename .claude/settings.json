@@ -79,6 +79,18 @@
           }
         ]
       }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/session-start.sh\"",
+            "timeout": 900,
+            "statusMessage": "Installing dependencies for a cloud session"
+          }
+        ]
+      }
     ]
   }
 }

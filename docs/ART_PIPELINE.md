@@ -111,10 +111,9 @@ It writes three kinds of output to `artifacts/art/`:
 - `zoom.png`: the same, cropped to what changed;
 - the changed pixel count and box for each scene.
 
-Both sides are drawn by the current code, so the sheet shows only what the art change did.
-Look at the sheet, and check that every magenta area was meant to change (for example, a change
-to the front view must not touch side or back views), before showing it to the user and
-committing.
+Both sides are drawn by the current code, so the sheet shows only what the art change did. The
+steps for drawing a piece and getting it reviewed, magenta check included, are the
+`draw-piece` skill (`.claude/skills/draw-piece/SKILL.md`).
 
 ## 6. Props that must rotate
 

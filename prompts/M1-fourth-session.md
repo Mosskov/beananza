@@ -66,7 +66,7 @@ Build what D9 records. Anything D9 leaves Open that a slice needs: stop and ask.
    - Draw any new art once as SVG in `art/` and load it by part id (props that never turn,
      D12), with anchors per D22. Show me every new or changed drawing with `pnpm art:sheet`.
 3. **Getting there from the hub**, as confirmed. The hub's existing scripts must still give the
-   same sim states (`pnpm verify` compares against `docs/status/m1-s3`), apart from documented
+   same sim states (`pnpm verify` compares against `tools/shot/golden/`), apart from documented
    additions to the layout.
 4. **The notebook log**, as confirmed.
    - A notebook entry is written when the result is known. Storage is client-side and never
@@ -90,40 +90,26 @@ Out of scope:
 - the Discovery Wall, and sending any data anywhere
 - the in-game wardrobe
 
-# How to work (same rules as before)
+# How to work
+- **Skills:** `hub-interaction` for getting there from the hub; `draw-piece` for new art;
+  `add-clip` for new animation. The expedition sim and scene follow `hub-interaction`'s order
+  (sim first with tests, its own scripts, the plaza untouched) though they are a new scene
+  (README, "Adding a scene").
 - Small steps. Each ends with the app loadable, `pnpm check` green, and a commit with a clear
   message.
-- **Checks:**
-  - Between steps: `pnpm verify --no-check --scripts <the scripts the change touches>`.
-  - At the end of each slice: the full `pnpm verify`.
-  - New scripts go in `tools/shot/scripts/`, and `verify` picks them up.
-  - `pnpm shot:sheet` puts many frames in one image for review.
-- Build sim behaviour in `packages/sim` with tests first. The client only renders sim state and
-  turns input into commands. The boundary test must keep passing.
 - Port behaviour and numbers from the prototypes (`reference/`, `docs/IMPLEMENTATION.md` §6),
   never their code. Prototype numbers are screen pixels at 100 px = 1 m with stylized gravity;
   re-derive them in SI and say how.
 - Routine choices: decide, keep them reversible, and log them in `docs/ASSUMPTIONS.md` under an
   "M1 session 4" heading.
 - Anything that would lock an Open decision beyond what DECISIONS.md records: stop and ask.
-- Never claim something works or looks right without a screenshot or test you have actually
-  checked in this session. Report failures as failures.
-- Windows: keep clone and worktree paths short. pnpm fails beyond about 260 characters.
-- In the Bash tool, heredocs and inline Python can collapse `\\` into `\` (session 3 lost regex
-  escapes and newlines this way). Use the Write and Edit tools for code with backslashes.
-- Commit your own files by path, on your branch. Ask me before merging into main.
 
 # Review gate
-When the slices look done, run a separate reviewer subagent that writes no code. It works in a
-fresh clone at a short path and runs `pnpm install`, `pnpm shot:install` and `pnpm verify`
-there (tools/shot starts its own server on a free port). It checks:
-- `pnpm verify` passes from a clean clone:
-  - install, build, typecheck, lint and tests;
-  - zero console errors in every scene and script;
-  - `check-carts` and the looks;
-  - no hub differences against `docs/status/m1-s3`, apart from the documented layout additions.
-
-  The reviewer looks at every PNG, using `pnpm shot:sheet` to see them together.
+Part of `pr-ready`: push, CI green, open the PR, then run the `reviewer` agent on it with this
+checklist (CI proves the verify pass; the reviewer looks at every PNG):
+- `pnpm verify` passes (CI): zero console errors in every scene and script, `check-carts`, the
+  looks, and no hub differences against `tools/shot/golden/`, apart from the documented layout
+  additions.
 - the expedition physics:
   - the numbers match the textbook within the tolerance the tests state, recomputed by the
     reviewer from the logs (range, flight time, apex)
@@ -155,19 +141,14 @@ there (tools/shot starts its own server on a free port). It checks:
 Fix what it finds, at most 3 rounds. Whatever still fails gets written up, not hidden.
 
 # Finish
-Add an "M1, session 4" section at the top of `docs/STATUS.md`. It should cover:
-- what was built
-- test and screenshot results, with file paths. Copy the evidence (`artifacts/shots/`, and the
-  `art:sheet` images for new art) into `docs/status/m1-s4/`, so the next `pnpm verify` compares
-  against it.
+Skill `pr-ready`. The PR description (from the template) and the "Current state" section of
+`docs/STATUS.md` also cover:
+- test and screenshot results, with file paths; the new scripts' golden files and why they are
+  what they are
 - fps as measured (informational), including the expedition scene in both GPU and software GL
 - decisions confirmed
-- open issues
 - the proposed plan for the next session: whether M1's "done when" is met, what remains
-  (touch, CI, sharpness, if not done), and what M2 (the multiplayer hub) needs settled first
+  (touch, sharpness, if not done), and what M2 (the multiplayer hub) needs settled first
   (D5, D8, the Colyseus part of D6, and the determinism and occupancy notes from STATUS)
 
-Delete the reviewer's clones and any other temporary clones before you finish, and confirm
-they are gone. Leave your worktree and branch for me to merge.
-
-Then stop.
+Then stop, leaving the branch and the PR for me to merge.

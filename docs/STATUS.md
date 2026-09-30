@@ -1,5 +1,35 @@
 # Status
 
+## Current state
+
+Updated in place by every pull request (the `pr-ready` skill). The dated sections below it are
+history; no new ones are added.
+
+**Last updated:** 2026-09-30, tools prep session (branch `tools/prep`).
+
+**What works** (M1 so far):
+- The hub plaza: walking and running, jumping, two carts on a rail (push, ride, the hop in and
+  out), the bench with Priya, and customization by `?look=` (10 colours, spots, three headwear
+  pieces, glasses). Test yards per interaction (`?layout=bench`, `?layout=carts`).
+- Tool scenes: `bean` and `looks` galleries, the `clip` sheet, the `drop` test.
+- **Workflow:** CI on every push (check and verify); golden sim states in
+  `tools/shot/golden/` (64 files); `art:check`, `art:part`, `clip:sheet`; skills for each
+  procedure, the `reviewer` agent, the PR template, and a guard hook. At most two lanes (one
+  art, one behaviour) at a time (CLAUDE.md).
+
+**Open issues** (details in the dated sections below):
+- CI has not run yet: the branch could not be pushed from this machine (403 for the signed-in
+  GitHub account). The workflow is untested on GitHub's runners.
+- The flaky browser close during long runs (seen once in M1 session 3 and once in the workflow
+  session); no retry, recorded if it recurs.
+- From M1 session 3: the depth tie with Priya, the rim-line strip in mid-hop, the mask filter's
+  cost, `Math.hypot` and trig for cross-engine determinism (M2), seat occupancy as layout data,
+  no touch buttons, no in-game wardrobe, the other body forms (D7).
+
+**Next:** the D9 design pass (`prompts/D9-design-pass.md`), then M1 session 4
+(`prompts/M1-fourth-session.md`, the expedition) as the behaviour lane, and the reactions build
+(`prompts/reactions-first-session.md`) or other art as the art lane.
+
 ## M1, session 3: interaction states, the bench, customization basics (2026-09-29)
 
 All three slices are built, tested and reviewed. Priya came along with the bench, after

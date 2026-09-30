@@ -442,18 +442,22 @@ docs/       design, decisions, implementation notes, assumptions, status
 art/, reference/   design references only (never ported as code)
 ```
 
-## Adding a hub interaction
+## How work is done: skills
 
-1. Create `packages/sim/src/interactions/<name>.ts`: its act type (`<Name>Act`), its rules per act
-   kind (`walks`, `usesPlanck`) and its `HubInteraction` module, with tests.
-2. Add the act type to `HubAct` in `packages/sim/src/scenarios/hub-world.ts`, and the module and
-   its rules to `packages/sim/src/interactions/index.ts`.
-3. Add its rows to `packages/client/src/scenes/presentation/<name>.ts` and spread them into
-   `hub-presentation.ts`. The compiler lists anything missing.
-4. A prop it uses names its drawing (`art`) in the layout; `usable: true` sends taps on it as `use`.
-5. Build it in its own test yard: one line in `HUB_LAYOUTS` (`hub-layouts.ts`), with scripts that
-   set `"layout"`. The plaza and its evidence stay untouched; putting the finished thing into the
-   plaza is its own step (D2).
+The repeated procedures are Claude Code skills in `.claude/skills/`, one copy each; a session
+prompt names the ones to use:
+- `session-start`: own branch and worktree, install, a passing baseline;
+- `hub-interaction`: a new hub interaction (sim module and tests, test yard, scripts,
+  presentation rows);
+- `draw-piece`: drawing or changing art (the contract, `art:check`, `art:part`, `art:sheet`);
+- `add-clip`: an animation clip (data, reduced motion, tests, `clip:sheet`);
+- `design-pass`: settling Open decisions with the user;
+- `pr-ready`: finishing: verify, the golden diff, docs, the PR, CI, the reviewer.
+
+The `reviewer` agent (`.claude/agents/reviewer.md`) reviews a PR without writing code. The PR
+template is `.github/pull_request_template.md`. `.claude/settings.json` allows the everyday
+read-only commands and blocks (through `.claude/hooks/guard.mjs`) `pnpm share:deploy`,
+`pnpm share:password`, force-pushes, and merging or rebasing on main.
 
 ## Adding a scene
 

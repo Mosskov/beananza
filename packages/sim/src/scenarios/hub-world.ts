@@ -4,6 +4,10 @@ import { EARTH_GRAVITY } from '../constants';
 import type { Rail, RailCart, RailCollision } from '../rail';
 import type { BenchAct } from '../interactions/bench';
 import type { CartAct } from '../interactions/cart';
+import type { PortalAct, RegionId } from '../interactions/portal';
+import { closestPointInConvex, hexagon, insetConvex, polygonFromRect, type ConvexPolygon } from '../geometry';
+
+export type { ConvexPolygon, Point, Rect } from '../geometry';
 
 /**
  * The hub's data: layout, state, commands and the numbers every part of the hub shares. The
@@ -34,13 +38,6 @@ export const CART_HALF_DEPTH = 0.2;
  * drawing's `floor` anchor must agree (a test checks it).
  */
 export const CART_FLOOR_M = 0.1;
-
-export interface Rect {
-  minX: number;
-  maxX: number;
-  minY: number;
-  maxY: number;
-}
 
 /** A solid prop, as its footprint on the ground: a box centred on (x, y). */
 export interface PropFootprint {
@@ -95,11 +92,23 @@ export interface BenchSpec extends PropFootprint {
   seats: SeatSpec[];
 }
 
+/**
+ * A region portal (D2): a standing ring the bean walks into, centred on (x, y). Not solid: its
+ * footprint is only for drawing and taps. A tap on its drawing sends `use` with its id.
+ */
+export interface PortalSpec extends PropFootprint {
+  region: RegionId;
+  /** Closed for now (Crystal Caves): walking in bounces the bean back out. */
+  locked?: boolean;
+}
+
 export interface PlazaLayout {
-  /** Where the bean's centre and footprint may go. */
-  walkable: Rect;
+  /** Where the bean's footprint may go: a convex polygon (the plaza's rectangle, the island's hexagon). */
+  walkable: ConvexPolygon;
   props: PropFootprint[];
   benches: BenchSpec[];
+  /** Region portals (the island has one per region; the plaza none). */
+  portals: PortalSpec[];
   /** Where the bean starts. */
   start: { x: number; y: number };
   rail: RailLayout | null;
@@ -110,7 +119,7 @@ export interface PlazaLayout {
  * PLACEHOLDER layout until D2 (hub layout) is designed.
  */
 export const DEFAULT_PLAZA: PlazaLayout = {
-  walkable: { minX: -5.8, maxX: 5.8, minY: -3, maxY: 2 },
+  walkable: polygonFromRect({ minX: -5.8, maxX: 5.8, minY: -3, maxY: 2 }),
   props: [{ id: 'tree', art: 'tree', x: 2.2, y: 0.2, halfWidth: 0.25, halfDepth: 0.2 }],
   // D24: 1.6 × 0.45 m, seat 0.30 m high, seats 0.4 m either side of the centre. PLACEHOLDER
   // spot in the plaza (D2).
@@ -132,6 +141,7 @@ export const DEFAULT_PLAZA: PlazaLayout = {
       ],
     },
   ],
+  portals: [],
   start: { x: -2.5, y: -0.8 },
   // The prototype's rail (7.36 m) and cart spots, centred on x = 0. PLACEHOLDER layout (D2).
   rail: {
@@ -141,6 +151,43 @@ export const DEFAULT_PLAZA: PlazaLayout = {
     carts: [
       { id: 'light', mass: 5, x: -2.1, ridable: true },
       { id: 'heavy', mass: 20, x: 1.6, ridable: false },
+    ],
+  },
+};
+
+/** The sky island's size (D2): a flat-top hexagon, 24 m corner to corner, about 20.8 m north to south. */
+export const ISLAND_CIRCUMRADIUS_M = 12;
+
+/**
+ * The hub (D2, confirmed 2026-09-30): a flat-top hexagon island floating in the sky, big enough
+ * for a class of about 30. The arrival pad is the centre; the rail and its carts sit in the
+ * south-east, the bench with Priya in the south-west. The north half and the west are kept clear
+ * for the region portals. Positions are tuned from screenshots.
+ */
+export const ISLAND: PlazaLayout = {
+  walkable: hexagon(ISLAND_CIRCUMRADIUS_M),
+  props: [
+    { id: 'tree-west', art: 'tree', x: -7.2, y: 2.6, halfWidth: 0.25, halfDepth: 0.2 },
+    { id: 'tree-east', art: 'tree', x: 8.4, y: 1.8, halfWidth: 0.25, halfDepth: 0.2 },
+    { id: 'tree-south', art: 'tree', x: -0.8, y: -7.6, halfWidth: 0.25, halfDepth: 0.2 },
+  ],
+  benches: DEFAULT_PLAZA.benches.map((b) => ({ ...b, x: -5, y: -4.6, seats: b.seats.map((q) => ({ ...q })) })),
+  // One portal per region along the north half, Crystal Caves (locked) by the west corner.
+  portals: [
+    { id: 'portal-mechanics', art: 'portal', usable: true, region: 'mechanics', x: -6.2, y: 6.2, halfWidth: 0.65, halfDepth: 0.2 },
+    { id: 'portal-waves', art: 'portal', usable: true, region: 'waves', x: 0, y: 7.8, halfWidth: 0.65, halfDepth: 0.2 },
+    { id: 'portal-storm', art: 'portal', usable: true, region: 'storm', x: 6.2, y: 6.2, halfWidth: 0.65, halfDepth: 0.2 },
+    { id: 'portal-crystal', art: 'portal', usable: true, region: 'crystal', locked: true, x: -9.2, y: -0.8, halfWidth: 0.65, halfDepth: 0.2 },
+  ],
+  start: { x: 0, y: -1 },
+  // The plaza's rail (7.36 m) and cart spots, moved 4.2 m east and 3.9 m south.
+  rail: {
+    y: -6,
+    minX: 0.52,
+    maxX: 7.88,
+    carts: [
+      { id: 'light', mass: 5, x: 2.1, ridable: true },
+      { id: 'heavy', mass: 20, x: 5.8, ridable: false },
     ],
   },
 };
@@ -160,11 +207,18 @@ export interface HubJump {
  * which defines it next to its code and owns its commands, timed transitions, position and
  * facing. A new interaction adds its act type here and its module to `../interactions/index.ts`.
  */
-export type HubAct = { kind: 'free' } | CartAct | BenchAct;
+export type HubAct = { kind: 'free' } | CartAct | BenchAct | PortalAct;
 
 export type HubActKind = HubAct['kind'];
 
+/** The one player of a single-player hub; commands without a `player` go to this bean. */
+export const LOCAL_PLAYER = 'local';
+
 export interface HubBean {
+  /** The player this bean belongs to (M2: the server's id for the connection; `local` offline). */
+  id: string;
+  /** Held movement input from this player. */
+  input: HubInput;
   /** Ground position (m): x east, y north. */
   x: number;
   y: number;
@@ -208,7 +262,7 @@ export interface HubRailState {
   carts: RailCart[];
   /** The last collisions, oldest first (at most 16). */
   collisions: RailCollision[];
-  /** The last times the bean got in or out, oldest first (at most 16). */
+  /** The last times a bean got in or out, oldest first (at most 16). */
   riders: RiderEvent[];
 }
 
@@ -226,12 +280,16 @@ export interface HubState extends SimStateBase {
    */
   readonly layout: PlazaLayout;
   gravity: number;
-  input: HubInput;
-  bean: HubBean;
+  /**
+   * Every bean in the hub, in the order they joined (M2: a whole class). Each step handles them
+   * in this order, so the step depends only on the state and the commands.
+   */
+  beans: HubBean[];
   rail: HubRailState | null;
 }
 
-export type HubCommand =
+/** What one player does; `player` picks the bean (default LOCAL_PLAYER). */
+export type HubBeanCommand = (
   /** Held direction and Run (from keys or a stick). (0, 0) means no direction held. */
   | { type: 'move'; x: number; y: number; run: boolean }
   /** Walk (or run, if Run is held) to a point on the ground. Clamped to the walkable area. */
@@ -241,25 +299,29 @@ export type HubCommand =
   /** E, the context action: get into the ridable cart or sit on the bench when near, or get out or up. */
   | { type: 'action' }
   /** A tap on a prop (by id), e.g. the bench: walk over and use it. */
-  | { type: 'use'; id: string };
+  | { type: 'use'; id: string }
+) & { player?: string };
+
+export type HubCommand =
+  | HubBeanCommand
+  /** A player arrives (M2): a new bean at `at` (clamped to the walkable area) or the layout's start. */
+  | { type: 'join'; player: string; at?: { x: number; y: number } }
+  /** A player leaves: its bean is gone (a cart it rode keeps its speed, as when hopping out). */
+  | { type: 'leave'; player: string };
 
 export interface HubOptions {
   layout?: PlazaLayout;
   /** Overrides the layout's start position (tests). */
   start?: { x: number; y: number };
   gravity?: number;
+  /**
+   * Start with the local player's bean (default true). The M2 server starts empty and adds a
+   * bean per player with `join`.
+   */
+  local?: boolean;
 }
 
-const clamp = (v: number, lo: number, hi: number) => Math.min(Math.max(v, lo), hi);
-
-/** The walkable area shrunk by the bean's radius: where its centre can be. */
-function centreArea(walkable: Rect): Rect {
-  const r = HUB_BEAN_RADIUS_M;
-  return { minX: walkable.minX + r, maxX: walkable.maxX - r, minY: walkable.minY + r, maxY: walkable.maxY - r };
-}
-
-/** Clamp a tap target so the bean's centre can reach it. */
-export function clampTarget(walkable: Rect, x: number, y: number): { x: number; y: number } {
-  const area = centreArea(walkable);
-  return { x: clamp(x, area.minX, area.maxX), y: clamp(y, area.minY, area.maxY) };
+/** Clamp a tap target so the bean's centre can reach it: the closest point of the walkable area shrunk by its radius. */
+export function clampTarget(walkable: ConvexPolygon, x: number, y: number): { x: number; y: number } {
+  return closestPointInConvex(insetConvex(walkable, HUB_BEAN_RADIUS_M), { x, y });
 }

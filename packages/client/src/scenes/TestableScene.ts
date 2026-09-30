@@ -22,4 +22,8 @@ export interface SceneStartData {
   look?: BeanLook;
   /** A named layout (`?layout=`), for scenes that have them (the hub). Already checked. */
   layout?: string;
+  /** The region the player comes back from (`?from=`): the hub starts in front of its portal. */
+  from?: string;
+  /** The region to show (`?region=`), for the region scene. Already checked. */
+  region?: string;
 }

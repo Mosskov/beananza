@@ -2,29 +2,45 @@
   "script": "hub-bench-around",
   "shot": "going-around",
   "scene": "hub",
-  "layout": null,
+  "layout": "plaza",
   "look": null,
   "state": {
     "layout": {
       "walkable": {
-        "minX": -5.8,
-        "maxX": 5.8,
-        "minY": -3,
-        "maxY": 2
+        "points": [
+          {
+            "x": -5.8,
+            "y": -3
+          },
+          {
+            "x": 5.8,
+            "y": -3
+          },
+          {
+            "x": 5.8,
+            "y": 2
+          },
+          {
+            "x": -5.8,
+            "y": 2
+          }
+        ]
       },
       "props": [
         {
           "id": "tree",
+          "art": "tree",
           "x": 2.2,
           "y": 0.2,
           "halfWidth": 0.25,
-          "halfDepth": 0.2,
-          "art": "tree"
+          "halfDepth": 0.2
         }
       ],
       "benches": [
         {
           "id": "bench",
+          "art": "bench",
+          "usable": true,
           "x": -3.6,
           "y": 1.2,
           "halfWidth": 0.8,
@@ -41,11 +57,10 @@
               "dx": 0.4,
               "taken": true
             }
-          ],
-          "art": "bench",
-          "usable": true
+          ]
         }
       ],
+      "portals": [],
       "start": {
         "x": -2.5,
         "y": -0.8
@@ -71,44 +86,47 @@
       }
     },
     "gravity": 9.81,
-    "input": {
-      "x": 0,
-      "y": 0,
-      "run": false
-    },
-    "bean": {
-      "x": -4.699999999999986,
-      "y": 1.5450000001225992,
-      "z": 0,
-      "vx": -3.9821625844926384e-14,
-      "vy": -2.4,
-      "vz": 0,
-      "grounded": true,
-      "facingX": -1.659234410205266e-14,
-      "facingY": -1,
-      "target": {
-        "x": -4.7,
-        "y": 0.6749999999999999
-      },
-      "stuckSteps": 0,
-      "jumps": 0,
-      "lastJump": null,
-      "act": {
-        "kind": "approaching",
-        "bench": "bench",
-        "seat": "west",
-        "to": {
+    "beans": [
+      {
+        "id": "local",
+        "input": {
+          "x": 0,
+          "y": 0,
+          "run": false
+        },
+        "x": -4.699999999999986,
+        "y": 1.5450000001225992,
+        "z": 0,
+        "vx": -3.9821625844926384e-14,
+        "vy": -2.4,
+        "vz": 0,
+        "grounded": true,
+        "facingX": -1.659234410205266e-14,
+        "facingY": -1,
+        "target": {
           "x": -4.7,
           "y": 0.6749999999999999
         },
-        "via": [
-          {
-            "x": -4,
+        "stuckSteps": 0,
+        "jumps": 0,
+        "lastJump": null,
+        "act": {
+          "kind": "approaching",
+          "bench": "bench",
+          "seat": "west",
+          "to": {
+            "x": -4.7,
             "y": 0.6749999999999999
-          }
-        ]
+          },
+          "via": [
+            {
+              "x": -4,
+              "y": 0.6749999999999999
+            }
+          ]
+        }
       }
-    },
+    ],
     "rail": {
       "carts": [
         {

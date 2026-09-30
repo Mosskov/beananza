@@ -4,7 +4,7 @@ import { CLASSMATES, GREETING_S, PRIYA_COLOUR, greetingAt } from '../src/scenes/
 
 const withAct = (act: HubAct): HubState => {
   const state = new Sim<HubState, HubCommand>(createHubScenario(), 1).state;
-  state.bean.act = act;
+  state.beans[0]!.act = act;
   return state;
 };
 const priya = CLASSMATES[0]!;

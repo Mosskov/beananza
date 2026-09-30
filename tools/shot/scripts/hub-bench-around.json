@@ -1,5 +1,6 @@
 {
   "scene": "hub",
+  "layout": "plaza",
   "steps": [
     { "keyDown": "ArrowUp" },
     { "wait": 1.2 },

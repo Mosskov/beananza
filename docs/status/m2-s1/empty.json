@@ -1,0 +1,38 @@
+{
+  "ok": true,
+  "error": null,
+  "note": null,
+  "scene": "empty",
+  "url": "http://localhost:57988/?scene=empty",
+  "requestedSimTime": null,
+  "simTime": null,
+  "screenshot": "artifacts/shots/empty.png",
+  "git": {
+    "commit": "7dc851d",
+    "dirty": true
+  },
+  "timestamp": "2026-09-30T10:04:19.823Z",
+  "viewport": {
+    "width": 1280,
+    "height": 720
+  },
+  "browser": "chromium 153.0.8010.12",
+  "glRenderer": "ANGLE (AMD, AMD Radeon 780M Graphics (0x00001900) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+  "reducedMotion": false,
+  "look": null,
+  "server": "started",
+  "console": {
+    "errors": 0,
+    "warnings": 0,
+    "entries": []
+  },
+  "fps": {
+    "sampleMs": 2000.9,
+    "frames": 166,
+    "avgFps": 82.96,
+    "avgFrameMs": 12.05,
+    "maxFrameMs": 17.7,
+    "phaserActualFps": 70.56
+  },
+  "sceneState": {}
+}

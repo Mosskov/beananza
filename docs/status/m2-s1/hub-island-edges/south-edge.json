@@ -1,0 +1,286 @@
+{
+  "ok": true,
+  "error": null,
+  "script": "tools/shot/scripts/hub-island-edges.json",
+  "scene": "hub",
+  "shot": "south-edge",
+  "step": 31,
+  "url": "http://localhost:64294/?scene=hub&paused=1&layout=bare-island",
+  "simTime": 20.5,
+  "screenshot": "artifacts/shots/hub-island-edges/south-edge.png",
+  "git": {
+    "commit": "eec1758",
+    "dirty": true
+  },
+  "timestamp": "2026-09-30T10:56:13.976Z",
+  "viewport": {
+    "width": 1280,
+    "height": 720
+  },
+  "browser": "chromium 153.0.8010.12",
+  "glRenderer": "ANGLE (AMD, AMD Radeon 780M Graphics (0x00001900) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+  "reducedMotion": false,
+  "look": null,
+  "server": "started",
+  "inputs": [
+    {
+      "step": 0,
+      "action": "keyDown \"Shift\"",
+      "simTime": 0
+    },
+    {
+      "step": 1,
+      "action": "keyDown \"ArrowUp\"",
+      "simTime": 0
+    },
+    {
+      "step": 2,
+      "action": "wait 3.5",
+      "simTime": 0
+    },
+    {
+      "step": 3,
+      "action": "keyUp \"ArrowUp\"",
+      "simTime": 3.5
+    },
+    {
+      "step": 4,
+      "action": "wait 0.1",
+      "simTime": 3.5
+    },
+    {
+      "step": 6,
+      "action": "keyDown \"ArrowRight\"",
+      "simTime": 3.6
+    },
+    {
+      "step": 7,
+      "action": "wait 3.5",
+      "simTime": 3.6
+    },
+    {
+      "step": 8,
+      "action": "keyUp \"ArrowRight\"",
+      "simTime": 7.1
+    },
+    {
+      "step": 9,
+      "action": "wait 0.1",
+      "simTime": 7.1
+    },
+    {
+      "step": 11,
+      "action": "keyDown \"ArrowDown\"",
+      "simTime": 7.2
+    },
+    {
+      "step": 12,
+      "action": "wait 2",
+      "simTime": 7.2
+    },
+    {
+      "step": 13,
+      "action": "keyUp \"ArrowDown\"",
+      "simTime": 9.2
+    },
+    {
+      "step": 14,
+      "action": "keyDown \"ArrowRight\"",
+      "simTime": 9.2
+    },
+    {
+      "step": 15,
+      "action": "wait 1",
+      "simTime": 9.2
+    },
+    {
+      "step": 16,
+      "action": "keyUp \"ArrowRight\"",
+      "simTime": 10.2
+    },
+    {
+      "step": 17,
+      "action": "wait 0.1",
+      "simTime": 10.2
+    },
+    {
+      "step": 19,
+      "action": "keyDown \"ArrowLeft\"",
+      "simTime": 10.3
+    },
+    {
+      "step": 20,
+      "action": "wait 5.5",
+      "simTime": 10.3
+    },
+    {
+      "step": 21,
+      "action": "keyUp \"ArrowLeft\"",
+      "simTime": 15.8
+    },
+    {
+      "step": 22,
+      "action": "wait 0.1",
+      "simTime": 15.8
+    },
+    {
+      "step": 24,
+      "action": "keyDown \"ArrowDown\"",
+      "simTime": 15.9
+    },
+    {
+      "step": 25,
+      "action": "wait 3.5",
+      "simTime": 15.9
+    },
+    {
+      "step": 26,
+      "action": "keyUp \"ArrowDown\"",
+      "simTime": 19.4
+    },
+    {
+      "step": 27,
+      "action": "keyDown \"ArrowRight\"",
+      "simTime": 19.4
+    },
+    {
+      "step": 28,
+      "action": "wait 1",
+      "simTime": 19.4
+    },
+    {
+      "step": 29,
+      "action": "keyUp \"ArrowRight\"",
+      "simTime": 20.4
+    },
+    {
+      "step": 30,
+      "action": "wait 0.1",
+      "simTime": 20.4
+    }
+  ],
+  "console": {
+    "errors": 0,
+    "warnings": 0,
+    "entries": []
+  },
+  "sceneState": {
+    "tick": 1230,
+    "simTime": 20.5,
+    "paused": true,
+    "state": {
+      "layout": {
+        "walkable": {
+          "points": [
+            {
+              "x": 12,
+              "y": 0
+            },
+            {
+              "x": 6,
+              "y": 10.392304845413264
+            },
+            {
+              "x": -6,
+              "y": 10.392304845413264
+            },
+            {
+              "x": -12,
+              "y": 0
+            },
+            {
+              "x": -6,
+              "y": -10.392304845413264
+            },
+            {
+              "x": 6,
+              "y": -10.392304845413264
+            }
+          ]
+        },
+        "props": [],
+        "benches": [],
+        "portals": [],
+        "start": {
+          "x": 0,
+          "y": -1
+        },
+        "rail": null
+      },
+      "gravity": 9.81,
+      "beans": [
+        {
+          "id": "local",
+          "input": {
+            "x": 0,
+            "y": 0,
+            "run": true
+          },
+          "x": -1.6490264012507532,
+          "y": -10.13730484541533,
+          "z": 0,
+          "vx": 0,
+          "vy": 0,
+          "vz": 0,
+          "grounded": true,
+          "facingX": 1,
+          "facingY": 0,
+          "target": null,
+          "stuckSteps": 0,
+          "jumps": 0,
+          "lastJump": null,
+          "act": {
+            "kind": "free"
+          }
+        }
+      ],
+      "rail": null,
+      "tick": 1230,
+      "rng": {
+        "s": 1
+      }
+    },
+    "layout": "bare-island",
+    "view": {
+      "bean": {
+        "screen": {
+          "x": 640,
+          "y": 360
+        },
+        "scale": 0.9163193920339459,
+        "depth": 1014.2304845415329,
+        "rig": {
+          "act": "free",
+          "placement": "ground",
+          "masked": false,
+          "drawnZ": 0,
+          "vanish": 0,
+          "feet": {
+            "a": {
+              "x": 0,
+              "y": 0
+            },
+            "b": {
+              "x": 0,
+              "y": 0
+            }
+          },
+          "view": "side",
+          "mirrored": false,
+          "clip": "idle",
+          "clipT": 20.5,
+          "body": {
+            "y": 0,
+            "rotation": 0,
+            "scaleX": 1.0091,
+            "scaleY": 0.9909
+          }
+        }
+      },
+      "reducedMotion": false,
+      "carts": [],
+      "classmates": [],
+      "props": []
+    }
+  }
+}

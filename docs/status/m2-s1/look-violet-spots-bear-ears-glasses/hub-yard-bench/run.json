@@ -1,0 +1,38 @@
+{
+  "ok": true,
+  "error": null,
+  "script": "tools/shot/scripts/hub-yard-bench.json",
+  "scene": "hub",
+  "url": "http://localhost:57988/?scene=hub&paused=1&layout=bench&look=violet%2Cspots%2Cbear-ears%2Cglasses",
+  "git": {
+    "commit": "7dc851d",
+    "dirty": true
+  },
+  "inputs": [
+    {
+      "step": 0,
+      "action": "tap [280,170]",
+      "simTime": 0
+    },
+    {
+      "step": 1,
+      "action": "wait 0.4",
+      "simTime": 0
+    },
+    {
+      "step": 3,
+      "action": "wait 0.6",
+      "simTime": 0.4
+    },
+    {
+      "step": 5,
+      "action": "wait 0.6",
+      "simTime": 1
+    }
+  ],
+  "console": {
+    "errors": 0,
+    "warnings": 0,
+    "entries": []
+  }
+}

@@ -10,7 +10,9 @@ import { allScripts } from '../src/session';
 const scripts = () => new Map(allScripts().map((p) => [scriptOutputName(basename(p)), JSON.parse(readFileSync(p, 'utf8')) as unknown]));
 
 describe('the golden folder in the repo', () => {
-  it('is valid and complete: one file per script shot, no extras', () => {
+  // `pnpm verify --update-golden` sets VERIFY_UPDATING_GOLDEN for its check: that run rewrites
+  // the folder, so a new script's missing file must not stop it (every other test still gates).
+  it.skipIf(process.env.VERIFY_UPDATING_GOLDEN === '1')('is valid and complete: one file per script shot, no extras', () => {
     expect(goldenCompleteness(goldenFiles(), scripts())).toEqual([]);
   });
 

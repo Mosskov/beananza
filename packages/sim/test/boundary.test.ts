@@ -40,7 +40,8 @@ describe('sim boundary', () => {
     expect(messages).toEqual([]);
     expect((options.lib ?? []).some((l) => /dom|webworker/i.test(l))).toBe(false);
     expect(options.types).toEqual([]);
-  });
+    // A whole TypeScript compile: about 1 s alone, but pnpm verify runs it while browsers shoot.
+  }, 30_000);
 
   // The checks above are only worth something if they can fail. Feed them known-bad code.
   describe('catches violations', () => {

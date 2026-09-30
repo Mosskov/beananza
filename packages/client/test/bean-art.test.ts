@@ -11,7 +11,7 @@ import { parseAttrs, parseSvgParts, partPivot, type Point, type SvgPart } from '
  * centre, eyes at the mean eye centre, wheels at their first circle, everything else (0, 0).
  */
 /** Parts drawn after the switch to data-pivot (M1 session 3), which the old rules never covered. */
-const ADDED_SINCE_S2 = new Set(['eyes-sleep', 'doze-z']);
+const ADDED_SINCE_S2 = new Set(['eyes-sleep', 'doze-z', 'swirl']);
 
 function legacyPivot(part: SvgPart): Point {
   const ellipses = [...part.inner.matchAll(/<ellipse\b([^>]*)>/g)].map((m) => parseAttrs(m[1] as string));

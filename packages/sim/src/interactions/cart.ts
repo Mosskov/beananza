@@ -103,8 +103,7 @@ function findPush(bean: HubBean, rail: RailLayout, carts: RailCart[], vx: number
  * Take off from the cart (the step's start): the cart keeps the momentum, v·(m+M)/m, and the
  * bean hops to the south of the rail.
  */
-function getOut(state: HubState, cartId: string): void {
-  const bean = state.bean;
+function getOut(state: HubState, bean: HubBean, cartId: string): void {
   const cart = cartById(state, cartId);
   const rail = state.layout.rail;
   if (!cart || !rail) {
@@ -121,12 +120,16 @@ function getOut(state: HubState, cartId: string): void {
   bean.vy = 0;
 }
 
+/** One rider per cart (M2): another bean is getting in, riding or getting out. */
+function cartTaken(state: HubState, bean: HubBean, cartId: string): boolean {
+  return state.beans.some((b) => b !== bean && (b.act.kind === 'boarding' || b.act.kind === 'riding' || b.act.kind === 'leaving') && b.act.cart === cartId);
+}
+
 /**
  * Start the hop into the ridable cart if it is near: a crouch, then a hop that lands in it.
  * Returns whether it did.
  */
-function getIn({ state, rules }: HubStep): boolean {
-  const bean = state.bean;
+function getIn({ state, bean, rules }: HubStep): boolean {
   const rail = state.layout.rail;
   if (!rail || !state.rail || !bean.grounded || !rules[bean.act.kind].walks) return false;
   // Only the cart nearest the bean: next to the loaded cart, E does not reach past it.
@@ -137,7 +140,7 @@ function getIn({ state, rules }: HubStep): boolean {
   for (const spec of rail.carts) {
     if (spec.id !== nearest?.id) continue;
     const cart = cartById(state, spec.id);
-    if (!spec.ridable || !cart) continue;
+    if (!spec.ridable || !cart || cartTaken(state, bean, cart.id)) continue;
     const distance = Math.hypot(bean.x - cart.x, bean.y - rail.y);
     if (distance > BOARD_REACH_M) continue;
     const hopTick = state.tick + ticksFor(BOARD_CROUCH_S);
@@ -169,31 +172,29 @@ export const cartInteraction: HubInteraction = {
   acts: CART_ACTS,
 
   command(step: HubStep, command) {
-    const { state } = step;
-    const act = state.bean.act;
+    const { state, bean } = step;
+    const act = bean.act;
     if (act.kind === 'boarding' || act.kind === 'leaving') {
       // Mid-hop: E, Space and taps do nothing. Held keys still count, so the bean walks on
       // once it lands.
       return command.type !== 'move';
     }
     if (act.kind === 'riding' && (command.type === 'jump' || command.type === 'action')) {
-      getOut(state, act.cart);
+      getOut(state, bean, act.cart);
       return true;
     }
     // E next to the cart gets in; elsewhere another interaction may use it.
     return command.type === 'action' && getIn(step);
   },
 
-  drive({ state }: HubStep, desired: Velocity) {
-    const bean = state.bean;
+  drive({ state, bean }: HubStep, desired: Velocity) {
     if (bean.act.kind !== 'free' && bean.act.kind !== 'pushing') return;
     const rail = state.layout.rail;
-    const push = rail && state.rail ? findPush(bean, rail, state.rail.carts, desired.vx, desired.vy, state.input.run) : null;
+    const push = rail && state.rail ? findPush(bean, rail, state.rail.carts, desired.vx, desired.vy, bean.input.run) : null;
     bean.act = push ?? { kind: 'free' };
   },
 
-  place({ state }: HubStep) {
-    const bean = state.bean;
+  place({ state, bean }: HubStep) {
     const act = bean.act;
     const railY = state.layout.rail?.y ?? 0;
     if (act.kind === 'pushing') {
@@ -242,8 +243,8 @@ export const cartInteraction: HubInteraction = {
     }
   },
 
-  facing({ state }: HubStep) {
-    const act = state.bean.act;
+  facing({ state, bean }: HubStep) {
+    const act = bean.act;
     // Pushing forces the side view (DESIGN.md §6).
     if (act.kind === 'pushing') return { x: act.dir, y: 0 };
     if (act.kind === 'boarding') return { x: act.facingX, y: act.facingY };

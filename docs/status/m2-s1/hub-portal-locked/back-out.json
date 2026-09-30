@@ -1,0 +1,214 @@
+{
+  "ok": true,
+  "error": null,
+  "script": "tools/shot/scripts/hub-portal-locked.json",
+  "scene": "hub",
+  "shot": "back-out",
+  "step": 9,
+  "url": "http://localhost:57988/?scene=hub&paused=1&layout=portals",
+  "simTime": 1.35,
+  "screenshot": "artifacts/shots/hub-portal-locked/back-out.png",
+  "git": {
+    "commit": "7dc851d",
+    "dirty": true
+  },
+  "timestamp": "2026-09-30T10:03:16.886Z",
+  "viewport": {
+    "width": 1280,
+    "height": 720
+  },
+  "browser": "chromium 153.0.8010.12",
+  "glRenderer": "ANGLE (AMD, AMD Radeon 780M Graphics (0x00001900) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+  "reducedMotion": false,
+  "look": null,
+  "server": "started",
+  "inputs": [
+    {
+      "step": 0,
+      "action": "keyDown \"ArrowUp\"",
+      "simTime": 0
+    },
+    {
+      "step": 1,
+      "action": "wait 0.55",
+      "simTime": 0
+    },
+    {
+      "step": 2,
+      "action": "keyUp \"ArrowUp\"",
+      "simTime": 0.55
+    },
+    {
+      "step": 4,
+      "action": "wait 0.1",
+      "simTime": 0.55
+    },
+    {
+      "step": 6,
+      "action": "wait 0.2",
+      "simTime": 0.65
+    },
+    {
+      "step": 8,
+      "action": "wait 0.5",
+      "simTime": 0.85
+    }
+  ],
+  "console": {
+    "errors": 0,
+    "warnings": 0,
+    "entries": []
+  },
+  "sceneState": {
+    "tick": 81,
+    "simTime": 1.35,
+    "paused": true,
+    "state": {
+      "layout": {
+        "walkable": {
+          "points": [
+            {
+              "x": -5.8,
+              "y": -3
+            },
+            {
+              "x": 5.8,
+              "y": -3
+            },
+            {
+              "x": 5.8,
+              "y": 2
+            },
+            {
+              "x": -5.8,
+              "y": 2
+            }
+          ]
+        },
+        "props": [],
+        "benches": [],
+        "portals": [
+          {
+            "id": "portal-mechanics",
+            "art": "portal",
+            "usable": true,
+            "region": "mechanics",
+            "x": 1.6,
+            "y": 0.9,
+            "halfWidth": 0.65,
+            "halfDepth": 0.2
+          },
+          {
+            "id": "portal-crystal",
+            "art": "portal",
+            "usable": true,
+            "region": "crystal",
+            "locked": true,
+            "x": -2.4,
+            "y": 0.9,
+            "halfWidth": 0.65,
+            "halfDepth": 0.2
+          }
+        ],
+        "start": {
+          "x": -2.5,
+          "y": -0.8
+        },
+        "rail": null
+      },
+      "gravity": 9.81,
+      "beans": [
+        {
+          "id": "local",
+          "input": {
+            "x": 0,
+            "y": 0,
+            "run": false
+          },
+          "x": -2.5,
+          "y": 0.52,
+          "z": 0,
+          "vx": 0,
+          "vy": 0,
+          "vz": 0,
+          "grounded": true,
+          "facingX": 0,
+          "facingY": 1,
+          "target": null,
+          "stuckSteps": 0,
+          "jumps": 0,
+          "lastJump": null,
+          "act": {
+            "kind": "free"
+          }
+        }
+      ],
+      "rail": null,
+      "tick": 81,
+      "rng": {
+        "s": 1
+      }
+    },
+    "layout": "portals",
+    "view": {
+      "bean": {
+        "screen": {
+          "x": 390,
+          "y": 258
+        },
+        "scale": 0.7088,
+        "depth": -51.5,
+        "rig": {
+          "act": "free",
+          "placement": "ground",
+          "masked": false,
+          "drawnZ": 0,
+          "vanish": 0,
+          "feet": {
+            "a": {
+              "x": 0,
+              "y": 0
+            },
+            "b": {
+              "x": 0,
+              "y": 0
+            }
+          },
+          "view": "back",
+          "mirrored": false,
+          "clip": "idle",
+          "clipT": 1.35,
+          "body": {
+            "y": 0,
+            "rotation": 0,
+            "scaleX": 1.034,
+            "scaleY": 0.966
+          }
+        }
+      },
+      "reducedMotion": false,
+      "carts": [],
+      "classmates": [],
+      "props": [
+        {
+          "id": "portal-mechanics",
+          "screen": {
+            "x": 800,
+            "y": 220
+          },
+          "depth": -90,
+          "bean": "in front"
+        },
+        {
+          "id": "portal-crystal",
+          "screen": {
+            "x": 400,
+            "y": 220
+          },
+          "depth": -90,
+          "bean": "in front"
+        }
+      ]
+    }
+  }
+}

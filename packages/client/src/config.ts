@@ -18,6 +18,16 @@ export const PALETTE = {
   slate: 0x6f7f96,
   /** PLACEHOLDER: the hub's hedge band, not in the art/README.md palette yet. */
   hedge: 0x7fa86a,
+  // The sky island (D2), in the art/README.md palette table.
+  skyTop: 0x7fbde6,
+  skyBottom: 0xd6eef8,
+  cloud: 0xfdfcf8,
+  cloudShade: 0xe3eef4,
+  grassRim: 0xc4dca8,
+  cliffLight: 0xb58360,
+  cliffMid: 0x9c6c4c,
+  cliffDark: 0x7f563d,
+  rockUnder: 0x6b4a36,
 } as const;
 
 /** Font for readouts, labels and the controls hint. PLACEHOLDER until the UI has a style. */

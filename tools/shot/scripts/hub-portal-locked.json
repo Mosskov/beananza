@@ -1,0 +1,16 @@
+{
+  "scene": "hub",
+  "layout": "portals",
+  "steps": [
+    { "keyDown": "ArrowUp" },
+    { "wait": 0.55 },
+    { "keyUp": "ArrowUp" },
+    { "shot": "at-the-ring" },
+    { "wait": 0.1 },
+    { "shot": "bounced" },
+    { "wait": 0.2 },
+    { "shot": "landing" },
+    { "wait": 0.5 },
+    { "shot": "back-out" }
+  ]
+}

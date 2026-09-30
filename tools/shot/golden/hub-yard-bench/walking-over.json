@@ -7,10 +7,24 @@
   "state": {
     "layout": {
       "walkable": {
-        "minX": -5.8,
-        "maxX": 5.8,
-        "minY": -3,
-        "maxY": 2
+        "points": [
+          {
+            "x": -5.8,
+            "y": -3
+          },
+          {
+            "x": 5.8,
+            "y": -3
+          },
+          {
+            "x": 5.8,
+            "y": 2
+          },
+          {
+            "x": -5.8,
+            "y": 2
+          }
+        ]
       },
       "props": [],
       "benches": [
@@ -37,6 +51,7 @@
           ]
         }
       ],
+      "portals": [],
       "start": {
         "x": -2.5,
         "y": -0.8
@@ -44,39 +59,42 @@
       "rail": null
     },
     "gravity": 9.81,
-    "input": {
-      "x": 0,
-      "y": 0,
-      "run": false
-    },
-    "bean": {
-      "x": -3.1845027326181636,
-      "y": -0.12690564625880912,
-      "z": 0,
-      "vx": -1.7112568315453973,
-      "vy": 1.6827358843529807,
-      "vz": 0,
-      "grounded": true,
-      "facingX": -0.7130236798105822,
-      "facingY": 0.701139951813742,
-      "target": {
-        "x": -4,
-        "y": 0.6749999999999999
-      },
-      "stuckSteps": 0,
-      "jumps": 0,
-      "lastJump": null,
-      "act": {
-        "kind": "approaching",
-        "bench": "bench",
-        "seat": "west",
-        "to": {
+    "beans": [
+      {
+        "id": "local",
+        "input": {
+          "x": 0,
+          "y": 0,
+          "run": false
+        },
+        "x": -3.1845027326181636,
+        "y": -0.12690564625880912,
+        "z": 0,
+        "vx": -1.7112568315453973,
+        "vy": 1.6827358843529807,
+        "vz": 0,
+        "grounded": true,
+        "facingX": -0.7130236798105822,
+        "facingY": 0.701139951813742,
+        "target": {
           "x": -4,
           "y": 0.6749999999999999
         },
-        "via": []
+        "stuckSteps": 0,
+        "jumps": 0,
+        "lastJump": null,
+        "act": {
+          "kind": "approaching",
+          "bench": "bench",
+          "seat": "west",
+          "to": {
+            "x": -4,
+            "y": 0.6749999999999999
+          },
+          "via": []
+        }
       }
-    },
+    ],
     "rail": null,
     "tick": 24,
     "rng": {

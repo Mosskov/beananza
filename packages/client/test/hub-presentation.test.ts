@@ -37,9 +37,9 @@ describe('hub presentation table (one row per interaction state)', () => {
     expect(at(70).clip?.clip).toBe('jump');
     expect(at(80).clip?.clip).toBe('fall');
     // In the cart (and masked by it) only once over it: not while still beside it (review round 1).
-    s.bean.x = s.rail!.carts[0]!.x - 0.3;
+    s.beans[0]!.x = s.rail!.carts[0]!.x - 0.3;
     expect(at(80).placement).toEqual({ kind: 'cart', cart: 'light' });
-    s.bean.x = s.rail!.carts[0]!.x - 0.5;
+    s.beans[0]!.x = s.rail!.carts[0]!.x - 0.5;
     expect(at(80).placement).toEqual({ kind: 'ground' });
     expect(at(93).flatZ).toBeCloseTo(CART_FLOOR_M, 12);
     expect(hopAt(80 / 60, 67, 93)).toBeCloseTo(0.5, 12);

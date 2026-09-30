@@ -98,14 +98,15 @@ function parseAnchors(inner: string): Record<string, Point> {
 
 /** Parts that rotate or scale about their own point, so the art contract requires `data-pivot`. */
 export function needsPivot(partId: string): boolean {
-  return /^(arm-|foot-|wheel-)/.test(partId) || partId === 'scarf-tail' || partId === 'eyes';
+  return /^(arm-|foot-|wheel-)/.test(partId) || partId === 'scarf-tail' || partId === 'eyes' || partId === 'swirl';
 }
 
 /**
  * Where a part rotates and scales from, in art units (D22): its `data-pivot="x y"`, or the
  * origin (the ground point between the feet, or under a prop) for parts that only move with
  * the body. The contract requires `data-pivot` on the parts `needsPivot` names: arms at the
- * shoulder, feet and eyes at their centre, the scarf tail at the knot, wheels at the hub.
+ * shoulder, feet and eyes at their centre, the scarf tail at the knot, wheels at the hub, a
+ * portal's swirl at its centre.
  */
 export function partPivot(part: SvgPart): Point {
   const raw = part.attrs['data-pivot'];

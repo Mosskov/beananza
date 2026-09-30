@@ -1,0 +1,118 @@
+{
+  "ok": true,
+  "error": null,
+  "script": "tools/shot/scripts/hub-bench-depth.json",
+  "scene": "hub",
+  "url": "http://localhost:57988/?scene=hub&paused=1&layout=plaza&look=cream%2Csprout",
+  "git": {
+    "commit": "7dc851d",
+    "dirty": true
+  },
+  "inputs": [
+    {
+      "step": 0,
+      "action": "keyDown \"ArrowUp\"",
+      "simTime": 0
+    },
+    {
+      "step": 1,
+      "action": "wait 0.8333",
+      "simTime": 0
+    },
+    {
+      "step": 2,
+      "action": "keyUp \"ArrowUp\"",
+      "simTime": 0.8333333333333334
+    },
+    {
+      "step": 4,
+      "action": "keyDown \"ArrowUp\"",
+      "simTime": 0.8333333333333334
+    },
+    {
+      "step": 5,
+      "action": "wait 0.4",
+      "simTime": 0.8333333333333334
+    },
+    {
+      "step": 6,
+      "action": "keyUp \"ArrowUp\"",
+      "simTime": 1.2333333333333334
+    },
+    {
+      "step": 7,
+      "action": "keyDown \"ArrowLeft\"",
+      "simTime": 1.2333333333333334
+    },
+    {
+      "step": 8,
+      "action": "wait 0.5",
+      "simTime": 1.2333333333333334
+    },
+    {
+      "step": 9,
+      "action": "keyUp \"ArrowLeft\"",
+      "simTime": 1.7333333333333334
+    },
+    {
+      "step": 11,
+      "action": "keyDown \"ArrowRight\"",
+      "simTime": 1.7333333333333334
+    },
+    {
+      "step": 12,
+      "action": "wait 0.5",
+      "simTime": 1.7333333333333334
+    },
+    {
+      "step": 13,
+      "action": "keyUp \"ArrowRight\"",
+      "simTime": 2.2333333333333334
+    },
+    {
+      "step": 14,
+      "action": "keyDown \"ArrowDown\"",
+      "simTime": 2.2333333333333334
+    },
+    {
+      "step": 15,
+      "action": "wait 0.8",
+      "simTime": 2.2333333333333334
+    },
+    {
+      "step": 16,
+      "action": "keyUp \"ArrowDown\"",
+      "simTime": 3.033333333333333
+    },
+    {
+      "step": 17,
+      "action": "keyDown \"ArrowLeft\"",
+      "simTime": 3.033333333333333
+    },
+    {
+      "step": 18,
+      "action": "wait 0.5",
+      "simTime": 3.033333333333333
+    },
+    {
+      "step": 19,
+      "action": "keyUp \"ArrowLeft\"",
+      "simTime": 3.533333333333333
+    },
+    {
+      "step": 21,
+      "action": "press \"KeyE\"",
+      "simTime": 3.533333333333333
+    },
+    {
+      "step": 22,
+      "action": "wait 1",
+      "simTime": 3.533333333333333
+    }
+  ],
+  "console": {
+    "errors": 0,
+    "warnings": 0,
+    "entries": []
+  }
+}

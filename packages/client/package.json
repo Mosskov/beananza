@@ -16,6 +16,7 @@
   "dependencies": {
     "@beananza/shared": "workspace:*",
     "@beananza/sim": "workspace:*",
+    "@colyseus/sdk": "0.18.4",
     "phaser": "4.2.1"
   },
   "devDependencies": {

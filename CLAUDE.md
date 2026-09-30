@@ -49,7 +49,7 @@ packages/
   shared/   types, constants, content data (concepts, cosmetics, expeditions)
   sim/      physics and game rules (Planck.js), unit tested
   client/   Phaser scenes, rendering, input, UI
-  server/   Colyseus rooms (Milestone 2)
+  server/   Colyseus hub room per class code, running the hub sim (built 2026-09-30)
 docs/
 art/
 ```
@@ -76,7 +76,8 @@ art/
 ## Commands
 Details in `README.md`.
 - `pnpm install`, then once `pnpm shot:install` (Playwright Chromium)
-- `pnpm dev`: game at http://localhost:5180/?scene=<name> (`hub` is the default; also `bean`, `looks`, `clip`, `drop`, `empty`; `&paused=1` starts paused; `&look=blue,spots,bow,glasses` sets the bean's look; `&layout=bench` opens a test yard instead of the plaza)
+- `pnpm dev`: game at http://localhost:5180/?scene=<name> (`hub` is the default, on the sky island; also `bean`, `looks`, `clip`, `drop`, `empty`, `region&region=waves`; `&paused=1` starts paused; `&look=blue,spots,bow,glasses` sets the bean's look; `&layout=plaza` opens the M1 plaza, `&layout=bench` a test yard)
+- `pnpm server:dev` plus `?class=TEST1`: the multiplayer hub (several tabs join one class). `pnpm shot:multi [--bots 30]` checks it end to end; it is not part of `pnpm verify`.
 - `pnpm check`: typecheck, lint, tests and build (`pnpm test`, `pnpm typecheck`, `pnpm lint`, `pnpm build`)
 - `pnpm verify`: the whole pass in about a minute: check, every scene and script, the looks, and
   the sim states against `tools/shot/golden/` (`pnpm verify --update-golden` rewrites them; the

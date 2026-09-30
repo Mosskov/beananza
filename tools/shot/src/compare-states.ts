@@ -8,6 +8,7 @@ import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { dirname, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { isDeepStrictEqual } from 'node:util';
+import { polygonFromRect, type Rect } from '@beananza/sim';
 
 const REPO = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
 
@@ -20,6 +21,9 @@ type Json = Record<string, unknown>;
  * - M1 session 3 (D23): `rail.riders` logs getting in and out (empty in older logs).
  * - M1 session 3 (D24): `layout.benches`, the plaza's bench.
  * - After M1 session 3: props and benches name their drawing (`art`); the bench is `usable`.
+ * - Hub island (D2): `layout.walkable` is a convex polygon; a rectangle becomes its 4 corners.
+ * - Hub island (D2): `layout.portals`, the region portals (empty in older logs).
+ * - Hub island (M2): `bean` and `input` became `beans[0]` (id `local`) with its own `input`.
  */
 const RENAMES: { since: string; apply: (state: Json, fresh: Json) => void }[] = [
   {
@@ -65,6 +69,32 @@ const RENAMES: { since: string; apply: (state: Json, fresh: Json) => void }[] = 
           if ('usable' in match) p.usable = match.usable;
         }
       }
+    },
+  },
+  {
+    since: 'hub island (D2): layout.walkable became a convex polygon',
+    apply(state) {
+      const layout = state.layout as Json | undefined;
+      const walkable = layout?.walkable as Json | undefined;
+      if (layout && walkable && 'minX' in walkable) layout.walkable = polygonFromRect(walkable as unknown as Rect);
+    },
+  },
+  {
+    since: 'hub island (D2): layout.portals added (the plaza has none)',
+    apply(state) {
+      const layout = state.layout as Json | undefined;
+      if (layout && !('portals' in layout)) layout.portals = [];
+    },
+  },
+  {
+    // M2 (a whole class in one hub): the one bean is the local player's, and holds its own input.
+    since: 'hub island: state.bean and state.input became state.beans[0] (id "local")',
+    apply(state, fresh) {
+      // Only onto a fresh state in the new form (a state compared with itself stays as it is).
+      if (!('bean' in state) || !('beans' in fresh)) return;
+      state.beans = [{ ...(state.bean as Json), id: 'local', input: state.input }];
+      delete state.bean;
+      delete state.input;
     },
   },
 ];

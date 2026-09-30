@@ -1,7 +1,8 @@
-import type { HubAct, HubActKind, HubState } from '@beananza/sim';
+import type { HubAct, HubActKind, HubBean, HubState } from '@beananza/sim';
 import { GROUND, type Presentation, type Row, type Rows } from './presentation/common';
 import { BENCH_ROWS } from './presentation/bench';
 import { CART_ROWS } from './presentation/cart';
+import { PORTAL_ROWS } from './presentation/portal';
 
 export { PART_DEFAULTS, hopAt, type Placement, type Presentation, type ToggledPart } from './presentation/common';
 export { HEAVY_PUSH_KG } from './presentation/cart';
@@ -17,9 +18,14 @@ const PRESENTATION: Rows<HubActKind> = {
   free: () => ({ ...GROUND, clip: null }),
   ...CART_ROWS,
   ...BENCH_ROWS,
+  ...PORTAL_ROWS,
 };
 
-/** The row for the bean's act, at animation time `time` (sim seconds, interpolated). */
-export function presentAct(act: HubAct, state: HubState, time: number): Presentation {
-  return (PRESENTATION[act.kind] as Row<HubActKind>)(act, state, time);
+/**
+ * The row for a bean's act, at animation time `time` (sim seconds, interpolated). `bean` is the
+ * bean being drawn (default: the first, the local player's offline).
+ */
+export function presentAct(act: HubAct, state: HubState, time: number, bean: HubBean | undefined = state.beans[0]): Presentation {
+  if (!bean) throw new Error('presentAct: no bean to draw.');
+  return (PRESENTATION[act.kind] as Row<HubActKind>)(act, state, time, bean);
 }

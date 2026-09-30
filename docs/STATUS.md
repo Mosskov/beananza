@@ -5,30 +5,49 @@
 Updated in place by every pull request (the `pr-ready` skill). The dated sections below it are
 history; no new ones are added.
 
-**Last updated:** 2026-09-30, tools prep session (branch `tools/prep`).
+**Last updated:** 2026-09-30, hub island and multiplayer hub (branch `hub-island`).
 
-**What works** (M1 so far):
-- The hub plaza: walking and running, jumping, two carts on a rail (push, ride, the hop in and
+**What works** (M1 so far, plus the first part of M2):
+- **The hub is a hexagon island floating in a blue sky** (D2), 24 m across, with a camera that
+  follows the bean: walking and running, jumping, two carts on a rail (push, ride, the hop in and
   out), the bench with Priya, and customization by `?look=` (10 colours, spots, three headwear
-  pieces, glasses). Test yards per interaction (`?layout=bench`, `?layout=carts`).
+  pieces, glasses). Stone paths lead to **four region portals** (Crystal Caves locked); walking
+  in, a tap or E travels to that region's placeholder scene (`?scene=region`) and back.
+- The M1 plaza stays as `?layout=plaza`; test yards per interaction (`bench`, `carts`,
+  `portals`).
+- **Multiplayer hub** (D5, M2): `packages/server` runs one Colyseus room per class code with the
+  hub sim as the authority; `?class=<code>` joins with a preset name (D27); everyone sees
+  everyone, with name tags within 3 m; portal trips leave and rejoin. Measured: 30 players in
+  one class at 60 steps a second, 1.7 ms per tick on average.
 - Tool scenes: `bean` and `looks` galleries, the `clip` sheet, the `drop` test.
-- **Workflow:** CI on every push (check and verify); golden sim states in
-  `tools/shot/golden/` (64 files); `art:check`, `art:part`, `clip:sheet`; skills for each
-  procedure, the `reviewer` agent, the PR template, and a guard hook. At most two lanes (one
-  art, one behaviour) at a time (CLAUDE.md).
+- **Workflow:** CI on every push (check and verify); golden sim states in `tools/shot/golden/`;
+  `art:check`, `art:part`, `clip:sheet`; `shot:multi` (three browsers end to end, `--bots 30` for
+  load; not part of verify); skills for each procedure, the `reviewer` agent, the PR template, and
+  a guard hook. At most two lanes (one art, one behaviour) at a time (CLAUDE.md).
 
-**Open issues** (details in the dated sections below):
+**Open issues** (details in ASSUMPTIONS and the dated sections below):
+- **Hosting (D11):** the multiplayer hub runs only locally; nothing is deployed. It needs a host
+  for a Node WebSocket server (Fly.io in the EU recommended) and a place students load the client
+  from (the share site is behind the coworkers' password).
+- **Bandwidth:** snapshots are about 5 KB as JSON, about 77 KB/s per player (roughly 18 Mbit/s for
+  a class on one wifi); the first thing to shrink.
+- **No prediction online:** your own bean moves after the round trip plus 100 ms.
+- **D28** (beans pass through each other) is built as the leaning, Open; **name tags** extend
+  D17's text exception to names: both need the user's word.
+- Region scenes are placeholders (no sim) until each region is designed (D9 first).
 - The SessionStart hook is untested in a real cloud container (tested on Windows only).
 - CI runs twice per push to a PR branch (push and pull_request).
 - The flaky browser close during long runs (seen once in M1 session 3 and once in the workflow
   session); no retry, recorded if it recurs.
 - From M1 session 3: the depth tie with Priya, the rim-line strip in mid-hop, the mask filter's
-  cost, `Math.hypot` and trig for cross-engine determinism (M2), seat occupancy as layout data,
-  no touch buttons, no in-game wardrobe, the other body forms (D7).
+  cost, `Math.hypot` and trig for cross-engine determinism (now that a server runs the sim), no
+  touch buttons, no in-game wardrobe, the other body forms (D7). Seat occupancy is now read from
+  the beans' acts (no longer layout data).
 
-**Next:** the D9 design pass (`prompts/D9-design-pass.md`), then M1 session 4
-(`prompts/M1-fourth-session.md`, the expedition) as the behaviour lane, and the reactions build
-(`prompts/reactions-first-session.md`) or other art as the art lane.
+**Next:** try the multiplayer hub with a class and decide hosting (D11); the D9 design pass
+(`prompts/D9-design-pass.md`), then M1 session 4 (`prompts/M1-fourth-session.md`, the
+expedition) as the behaviour lane, and the reactions build (`prompts/reactions-first-session.md`)
+or other art as the art lane.
 
 ## M1, session 3: interaction states, the bench, customization basics (2026-09-29)
 

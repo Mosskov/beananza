@@ -40,10 +40,11 @@ Pick a scene with `?scene=<name>`:
 |---|---|---|
 | `empty` | http://localhost:5180/?scene=empty | Background only; proves the client boots |
 | `drop` | http://localhost:5180/?scene=drop | A 1 kg and a 10 kg ball released from 10 m, with a timer. R or tap: drop again |
-| `hub` (default) | http://localhost:5180/?scene=hub | The hub plaza in ¾ top-down view, with one tree to walk behind and in front of, and a rail with a 5 kg and a 20 kg cart (speed shown in m/s). Arrows or WASD move, Shift runs, Space jumps, tap or click walks to a spot. Walk into a cart's end to push it (Shift pushes harder); E hops in or out of the 5 kg cart, Space also gets out. Tap the bench, or press E near it, to walk over and sit next to Priya, a blue classmate, who says "Hi!" and waves (the bean dozes after 5 s); any movement, E or Space stands up. The bean, the tree, the carts and the bench are drawn art from `art/`; the plaza floor and the rail are placeholder shapes |
+| `hub` (default) | http://localhost:5180/?scene=hub | The hub (D2): a hexagon island floating in a blue sky, 24 m across, with a camera that follows the bean. Stone paths lead from the arrival pad to four region portals; walk into one, tap it or press E near it to float in and travel to its region (Crystal Caves is locked and bounces the bean back). With `&layout=plaza`, the M1 plaza in ¾ top-down view, with one tree to walk behind and in front of, and a rail with a 5 kg and a 20 kg cart (speed shown in m/s). Arrows or WASD move, Shift runs, Space jumps, tap or click walks to a spot. Walk into a cart's end to push it (Shift pushes harder); E hops in or out of the 5 kg cart, Space also gets out. Tap the bench, or press E near it, to walk over and sit next to Priya, a blue classmate, who says "Hi!" and waves (the bean dozes after 5 s); any movement, E or Space stands up. The bean, the tree, the carts and the bench are drawn art from `art/`; the plaza floor and the rail are placeholder shapes |
 | `bean` | http://localhost:5180/?scene=bean | Rig gallery for review: the 8 directions, then walk, run, jump, fall, land, breathing, a blink, sitting and dozing at fixed clip times (labelled; no sim) |
 | `looks` | http://localhost:5180/?scene=looks | Customization gallery for review: spots, the sprout, bear ears, the bow and glasses each on all 8 directions, then the 10 colours with mixed pieces (labelled; no sim) |
 | `clip` | http://localhost:5180/?scene=clip&clip=walk&views=all&phases=8 | Clip sheet for review: one clip at n phases (columns) in the chosen directions (rows), drawn by the rig player; `pnpm clip:sheet` shoots it (labelled; no sim) |
+| `region` | http://localhost:5180/?scene=region&region=waves | A region's placeholder scene, reached through its portal (`mechanics` default, `waves`, `storm`, `crystal`): the region's sky, ground and landscape, the bean, and a portal back. E, Space or a tap on the portal returns to the hub in front of that region's portal (`?from=<region>`). No sim |
 
 `&paused=1` starts the scene's sim paused at t = 0 (tools/shot uses this to step to an exact time).
 `&look=<ids>` sets the bean's look (D25), any of: a colour (`orange` default, `blue`, `green`,
@@ -52,9 +53,13 @@ Pick a scene with `?scene=<name>`:
 http://localhost:5180/?look=blue,spots,bow,glasses. Unknown ids are logged as a warning. The
 look is drawing only: the sim never sees it. There is no in-game wardrobe yet.
 
-`&layout=<name>` opens the hub on another layout: `plaza` (the default) or a **test yard**, the
-plaza's ground with one thing on it: `bench` (the bench and Priya) or `carts` (the rail and both
-carts), for example http://localhost:5180/?scene=hub&layout=bench. Layouts are in
+`&layout=<name>` opens the hub on another layout: `island` (the default, D2), `plaza` (the M1
+plaza, kept for its scripts and evidence) or a **test yard**, the plaza's ground with one thing
+on it: `bench` (the bench and Priya), `carts` (the rail and both carts) or `portals` (an open
+and a locked portal); `bare-island` is the island's ground and sky with nothing on it (its edges,
+cliffs and camera, for `hub-island-edges`), for example http://localhost:5180/?scene=hub&layout=bench. Going through a
+portal loads the region scene, except while the sim is paused (`&paused=1`, tools/shot), so
+scripted shots stay on the hub. Layouts are in
 `packages/sim/src/scenarios/hub-layouts.ts`. An unknown name stops the boot with an error.
 An unknown scene name logs a console error listing the registered scenes. The bean art is
 checked against the art contract and rasterized before any scene starts; broken art is a boot
@@ -285,6 +290,8 @@ pnpm shot --script tools/shot/scripts/drop-reset.json
 A script is a JSON file naming a scene and a list of steps, each with exactly one action. An
 optional `"layout"` opens the hub on a test yard (`"layout": "bench"`); `pnpm shot --scene hub
 --layout <name>` does the same for scene shots, written to `artifacts/shots/layout-<name>/`.
+`pnpm shot --scene region --region <id>` shoots a region's scene into
+`artifacts/shots/region-<id>/`.
 
 ```json
 {
@@ -441,6 +448,39 @@ tools/
 docs/       design, decisions, implementation notes, assumptions, status
 art/, reference/   design references only (never ported as code)
 ```
+
+## Multiplayer hub server (M2)
+
+`packages/server` runs the hub for a whole class: one Colyseus room per class code, stepping the
+same hub sim at 60 Hz as the authority and broadcasting a snapshot 15 times a second. Clients send
+commands only. Names are preset (D27), looks are checked, and nothing is stored: a room goes when
+its last player leaves. A dropped connection has 20 s to come back and keep its bean.
+
+```sh
+pnpm server:dev        # ws://localhost:2567, restarts on changes; GET /health answers {"ok":true}
+pnpm server:start      # the same without watching; PORT sets the port
+```
+
+**Playing online:** run `pnpm server:dev` and `pnpm dev`, then open
+http://localhost:5180/?class=TEST1 in several tabs (or on phones on the same network, with this
+machine's address). Each tab picks a preset name and joins class `TEST1`; everyone in a class
+shares one island. `&name=Brave%20Otter` skips the name choice. Without `?class=` the hub runs
+offline as before (and that is what `pnpm shot` and `pnpm verify` use). Going through a portal
+leaves the room for the region's scene; coming back joins again in front of that portal. A build
+for hosting points the client at its server with `VITE_HUB_URL` (default: port 2567 on the page's
+host).
+
+`pnpm shot:multi` checks it end to end: the hub server and the game's dev server, three browsers
+in one class (they see each other with name tags, agree on every bean's position after moving,
+and one travels through the Waves portal and back), screenshots in `artifacts/shots/multi/`.
+`--bots 30 --seconds 60` adds a load check with 30 headless players and reports the server's step
+time and the snapshot size per player. It is not part of `pnpm verify` (it needs about a minute
+and two servers); run it after changing the server, the protocol or the online scene.
+
+The protocol (room name, class codes, messages, join options) is in
+`packages/shared/src/net.ts`; the snapshot format in `packages/sim/src/scenarios/hub-snapshot.ts`.
+`HubServerCore` (`packages/server/src/core.ts`) holds the rules without networking and is what the
+tests drive; `HubRoom` wraps it in Colyseus.
 
 ## How work is done: skills
 

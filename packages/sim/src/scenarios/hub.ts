@@ -2,7 +2,7 @@ import { BoxShape, ChainShape, CircleShape, World, type Body } from 'planck';
 import type { Scenario } from '../sim';
 import { FIXED_DT, ticksToSeconds } from '../time';
 import { EARTH_GRAVITY } from '../constants';
-import { CART_HALF_LENGTH, stepRail } from '../rail';
+import { CART_HALF_LENGTH, leaveCart, stepRail, type RailObstacle, type RailPush } from '../rail';
 import { ACT_RULES, INTERACTIONS } from '../interactions';
 import type { HubStep } from '../interactions/types';
 import {
@@ -13,6 +13,7 @@ import {
   HUB_RUN_SPEED,
   HUB_STUCK_STEPS,
   HUB_WALK_SPEED,
+  LOCAL_PLAYER,
   clampTarget,
   type HubBean,
   type HubCommand,
@@ -26,18 +27,20 @@ import {
 export * from './hub-world';
 
 /**
- * The hub plaza, seen from ¾ top-down (D1). Coordinates (D15): the ground plane is x east and
- * y north, in metres; z is height above the ground, and gravity pulls along −z. How that is
- * projected onto the screen is the client's business.
+ * The hub, seen from ¾ top-down (D1). Coordinates (D15): the ground plane is x east and y north,
+ * in metres; z is height above the ground, and gravity pulls along −z. How that is projected
+ * onto the screen is the client's business.
  *
- * Ground movement goes through Planck.js (D4, hub only): the bean is a circle that the walkable
- * area's edges and the props' footprints stop. Jumps are not in Planck: z is integrated
- * exactly, the same way as the drop, so a timed jump gives textbook numbers (D16).
+ * Every bean in `state.beans` (one offline, a whole class on the M2 server) is stepped by the
+ * same rules, in join order. Ground movement goes through Planck.js (D4, hub only): each bean is
+ * a circle that the walkable area's edges and the props' footprints stop; beans pass through
+ * each other, so a crowd can never block a portal, the bench or a cart. Jumps are not in Planck:
+ * z is integrated exactly, the same way as the drop, so a timed jump gives textbook numbers (D16).
  *
  * Carts on the east-west rail move in the exact 1D rail sim (`rail.ts`, D4, D19). In Planck
- * they are only kinematic boxes, so the bean bumps into them.
+ * they are only kinematic boxes, so beans bump into them.
  *
- * What the bean does with things (pushing a cart, riding one) is its interaction state,
+ * What a bean does with things (pushing a cart, riding one) is its interaction state,
  * `bean.act` (D21), owned by one module per interaction (`../interactions/`). This file runs
  * the world and calls the modules in a fixed order.
  */
@@ -56,43 +59,37 @@ const ARRIVE_EPSILON = 1e-6;
  * a corner or a prop, and that should not have to wait out the stuck timer.
  */
 const ARRIVE_BLOCKED_M = 0.02;
+/** Beans share this negative collision group: Planck never makes them collide with each other. */
+const BEAN_GROUP = -1;
 
 /**
  * The Planck world for a layout. The sim state stays authoritative and plain JSON: every step
- * copies the bean's position and velocity in and reads them back out. Warm starting is off, so
- * no solver impulses carry over between steps and a step depends only on the state.
+ * copies the beans' positions and velocities in and reads them back out. Warm starting is off,
+ * so no solver impulses carry over between steps and a step depends only on the state.
  */
-function buildWorld(layout: PlazaLayout): { world: World; bean: Body; carts: Map<string, Body> } {
+function buildWorld(layout: PlazaLayout): { world: World; carts: Map<string, Body> } {
   const world = new World({ gravity: { x: 0, y: 0 }, warmStarting: false, allowSleep: false });
-  const w = layout.walkable;
   const edges = world.createBody();
-  edges.createFixture(
-    new ChainShape(
-      [
-        { x: w.minX, y: w.minY },
-        { x: w.maxX, y: w.minY },
-        { x: w.maxX, y: w.maxY },
-        { x: w.minX, y: w.maxY },
-      ],
-      true,
-    ),
-    { friction: 0 },
-  );
+  edges.createFixture(new ChainShape(layout.walkable.points.map((p) => ({ x: p.x, y: p.y })), true), { friction: 0 });
   // Props and benches are solid footprints.
   for (const prop of [...layout.props, ...layout.benches]) {
     const body = world.createBody({ position: { x: prop.x, y: prop.y } });
     body.createFixture(new BoxShape(prop.halfWidth, prop.halfDepth), { friction: 0 });
   }
-  // Carts are kinematic: the rail sim moves them, Planck only makes the bean bump into them.
+  // Carts are kinematic: the rail sim moves them, Planck only makes beans bump into them.
   const carts = new Map<string, Body>();
   for (const c of layout.rail?.carts ?? []) {
     const body = world.createKinematicBody({ position: { x: c.x, y: layout.rail?.y ?? 0 } });
     body.createFixture(new BoxShape(CART_HALF_LENGTH, CART_HALF_DEPTH), { friction: 0 });
     carts.set(c.id, body);
   }
-  const bean = world.createDynamicBody({ position: layout.start, fixedRotation: true, allowSleep: false });
-  bean.createFixture(new CircleShape(HUB_BEAN_RADIUS_M), { density: 1, friction: 0, restitution: 0 });
-  return { world, bean, carts };
+  return { world, carts };
+}
+
+function createBeanBody(world: World, at: { x: number; y: number }): Body {
+  const body = world.createDynamicBody({ position: at, fixedRotation: true, allowSleep: false });
+  body.createFixture(new CircleShape(HUB_BEAN_RADIUS_M), { density: 1, friction: 0, restitution: 0, filterGroupIndex: BEAN_GROUP });
+  return body;
 }
 
 /**
@@ -116,8 +113,10 @@ function stepHeight(bean: HubBean, g: number, tick: number): void {
   bean.grounded = true;
 }
 
-function initialBean(start: { x: number; y: number }): HubBean {
+function initialBean(id: string, start: { x: number; y: number }): HubBean {
   return {
+    id,
+    input: { x: 0, y: 0, run: false },
     x: start.x,
     y: start.y,
     z: 0,
@@ -140,32 +139,120 @@ function initialRail(rail: RailLayout | null): HubRailState | null {
   return { carts: rail.carts.map((c) => ({ id: c.id, mass: c.mass, riderMass: 0, x: c.x, v: 0 })), collisions: [], riders: [] };
 }
 
+/** Arriving beans stand at least this far apart (m), so a class never spawns in one stack. */
+const SPAWN_GAP_M = 0.6;
+/** Spacing of the spawn grid around the arrival point (m). */
+const SPAWN_STEP_M = 0.8;
+/**
+ * Spawn spots around an arrival point: a hex grid, nearest first (ties by y, then x), built with
+ * + − × and sqrt only (STATUS open issue 5). 91 spots, over twice a class.
+ */
+const SPAWN_OFFSETS: readonly { x: number; y: number }[] = (() => {
+  const h = Math.sqrt(3) / 2;
+  const out: { x: number; y: number; d: number }[] = [];
+  for (let r = -5; r <= 5; r++) {
+    for (let q = -5; q <= 5; q++) {
+      if (Math.abs(q + r) > 5) continue;
+      const x = SPAWN_STEP_M * (q + r / 2);
+      const y = SPAWN_STEP_M * r * h;
+      out.push({ x, y, d: x * x + y * y });
+    }
+  }
+  return out.sort((a, b) => a.d - b.d || a.y - b.y || a.x - b.x).map(({ x, y }) => ({ x, y }));
+})();
+
+/**
+ * The spot nearest `at` (on the grid, inside the walkable area, clear of every solid footprint)
+ * with no bean within SPAWN_GAP_M. The first bean gets `at` itself.
+ */
+function spawnSpot(state: HubState, at: { x: number; y: number }): { x: number; y: number } {
+  const r = HUB_BEAN_RADIUS_M;
+  const solid = [...state.layout.props, ...state.layout.benches];
+  for (const o of SPAWN_OFFSETS) {
+    const p = clampTarget(state.layout.walkable, at.x + o.x, at.y + o.y);
+    if (solid.some((f) => Math.abs(p.x - f.x) < f.halfWidth + r && Math.abs(p.y - f.y) < f.halfDepth + r)) continue;
+    if (state.beans.every((b) => Math.hypot(b.x - p.x, b.y - p.y) >= SPAWN_GAP_M)) return p;
+  }
+  return at;
+}
+
+/** A player's id: short, printable, and never a prototype key. */
+const validPlayer = (id: unknown): id is string => typeof id === 'string' && /^[A-Za-z0-9_-]{1,64}$/.test(id);
+
+/** What one bean wants this step, worked out before anything moves. */
+interface Intent {
+  bean: HubBean;
+  step: HubStep;
+  vx: number;
+  vy: number;
+  targetDistance: number;
+  intended: number;
+  pushing: boolean;
+  usesPlanck: boolean;
+}
+
 /** One scenario instance per Sim: it owns that sim's Planck world. */
 export function createHubScenario(options: HubOptions = {}): Scenario<HubState, HubCommand> {
   const layout: PlazaLayout = structuredCloneLayout(options.layout ?? DEFAULT_PLAZA);
   if (options.start) layout.start = { ...options.start };
   const gravity = options.gravity ?? EARTH_GRAVITY;
-  const { world, bean: body, carts: cartBodies } = buildWorld(layout);
+  const local = options.local ?? true;
+  const { world, carts: cartBodies } = buildWorld(layout);
+  /** Planck bodies by bean id, kept in step with `state.beans`. */
+  const bodies = new Map<string, Body>();
+  if (local) bodies.set(LOCAL_PLAYER, createBeanBody(world, layout.start));
+
+  /** Give every bean a body and drop the bodies of beans that left. */
+  function syncBodies(state: HubState): void {
+    const ids = new Set(state.beans.map((b) => b.id));
+    for (const [id, body] of bodies) {
+      if (ids.has(id)) continue;
+      world.destroyBody(body);
+      bodies.delete(id);
+    }
+    for (const b of state.beans) if (!bodies.has(b.id)) bodies.set(b.id, createBeanBody(world, { x: b.x, y: b.y }));
+  }
 
   return {
     name: 'hub',
     init: () => ({
       layout,
       gravity,
-      input: { x: 0, y: 0, run: false },
-      bean: initialBean(layout.start),
+      beans: local ? [initialBean(LOCAL_PLAYER, layout.start)] : [],
       rail: initialRail(layout.rail),
     }),
     step(state, commands) {
-      const bean = state.bean;
-      const step: HubStep = { state, time: ticksToSeconds(state.tick), rules: ACT_RULES };
+      const time = ticksToSeconds(state.tick);
+      const stepFor = (bean: HubBean): HubStep => ({ state, bean, time, rules: ACT_RULES });
+
       for (const c of commands) {
-        // Commands will one day arrive over the network: drop any with non-finite numbers.
+        // Commands arrive over the network in M2: drop any that are malformed.
+        if (c.type === 'join') {
+          if (!validPlayer(c.player) || state.beans.some((b) => b.id === c.player)) continue;
+          const at = c.at && Number.isFinite(c.at.x) && Number.isFinite(c.at.y) ? clampTarget(state.layout.walkable, c.at.x, c.at.y) : state.layout.start;
+          state.beans.push(initialBean(c.player, spawnSpot(state, at)));
+          continue;
+        }
+        if (c.type === 'leave') {
+          const bean = state.beans.find((b) => b.id === c.player);
+          if (!bean) continue;
+          // A rider leaves its cart as if it hopped out (momentum is conserved).
+          if (bean.act.kind === 'riding') {
+            const cartId = bean.act.cart;
+            const cart = state.rail?.carts.find((k) => k.id === cartId);
+            if (cart) leaveCart(cart);
+          }
+          state.beans = state.beans.filter((b) => b !== bean);
+          continue;
+        }
         if ((c.type === 'move' || c.type === 'moveTo') && !(Number.isFinite(c.x) && Number.isFinite(c.y))) continue;
         if (c.type === 'use' && typeof c.id !== 'string') continue;
+        const bean = state.beans.find((b) => b.id === (c.player ?? LOCAL_PLAYER));
+        if (!bean) continue;
+        const step = stepFor(bean);
         if (INTERACTIONS.some((m) => m.command(step, c))) continue;
         if (c.type === 'move') {
-          state.input = { x: c.x, y: c.y, run: c.run };
+          bean.input = { x: c.x, y: c.y, run: c.run };
         } else if (c.type === 'moveTo') {
           bean.target = clampTarget(state.layout.walkable, c.x, c.y);
           bean.stuckSteps = 0;
@@ -173,127 +260,144 @@ export function createHubScenario(options: HubOptions = {}): Scenario<HubState, 
           bean.grounded = false;
           bean.vz = HUB_JUMP_SPEED;
           bean.jumps += 1;
-          bean.lastJump = { startedAt: ticksToSeconds(state.tick), landedAt: null, peakZ: 0 };
+          bean.lastJump = { startedAt: time, landedAt: null, peakZ: 0 };
         }
       }
+      syncBodies(state);
 
-      // Desired ground velocity. Held keys win over a tap target and cancel it.
-      const speed = state.input.run ? HUB_RUN_SPEED : HUB_WALK_SPEED;
-      let vx = 0;
-      let vy = 0;
-      let targetDistance = 0;
-      let intended = 0;
-      const held = Math.hypot(state.input.x, state.input.y);
-      if (held > 0) {
-        bean.target = null;
-        bean.stuckSteps = 0;
-        // Normalise so diagonals are no faster; partial stick input moves proportionally slower.
-        const scale = held > 1 ? speed / held : speed;
-        vx = state.input.x * scale;
-        vy = state.input.y * scale;
-      } else if (bean.target) {
-        const dx = bean.target.x - bean.x;
-        const dy = bean.target.y - bean.y;
-        targetDistance = Math.hypot(dx, dy);
-        intended = Math.min(speed * FIXED_DT, targetDistance);
-        if (targetDistance > 0) {
-          // On the last step, arrive exactly instead of overshooting.
-          const v = intended / FIXED_DT;
-          vx = (dx / targetDistance) * v;
-          vy = (dy / targetDistance) * v;
+      // Each bean's desired ground velocity. Held keys win over a tap target and cancel it.
+      const intents: Intent[] = state.beans.map((bean) => {
+        const step = stepFor(bean);
+        const speed = bean.input.run ? HUB_RUN_SPEED : HUB_WALK_SPEED;
+        let vx = 0;
+        let vy = 0;
+        let targetDistance = 0;
+        let intended = 0;
+        const held = Math.hypot(bean.input.x, bean.input.y);
+        if (held > 0) {
+          bean.target = null;
+          bean.stuckSteps = 0;
+          // Normalise so diagonals are no faster; partial stick input moves proportionally slower.
+          const scale = held > 1 ? speed / held : speed;
+          vx = bean.input.x * scale;
+          vy = bean.input.y * scale;
+        } else if (bean.target) {
+          const dx = bean.target.x - bean.x;
+          const dy = bean.target.y - bean.y;
+          targetDistance = Math.hypot(dx, dy);
+          intended = Math.min(speed * FIXED_DT, targetDistance);
+          if (targetDistance > 0) {
+            // On the last step, arrive exactly instead of overshooting.
+            const v = intended / FIXED_DT;
+            vx = (dx / targetDistance) * v;
+            vy = (dy / targetDistance) * v;
+          }
         }
-      }
-      // An interaction that holds the bean (riding, a hop) takes it off its feet.
-      if (!ACT_RULES[bean.act.kind].walks) {
-        vx = 0;
-        vy = 0;
-        bean.target = null;
-      }
-      for (const m of INTERACTIONS) m.drive?.(step, { vx, vy });
-      const act = bean.act;
-      const walks = ACT_RULES[act.kind].walks;
+        // An interaction that holds the bean (riding, a hop) takes it off its feet.
+        if (!ACT_RULES[bean.act.kind].walks) {
+          vx = 0;
+          vy = 0;
+          bean.target = null;
+        }
+        for (const m of INTERACTIONS) m.drive?.(step, { vx, vy });
+        const act = bean.act;
+        return { bean, step, vx, vy, targetDistance, intended, pushing: act.kind === 'pushing', usesPlanck: ACT_RULES[act.kind].usesPlanck };
+      });
 
-      // Carts first, in the exact 1D rail sim, with the bean's push if it walks into an end.
+      // Carts first, in the exact 1D rail sim, with the push of every bean walking into an end.
       const railLayout = state.layout.rail;
       const railY = railLayout?.y ?? 0;
       const carts = state.rail?.carts ?? [];
-      const push = act.kind === 'pushing' ? { cart: act.cart, dir: act.dir, run: act.run } : null;
       const cartsBefore = carts.map((c) => c.x);
       if (railLayout && state.rail) {
-        // A bean standing on the rail (not riding, not the one pushing) stops carts that roll
-        // into it; pushing, it only ever touches the end it pushes away from itself.
-        const onRail = walks && Math.abs(bean.y - railY) < CART_HALF_DEPTH + HUB_BEAN_RADIUS_M;
-        const obstacle = onRail ? { lo: bean.x - HUB_BEAN_RADIUS_M, hi: bean.x + HUB_BEAN_RADIUS_M } : null;
-        const hits = stepRail(railLayout, carts, push, ticksToSeconds(state.tick), FIXED_DT, obstacle);
+        const pushes: RailPush[] = [];
+        const obstacles: RailObstacle[] = [];
+        for (const { bean } of intents) {
+          const act = bean.act;
+          if (act.kind === 'pushing') pushes.push({ cart: act.cart, dir: act.dir, run: act.run });
+          // A bean standing on the rail (not riding) stops carts that roll into it; pushing, it
+          // only ever touches the end it pushes away from itself.
+          const onRail = ACT_RULES[act.kind].walks && Math.abs(bean.y - railY) < CART_HALF_DEPTH + HUB_BEAN_RADIUS_M;
+          if (onRail) obstacles.push({ lo: bean.x - HUB_BEAN_RADIUS_M, hi: bean.x + HUB_BEAN_RADIUS_M });
+        }
+        const hits = stepRail(railLayout, carts, pushes, time, FIXED_DT, obstacles);
         if (hits.length) state.rail.collisions = [...state.rail.collisions, ...hits].slice(-COLLISION_LOG);
       }
       // Each kinematic cart body sweeps from where it was to where the rail put it, so Planck
-      // shoves the bean out of its way.
+      // shoves beans out of its way.
       carts.forEach((c, i) => {
         const from = cartsBefore[i] ?? c.x;
         cartBodies.get(c.id)?.setTransform({ x: from, y: railY }, 0);
         cartBodies.get(c.id)?.setLinearVelocity({ x: (c.x - from) / FIXED_DT, y: 0 });
       });
 
-      // Ground motion and collisions (Planck), from the state, only while the bean walks
-      // freely. Every other act (pushing, riding, hops) places the bean itself.
-      const usesPlanck = ACT_RULES[act.kind].usesPlanck;
-      body.setActive(usesPlanck);
-      body.setTransform({ x: bean.x, y: bean.y }, 0);
-      body.setLinearVelocity({ x: vx, y: vy });
-      body.setAwake(true);
+      // Ground motion and collisions (Planck), from the state, only for beans that walk freely.
+      // Every other act (pushing, riding, hops) places the bean itself.
+      for (const { bean, vx, vy, usesPlanck } of intents) {
+        const body = bodies.get(bean.id);
+        if (!body) continue;
+        body.setActive(usesPlanck);
+        body.setTransform({ x: bean.x, y: bean.y }, 0);
+        body.setLinearVelocity({ x: vx, y: vy });
+        body.setAwake(true);
+      }
       world.step(FIXED_DT, 8, 3);
       for (const c of carts) {
         cartBodies.get(c.id)?.setTransform({ x: c.x, y: railY }, 0);
         cartBodies.get(c.id)?.setLinearVelocity({ x: 0, y: 0 });
       }
-      if (usesPlanck) {
-        const p = body.getPosition();
-        const v = body.getLinearVelocity();
-        bean.x = p.x;
-        bean.y = p.y;
-        bean.vx = v.x;
-        bean.vy = v.y;
-      }
-      const owner = ownerOf(act.kind);
-      owner?.place(step);
 
-      // Facing: the act's own rule, or else the direction of ground movement (kept while idle).
-      const moving = vx !== 0 || vy !== 0;
-      const facing = owner?.facing(step) ?? (moving ? { x: vx / Math.hypot(vx, vy), y: vy / Math.hypot(vx, vy) } : null);
-      if (facing) {
-        bean.facingX = facing.x;
-        bean.facingY = facing.y;
-      }
+      for (const { bean, step, vx, vy, targetDistance, intended, pushing, usesPlanck } of intents) {
+        const body = bodies.get(bean.id);
+        if (usesPlanck && body) {
+          const p = body.getPosition();
+          const v = body.getLinearVelocity();
+          bean.x = p.x;
+          bean.y = p.y;
+          bean.vx = v.x;
+          bean.vy = v.y;
+        }
+        const owner = ownerOf(bean.act.kind);
+        owner?.place(step);
 
-      // Tap target: arrived, making progress, or stuck.
-      if (bean.target) {
-        const remaining = Math.hypot(bean.target.x - bean.x, bean.target.y - bean.y);
-        if (remaining <= ARRIVE_EPSILON) {
-          bean.target = null;
-          bean.stuckSteps = 0;
-        } else if (!push && targetDistance - remaining < STUCK_PROGRESS * intended) {
-          bean.stuckSteps += 1;
-          if (remaining <= ARRIVE_BLOCKED_M || bean.stuckSteps >= HUB_STUCK_STEPS) {
+        // Facing: the act's own rule, or else the direction of ground movement (kept while idle).
+        const moving = vx !== 0 || vy !== 0;
+        const facing = owner?.facing(step) ?? (moving ? { x: vx / Math.hypot(vx, vy), y: vy / Math.hypot(vx, vy) } : null);
+        if (facing) {
+          bean.facingX = facing.x;
+          bean.facingY = facing.y;
+        }
+
+        // Tap target: arrived, making progress, or stuck.
+        if (bean.target) {
+          const remaining = Math.hypot(bean.target.x - bean.x, bean.target.y - bean.y);
+          if (remaining <= ARRIVE_EPSILON) {
             bean.target = null;
             bean.stuckSteps = 0;
+          } else if (!pushing && targetDistance - remaining < STUCK_PROGRESS * intended) {
+            bean.stuckSteps += 1;
+            if (remaining <= ARRIVE_BLOCKED_M || bean.stuckSteps >= HUB_STUCK_STEPS) {
+              bean.target = null;
+              bean.stuckSteps = 0;
+            }
+          } else {
+            bean.stuckSteps = 0;
           }
-        } else {
-          bean.stuckSteps = 0;
         }
-      }
 
-      if (ACT_RULES[bean.act.kind].walks) stepHeight(bean, state.gravity, state.tick);
-      for (const m of INTERACTIONS) m.settle?.(step);
+        if (ACT_RULES[bean.act.kind].walks) stepHeight(bean, state.gravity, state.tick);
+        for (const m of INTERACTIONS) m.settle?.(step);
+      }
     },
   };
 }
 
 function structuredCloneLayout(layout: PlazaLayout): PlazaLayout {
   return {
-    walkable: { ...layout.walkable },
+    walkable: { points: layout.walkable.points.map((p) => ({ ...p })) },
     props: layout.props.map((p) => ({ ...p })),
     benches: layout.benches.map((b) => ({ ...b, seats: b.seats.map((q) => ({ ...q })) })),
+    portals: layout.portals.map((p) => ({ ...p })),
     start: { ...layout.start },
     rail: layout.rail ? { ...layout.rail, carts: layout.rail.carts.map((c) => ({ ...c })) } : null,
   };

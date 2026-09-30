@@ -1,0 +1,11 @@
+ok   Brave Otter: sees 3 beans, tags Calm Owl, Jolly Puffin
+ok   Calm Owl: sees 3 beans, tags Brave Otter, Jolly Puffin
+ok   Jolly Puffin: sees 3 beans, tags Brave Otter, Calm Owl
+ok   all pages agree on every bean within 0.0000 m (limit 0.02)
+ok   Brave Otter walked east 3.68 m
+ok   Calm Owl walked to the tap (-2.60, -3.69)
+ok   Jolly Puffin went through the Waves portal; the others now see 2 beans
+ok   Jolly Puffin came back in front of the Waves portal; the others see 3 beans
+load: 30 players for 60 s in one class
+  server: 3607 sim steps (60.1 per s), 1.667 ms per tick on average, 37.13 ms worst (budget 16.7 ms)
+  snapshots: 15.0 per s to each player, 5.1 KB each as JSON (msgpack on the wire is smaller), about 77 KB/s per player

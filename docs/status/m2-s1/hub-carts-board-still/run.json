@@ -1,0 +1,43 @@
+{
+  "ok": true,
+  "error": null,
+  "script": "tools/shot/scripts/hub-carts-board-still.json",
+  "scene": "hub",
+  "url": "http://localhost:57988/?scene=hub&paused=1&layout=plaza",
+  "git": {
+    "commit": "7dc851d",
+    "dirty": true
+  },
+  "inputs": [
+    {
+      "step": 0,
+      "action": "tap [430,570]",
+      "simTime": 0
+    },
+    {
+      "step": 1,
+      "action": "wait 1.2",
+      "simTime": 0
+    },
+    {
+      "step": 2,
+      "action": "press \"KeyE\"",
+      "simTime": 1.2
+    },
+    {
+      "step": 3,
+      "action": "wait 0.3",
+      "simTime": 1.2
+    },
+    {
+      "step": 5,
+      "action": "wait 0.4",
+      "simTime": 1.5
+    }
+  ],
+  "console": {
+    "errors": 0,
+    "warnings": 0,
+    "entries": []
+  }
+}

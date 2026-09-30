@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { CART_FLOOR_M, DEFAULT_PLAZA } from '@beananza/sim';
+import { CART_FLOOR_M, DEFAULT_PLAZA, ENTER_RISE_M, ISLAND } from '@beananza/sim';
 import { CART_WHEEL_RADIUS_M, PROP_PARTS, PROP_SVGS, buildPropArtSpec, propKey } from '../src/art/props';
 import { RAIL_GAUGE_M } from '../src/scenes/hub-view';
 
@@ -53,6 +53,16 @@ describe('prop art contract (art/props/*.svg)', () => {
     for (const seat of bench.seats) {
       expect(spec.docs.bench?.anchors[`seat-${seat.id}`], seat.id).toEqual({ x: seat.dx * 100, y: -(bench.seatDy + bench.seatHeight) * 100 });
     }
+  });
+
+  it('draws the portal with its swirl turning about the anchor an entering bean floats to (D2)', () => {
+    expect(spec.docs.portal?.parts.map((p) => p.id)).toEqual(['shadow', 'base', 'swirl', 'ring', 'lock']);
+    const swirl = spec.docs.portal!.anchors.swirl!;
+    expect(spec.pivots.get(propKey('portal', 'swirl'))).toEqual(swirl);
+    // A bean floats ENTER_RISE_M up while vanishing: its feet stay below the swirl's centre.
+    expect(-swirl.y / 100).toBeGreaterThan(ENTER_RISE_M);
+    // Every island portal has the drawing.
+    for (const p of ISLAND.portals) expect(Object.keys(PROP_PARTS)).toContain(p.art);
   });
 
   it('rejects a cart without its floor anchor', () => {

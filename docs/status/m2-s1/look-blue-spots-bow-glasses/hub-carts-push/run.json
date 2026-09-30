@@ -1,0 +1,73 @@
+{
+  "ok": true,
+  "error": null,
+  "script": "tools/shot/scripts/hub-carts-push.json",
+  "scene": "hub",
+  "url": "http://localhost:57988/?scene=hub&paused=1&layout=plaza&look=blue%2Cspots%2Cbow%2Cglasses",
+  "git": {
+    "commit": "7dc851d",
+    "dirty": true
+  },
+  "inputs": [
+    {
+      "step": 0,
+      "action": "tap [310,520]",
+      "simTime": 0
+    },
+    {
+      "step": 1,
+      "action": "wait 1",
+      "simTime": 0
+    },
+    {
+      "step": 3,
+      "action": "keyDown \"ArrowRight\"",
+      "simTime": 1
+    },
+    {
+      "step": 4,
+      "action": "wait 0.3",
+      "simTime": 1
+    },
+    {
+      "step": 6,
+      "action": "wait 0.1",
+      "simTime": 1.3
+    },
+    {
+      "step": 8,
+      "action": "wait 0.2",
+      "simTime": 1.4
+    },
+    {
+      "step": 10,
+      "action": "wait 0.4",
+      "simTime": 1.6
+    },
+    {
+      "step": 11,
+      "action": "keyUp \"ArrowRight\"",
+      "simTime": 2
+    },
+    {
+      "step": 12,
+      "action": "wait 0.5",
+      "simTime": 2
+    },
+    {
+      "step": 14,
+      "action": "wait 1.5",
+      "simTime": 2.5
+    },
+    {
+      "step": 16,
+      "action": "wait 3",
+      "simTime": 4
+    }
+  ],
+  "console": {
+    "errors": 0,
+    "warnings": 0,
+    "entries": []
+  }
+}

@@ -7,17 +7,20 @@ export const PROP_PARTS: Readonly<Record<string, readonly string[]>> = {
   tree: ['shadow', 'trunk', 'canopy'],
   cart: ['shadow', 'back', 'rocks', 'front', 'wheel-west', 'wheel-east'],
   bench: ['shadow', 'back', 'seat'],
+  portal: ['shadow', 'base', 'swirl', 'ring', 'lock'],
 };
 
 /**
  * Anchors each prop must have (D22). The cart: `floor` (where a rider stands) and the corners
  * of its front (`rim-west`, `rim-east`, `base-west`, `base-east`): below the rim, a rider only
- * shows inside them. The bench: `seat-<seat id>`, where a seated bean's feet point is.
+ * shows inside them. The bench: `seat-<seat id>`, where a seated bean's feet point is. A
+ * portal: `swirl`, the centre an entering bean floats to (D2).
  */
 export const PROP_ANCHORS: Readonly<Record<string, readonly string[]>> = {
   tree: [],
   cart: ['floor', 'rim-west', 'rim-east', 'base-west', 'base-east'],
   bench: ['seat-west', 'seat-east'],
+  portal: ['swirl'],
 };
 
 export interface PropArtSpec {

@@ -23,8 +23,9 @@ exploration) and are not loaded yet.
   and `packages/client/test/bean-art.test.ts`.
 - **Pivots (D22):** a part that rotates or scales about its own point carries
   `data-pivot="x y"` on its `<g>`: arms at the shoulder, feet and eyes at their centre, the
-  scarf tail at the knot (and prop wheels at the hub). The contract requires it on `arm-…`,
-  `foot-…`, `wheel-…`, `scarf-tail` and `eyes`; every other part pivots at (0, 0).
+  scarf tail at the knot (and prop wheels at the hub, a portal's swirl at its centre). The
+  contract requires it on `arm-…`, `foot-…`, `wheel-…`, `scarf-tail`, `eyes` and `swirl`; every
+  other part pivots at (0, 0).
 - **Anchors (D22):** named points the game places things at, in one reserved group per file
   that is never drawn: `<g id="anchors" display="none"><circle id="anchor-<name>" cx="…" cy="…" r="0"/></g>`.
   Every view has `anchor-headwear` (the top of the body, checked within 1 unit); the side view
@@ -77,6 +78,13 @@ the tree's greens (`#5F9150`, `#6A9C5A`, `#86B874`) are new. The game loads them
   0.15 m south of the centre line, 0.4 m either side (the sim's bench layout; a test checks they
   agree).
 
+- `portal.svg`: a region portal (D2), a stone ring standing on a plinth with a swirl inside,
+  seen from the south; origin in the middle of its 1.3 × 0.4 m footprint (not solid in the sim).
+  `shadow`, `base`, `swirl` (white and greys: the game tints it in the region's colour, and it
+  turns about its centre, `data-pivot`), `ring`, and `lock` (crossed planks and a padlock, only on
+  a locked portal). The game draws `shadow`, `base` and `swirl` behind a bean entering the portal
+  and `ring` and `lock` in front. Anchor `swirl`: the swirl's centre, 0.86 m up.
+
 ## Boss (`baron/`), parked
 - `heavy-baron.svg`: The Heavy Baron in his smug default expression.
 - **Known issue:** the sash runs into the mouth and off the edge of the body, and the "1 t" medal sits on the mouth. A corrected version (sash lowered and clipped to the body, medal moved up onto the sash near the left shoulder) is in the "The Heavy Baron" section of `reference/showcase.html`. This SVG still has the original.
@@ -98,6 +106,11 @@ UI and world:
 | Plaza stone | `#E9DCC0` |
 | Grass | `#A9C98C` |
 | Water | `#86BCCB` |
+| Sky, top / horizon (hub island) | `#7FBDE6` / `#D6EEF8` |
+| Cloud / cloud shade | `#FDFCF8` / `#E3EEF4` |
+| Grass rim (island edge) | `#C4DCA8` |
+| Cliff lit / mid / shaded | `#B58360` / `#9C6C4C` / `#7F563D` |
+| Rock underside | `#6B4A36` |
 
 Bean colors (body / arm / foot / belly):
 | Name | Body | Arm | Foot | Belly |

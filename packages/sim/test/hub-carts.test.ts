@@ -33,13 +33,13 @@ const LIGHT_X = rail.carts[0]!.x;
 const HEAVY_X = rail.carts[1]!.x;
 
 /** Step until the bean's act is `kind` (at most `max` steps); returns the steps taken. */
-function until(sim: Sim<HubState, HubCommand>, kind: HubState['bean']['act']['kind'], max = 120): number {
+function until(sim: Sim<HubState, HubCommand>, kind: HubState['beans'][number]['act']['kind'], max = 120): number {
   let n = 0;
-  while (sim.state.bean.act.kind !== kind && n < max) {
+  while (sim.state.beans[0]!.act.kind !== kind && n < max) {
     sim.step();
     n += 1;
   }
-  expect(sim.state.bean.act.kind).toBe(kind);
+  expect(sim.state.beans[0]!.act.kind).toBe(kind);
   return n;
 }
 
@@ -48,11 +48,11 @@ function pushLightEast(running = false) {
   const sim = newHub({ start: { x: LIGHT_X - 1.2, y: rail.y } });
   sim.enqueue(move(1, 0, running));
   let n = 0;
-  while (sim.state.bean.act.kind !== 'pushing' && n < 120) {
+  while (sim.state.beans[0]!.act.kind !== 'pushing' && n < 120) {
     sim.step();
     n += 1;
   }
-  expect(sim.state.bean.act).toEqual({ kind: 'pushing', cart: 'light', dir: 1, run: running });
+  expect(sim.state.beans[0]!.act).toEqual({ kind: 'pushing', cart: 'light', dir: 1, run: running });
   return sim;
 }
 
@@ -77,7 +77,7 @@ describe('hub carts', () => {
     run(sim, 30);
     expect(cart(sim, 'light').v).toBe(CART_PUSH_CAP);
     // The bean stays against the cart's west end and faces east (side view).
-    const b = sim.state.bean;
+    const b = sim.state.beans[0]!;
     expect(b.x).toBeCloseTo(cart(sim, 'light').x - CART_HALF_LENGTH - HUB_BEAN_RADIUS_M, 12);
     expect([b.facingX, b.facingY]).toEqual([1, 0]);
   });
@@ -96,7 +96,7 @@ describe('hub carts', () => {
     sim.step();
     const v = cart(sim, 'light').v;
     run(sim, 30);
-    expect(sim.state.bean.act.kind).toBe('free');
+    expect(sim.state.beans[0]!.act.kind).toBe('free');
     expect(cart(sim, 'light').v).toBeCloseTo(v - CART_ROLLING_DECEL * 0.5, 12);
   });
 
@@ -108,7 +108,7 @@ describe('hub carts', () => {
     const sim = newHub({ start: { x: LIGHT_X, y: rail.y + side * (side > 0 ? 1.2 : 0.6) } });
     sim.enqueue(move(0, -side));
     run(sim, 90);
-    const b = sim.state.bean;
+    const b = sim.state.beans[0]!;
     expect(Math.abs(b.y - rail.y)).toBeGreaterThan(CART_HALF_DEPTH + HUB_BEAN_RADIUS_M - 0.01);
     expect(Math.abs(b.y - rail.y)).toBeLessThan(CART_HALF_DEPTH + HUB_BEAN_RADIUS_M + 0.03);
     expect(b.act.kind).toBe('free');
@@ -117,7 +117,7 @@ describe('hub carts', () => {
 
   it('a diagonal into the end still pushes; a move mostly along the cart’s side does not', () => {
     const sim = pushLightEast();
-    expect(sim.state.bean.act).toMatchObject({ kind: 'pushing', cart: 'light' });
+    expect(sim.state.beans[0]!.act).toMatchObject({ kind: 'pushing', cart: 'light' });
     const side = newHub({ start: { x: LIGHT_X - 1.2, y: rail.y } });
     side.enqueue(move(0.2, 1));
     run(side, 60);
@@ -135,7 +135,7 @@ describe('hub carts', () => {
     const hit = sim.state.rail!.collisions.find((c) => c.kind === 'bean');
     expect(hit?.carts[0]).toMatchObject({ id: 'light', vAfter: 0 });
     expect(sim.state.rail!.collisions.some((c) => c.kind === 'bumper')).toBe(true);
-    const b = sim.state.bean;
+    const b = sim.state.beans[0]!;
     expect(cart(sim, 'light').v).toBe(0);
     // Touching, within Planck's contact skin.
     expect(Math.abs(cart(sim, 'light').x - (b.x - HUB_BEAN_RADIUS_M - CART_HALF_LENGTH))).toBeLessThan(0.01);
@@ -146,22 +146,22 @@ describe('hub carts', () => {
     const sim = newHub({ start: { x: LIGHT_X - 0.9, y: rail.y - 0.6 } });
     sim.enqueue({ type: 'action' });
     sim.step();
-    expect(sim.state.bean.act.kind).toBe('boarding');
+    expect(sim.state.beans[0]!.act.kind).toBe('boarding');
     until(sim, 'riding');
-    expect(sim.state.bean.act).toMatchObject({ kind: 'riding', cart: 'light' });
+    expect(sim.state.beans[0]!.act).toMatchObject({ kind: 'riding', cart: 'light' });
     expect(cart(sim, 'light').riderMass).toBe(HUB_BEAN_MASS_KG);
-    expect([sim.state.bean.x, sim.state.bean.y, sim.state.bean.z]).toEqual([LIGHT_X, rail.y, CART_FLOOR_M]);
+    expect([sim.state.beans[0]!.x, sim.state.beans[0]!.y, sim.state.beans[0]!.z]).toEqual([LIGHT_X, rail.y, CART_FLOOR_M]);
     // Movement input does not walk out of the cart.
     sim.enqueue(move(1, 0));
     run(sim, 30);
-    expect(sim.state.bean.x).toBe(LIGHT_X);
+    expect(sim.state.beans[0]!.x).toBe(LIGHT_X);
     sim.enqueue({ type: 'action' });
     sim.step();
-    expect(sim.state.bean.act.kind).toBe('leaving');
+    expect(sim.state.beans[0]!.act.kind).toBe('leaving');
     expect(cart(sim, 'light').riderMass).toBe(0);
     until(sim, 'free');
-    expect(sim.state.bean.y).toBeLessThan(rail.y - CART_HALF_DEPTH - HUB_BEAN_RADIUS_M);
-    expect(sim.state.bean.z).toBe(0);
+    expect(sim.state.beans[0]!.y).toBeLessThan(rail.y - CART_HALF_DEPTH - HUB_BEAN_RADIUS_M);
+    expect(sim.state.beans[0]!.z).toBe(0);
 
     const again = newHub({ start: { x: LIGHT_X, y: rail.y - 0.7 } });
     again.enqueue({ type: 'action' });
@@ -169,9 +169,9 @@ describe('hub carts', () => {
     until(again, 'riding');
     again.enqueue({ type: 'jump' });
     again.step();
-    expect(again.state.bean.act.kind).toBe('leaving');
+    expect(again.state.beans[0]!.act.kind).toBe('leaving');
     until(again, 'free');
-    expect(again.state.bean.jumps).toBe(0);
+    expect(again.state.beans[0]!.jumps).toBe(0);
   });
 
   it('a rider faces the camera while the cart is still and the way it travels while it moves', () => {
@@ -181,7 +181,7 @@ describe('hub carts', () => {
     still.enqueue({ type: 'action' });
     still.step();
     until(still, 'riding');
-    expect([still.state.bean.facingX, still.state.bean.facingY]).toEqual([0, -1]);
+    expect([still.state.beans[0]!.facingX, still.state.beans[0]!.facingY]).toEqual([0, -1]);
 
     // Pushed to 1.9 m/s, then boarded: 0.38 m/s east, so it faces east; it keeps that facing
     // while slowing through 0.3..0.1 m/s, and turns to the camera below 0.1 m/s.
@@ -192,14 +192,14 @@ describe('hub carts', () => {
     sim.step();
     until(sim, 'riding');
     expect(cart(sim, 'light').v).toBeGreaterThan(0.3);
-    expect([sim.state.bean.facingX, sim.state.bean.facingY]).toEqual([1, 0]);
+    expect([sim.state.beans[0]!.facingX, sim.state.beans[0]!.facingY]).toEqual([1, 0]);
     const speedAfter = (s: number) => Math.round(((cart(sim, 'light').v - s) / CART_ROLLING_DECEL) * 60);
     run(sim, speedAfter(0.2));
     expect(cart(sim, 'light').v).toBeLessThan(0.3);
-    expect([sim.state.bean.facingX, sim.state.bean.facingY]).toEqual([1, 0]);
+    expect([sim.state.beans[0]!.facingX, sim.state.beans[0]!.facingY]).toEqual([1, 0]);
     run(sim, speedAfter(0.05));
     expect(cart(sim, 'light').v).toBeLessThan(0.1);
-    expect([sim.state.bean.facingX, sim.state.bean.facingY]).toEqual([0, -1]);
+    expect([sim.state.beans[0]!.facingX, sim.state.beans[0]!.facingY]).toEqual([0, -1]);
   });
 
   it('a rider in a cart moving west faces west', () => {
@@ -209,13 +209,13 @@ describe('hub carts', () => {
     const sim = newHub({ layout, start: { x: 2.2, y: rail.y } });
     sim.enqueue(move(-1, 0));
     run(sim, 40);
-    expect(sim.state.bean.act).toMatchObject({ kind: 'pushing', dir: -1 });
+    expect(sim.state.beans[0]!.act).toMatchObject({ kind: 'pushing', dir: -1 });
     sim.enqueue(move(0, 0));
     sim.enqueue({ type: 'action' });
     sim.step();
     until(sim, 'riding');
     expect(cart(sim, 'light').v).toBeLessThan(-0.3);
-    expect([sim.state.bean.facingX, sim.state.bean.facingY]).toEqual([-1, 0]);
+    expect([sim.state.beans[0]!.facingX, sim.state.beans[0]!.facingY]).toEqual([-1, 0]);
   });
 
   it('E next to the 20 kg cart does not reach past it to the 5 kg cart (review round 1)', () => {
@@ -224,18 +224,18 @@ describe('hub carts', () => {
     const sim = newHub({ layout, start: { x: 0, y: rail.y - 0.46 } });
     sim.enqueue({ type: 'action' });
     sim.step();
-    expect(sim.state.bean.act.kind).toBe('free');
+    expect(sim.state.beans[0]!.act.kind).toBe('free');
   });
 
   it('E does nothing far from the cart or next to the 20 kg cart', () => {
     const far = newHub({ start: { x: LIGHT_X, y: rail.y + 1.5 } });
     far.enqueue({ type: 'action' });
     far.step();
-    expect(far.state.bean.act.kind).toBe('free');
+    expect(far.state.beans[0]!.act.kind).toBe('free');
     const heavy = newHub({ start: { x: HEAVY_X, y: rail.y - 0.7 } });
     heavy.enqueue({ type: 'action' });
     heavy.step();
-    expect(heavy.state.bean.act.kind).toBe('free');
+    expect(heavy.state.beans[0]!.act.kind).toBe('free');
   });
 
   it('riding changes the cart’s speed by m/(m+20) at touchdown and back at take-off', () => {

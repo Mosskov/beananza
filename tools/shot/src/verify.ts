@@ -69,12 +69,19 @@ export function formatRows(rows: readonly Row[]): string[] {
   });
 }
 
+/**
+ * Set for `pnpm check` while `--update-golden` runs: the test that the golden folder is complete
+ * then skips, because this very run rewrites it (a new script has no golden file until then).
+ */
+export const UPDATING_GOLDEN_ENV = 'VERIFY_UPDATING_GOLDEN';
+
 /** Run `pnpm check` with its output in a file; resolves with the exit code and the test count. */
-function runCheck(logFile: string): Promise<{ code: number; tests: string }> {
+function runCheck(logFile: string, updatingGolden: boolean): Promise<{ code: number; tests: string }> {
   return new Promise((done) => {
     const out = createWriteStream(logFile);
     // One command string: pnpm is a .cmd shim on Windows, so it needs the shell.
-    const child = spawn('pnpm check', { cwd: REPO, shell: true });
+    const env = updatingGolden ? { ...process.env, [UPDATING_GOLDEN_ENV]: '1' } : process.env;
+    const child = spawn('pnpm check', { cwd: REPO, shell: true, env });
     let text = '';
     const take = (chunk: Buffer) => {
       out.write(chunk);
@@ -130,7 +137,7 @@ async function main(): Promise<number> {
 
   // 1. pnpm check, in the background while the scripts run (they need no fps).
   const checkStart = Date.now();
-  const check = values['no-check'] ? null : runCheck(join(OUT, 'check.log'));
+  const check = values['no-check'] ? null : runCheck(join(OUT, 'check.log'), updateGolden);
 
   // A crash (for example the browser closing under load) becomes a FAIL row for the step it hit,
   // and the summary still prints; the log checks are then skipped, as their inputs are partial.

@@ -3,6 +3,62 @@
 Routine choices made while building, logged so they can be reviewed and reversed. None of them
 changes a decision in `docs/DECISIONS.md`. Newest milestone first.
 
+## Hub island and multiplayer hub (branch `hub-island`), 2026-09-30
+
+Decisions confirmed by the user this session are in DECISIONS (D2, D5, D27; D28 Open). The rest:
+- **Island size and shape:** flat-top hexagon, circumradius 12 m (24 m across, 20.8 m north to
+  south): flat edges face the camera, so the south edge is one straight cliff.
+- **Contents:** rail south-east, bench with Priya south-west, three trees, portals for
+  Mechanics (north-west), Waves (north), Storm (north-east), Crystal (locked, west). Positions are
+  data in `ISLAND` and were tuned only from screenshots.
+- **Plaza kept:** the M1 rectangle stays as `?layout=plaza` so its scripts and evidence still
+  compare exactly; the old scripts name `"layout": "plaza"`.
+- **Depth scale over the island:** the same 0.62 to 0.92 formula over the island's 20.8 m; beans
+  far north draw smaller. Looked fine in screenshots; revisit if it bothers anyone.
+- **Camera:** follows the drawn bean, clamped to the island plus a sky margin (more to the south
+  for the cliff and underside), as a pure function of sim state (no easing), so shots stay exact.
+- **Island drawing:** placeholder shapes (sky gradient, parallax clouds that stand still under
+  reduced motion, cliffs lit from the west, a hanging-rock underside, stone paths to the portals),
+  colours in the palette table. The controls hint got a light panel to stay readable over rock.
+- **Portals:** not solid; entering is walking into the 0.3 m ring at the centre, a tap on the
+  portal, or E within 1.6 m; a 0.6 s float into the swirl, then `gone`. The locked portal bounces
+  the bean back 0.7 m, facing the camera, with no text (planks and a padlock say it is closed).
+- **Regions:** travel is a page load (`?scene=region&region=<id>`, back with `?from=<id>`); a
+  paused sim never travels, so tools/shot stays on the hub. Region scenes have no sim yet.
+- **Many beans:** commands without `player` go to the local bean; beans pass through each other
+  (D28); a seat or the ridable cart taken by another bean is skipped; several pushes on one cart
+  add; the speed cap is the highest among pushers in the winning direction. A player who leaves
+  while riding leaves the cart as if hopping out. Arriving beans take the nearest free spot on a
+  0.8 m hex grid around the arrival point (no bean within 0.6 m, clear of props); the first gets
+  the point itself, so offline play is unchanged.
+- **Server:** Colyseus 0.18 (`@colyseus/core` 0.18.8, the SDK 0.18.4). No schema state: the hub
+  sim stays the one source of truth, and the room broadcasts plain snapshots 15 times a second
+  (numbers rounded to 0.1 mm or 1 mm/s). Commands are checked (a client only moves its own bean),
+  and rate-limited with a token bucket refilled by sim steps (30 a second, bursts of 60). A drop
+  may reconnect within 20 s. At most 40 players per class. The native `msgpackr-extract` speed-up
+  is not built (`pnpm-workspace.yaml`); the encoder works without it.
+- **Online client:** draws 100 ms behind the server, interpolating snapshots; no prediction for
+  the player's own bean yet (it responds after the round trip plus 100 ms). All 10 bean colours
+  are rasterized online, for the other players. Name tags within 3 m (DESIGN.md §10), not on
+  your own bean. Joining is an HTML form over the page (class code, one of three preset names,
+  "Other names"); `?name=` skips it, and the class and name stay in the URL for portal trips.
+- **Server address:** `VITE_HUB_URL` at build time, else port 2567 on the page's own host (dev and
+  LAN play).
+- **Merged with main after the tools prep (PR #5):** main's D26 is the reaction model, so this
+  branch's decisions are D27 (preset names) and D28 (beans pass through each other). The drawing
+  moved into `HubWorldView` keeps main's sharp picture (`screen-scale.ts`): the camera is framed
+  with `frameCamera` at k each frame, and the sky and the controls hint are placed at the view's
+  corner in world space (a scroll factor of 0 does not line up once the camera zooms); texts use
+  `sharpText`. The portal is registered in `prop-contract.ts` and `prop-sources.ts`.
+- **Golden states:** the 64 existing files changed only in form (`layout: "plaza"`, `bean` to
+  `beans[0]` with `id` and `input`, the walkable polygon, `portals: []`); compared through the
+  renames against main's files, 64 of 64 are the same. 23 files are new (the island and portal
+  scripts). `pnpm verify --update-golden` sets `VERIFY_UPDATING_GOLDEN` for its `pnpm check`, so
+  the golden-completeness test skips during the run that rewrites the folder (otherwise a new
+  script could never get its first golden file); every other test still gates.
+- **Test timeouts under `pnpm verify`:** the sim boundary type-check (about 1 s alone) and the
+  30-bean determinism test (about 2 s) get 30 s: verify runs `pnpm check` while the browsers
+  shoot, and on this laptop the 5 s default ran out.
 ## Tools prep session (branch `tools/prep`), 2026-09-30
 
 No decision changes. From `prompts/tools-prep-session.md`.

@@ -1,0 +1,98 @@
+{
+  "script": "hub-portal-enter",
+  "shot": "vanishing",
+  "scene": "hub",
+  "layout": "portals",
+  "look": null,
+  "state": {
+    "layout": {
+      "walkable": {
+        "points": [
+          {
+            "x": -5.8,
+            "y": -3
+          },
+          {
+            "x": 5.8,
+            "y": -3
+          },
+          {
+            "x": 5.8,
+            "y": 2
+          },
+          {
+            "x": -5.8,
+            "y": 2
+          }
+        ]
+      },
+      "props": [],
+      "benches": [],
+      "portals": [
+        {
+          "id": "portal-mechanics",
+          "art": "portal",
+          "usable": true,
+          "region": "mechanics",
+          "x": 1.6,
+          "y": 0.9,
+          "halfWidth": 0.65,
+          "halfDepth": 0.2
+        },
+        {
+          "id": "portal-crystal",
+          "art": "portal",
+          "usable": true,
+          "region": "crystal",
+          "locked": true,
+          "x": -2.4,
+          "y": 0.9,
+          "halfWidth": 0.65,
+          "halfDepth": 0.2
+        }
+      ],
+      "start": {
+        "x": -2.5,
+        "y": -0.8
+      },
+      "rail": null
+    },
+    "gravity": 9.81,
+    "beans": [
+      {
+        "id": "local",
+        "input": {
+          "x": 0,
+          "y": 0,
+          "run": false
+        },
+        "x": 1.5428371538795547,
+        "y": 0.8762983320964007,
+        "z": 0.4925925925925926,
+        "vx": 0,
+        "vy": 0,
+        "vz": 0,
+        "grounded": true,
+        "facingX": 0,
+        "facingY": 1,
+        "target": null,
+        "stuckSteps": 0,
+        "jumps": 0,
+        "lastJump": null,
+        "act": {
+          "kind": "entering",
+          "portal": "portal-mechanics",
+          "startTick": 110,
+          "endTick": 146,
+          "fromX": 1.3427671924579958,
+          "fromY": 0.7933424944338031
+        }
+      }
+    ],
+    "rail": null,
+    "tick": 138,
+    "rng": {
+      "s": 1
+    }
+  }
+}

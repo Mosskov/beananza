@@ -2,29 +2,45 @@
   "script": "hub-carts-push",
   "shot": "pushing-b",
   "scene": "hub",
-  "layout": null,
+  "layout": "plaza",
   "look": null,
   "state": {
     "layout": {
       "walkable": {
-        "minX": -5.8,
-        "maxX": 5.8,
-        "minY": -3,
-        "maxY": 2
+        "points": [
+          {
+            "x": -5.8,
+            "y": -3
+          },
+          {
+            "x": 5.8,
+            "y": -3
+          },
+          {
+            "x": 5.8,
+            "y": 2
+          },
+          {
+            "x": -5.8,
+            "y": 2
+          }
+        ]
       },
       "props": [
         {
           "id": "tree",
+          "art": "tree",
           "x": 2.2,
           "y": 0.2,
           "halfWidth": 0.25,
-          "halfDepth": 0.2,
-          "art": "tree"
+          "halfDepth": 0.2
         }
       ],
       "benches": [
         {
           "id": "bench",
+          "art": "bench",
+          "usable": true,
           "x": -3.6,
           "y": 1.2,
           "halfWidth": 0.8,
@@ -41,11 +57,10 @@
               "dx": 0.4,
               "taken": true
             }
-          ],
-          "art": "bench",
-          "usable": true
+          ]
         }
       ],
+      "portals": [],
       "start": {
         "x": -2.5,
         "y": -0.8
@@ -71,32 +86,35 @@
       }
     },
     "gravity": 9.81,
-    "input": {
-      "x": 1,
-      "y": 0,
-      "run": false
-    },
-    "bean": {
-      "x": -2.613202777777778,
-      "y": -2.1,
-      "z": 0,
-      "vx": 1.4923333333333335,
-      "vy": 0,
-      "vz": 0,
-      "grounded": true,
-      "facingX": 1,
-      "facingY": 0,
-      "target": null,
-      "stuckSteps": 0,
-      "jumps": 0,
-      "lastJump": null,
-      "act": {
-        "kind": "pushing",
-        "cart": "light",
-        "dir": 1,
-        "run": false
+    "beans": [
+      {
+        "id": "local",
+        "input": {
+          "x": 1,
+          "y": 0,
+          "run": false
+        },
+        "x": -2.613202777777778,
+        "y": -2.1,
+        "z": 0,
+        "vx": 1.4923333333333335,
+        "vy": 0,
+        "vz": 0,
+        "grounded": true,
+        "facingX": 1,
+        "facingY": 0,
+        "target": null,
+        "stuckSteps": 0,
+        "jumps": 0,
+        "lastJump": null,
+        "act": {
+          "kind": "pushing",
+          "cart": "light",
+          "dir": 1,
+          "run": false
+        }
       }
-    },
+    ],
     "rail": {
       "carts": [
         {

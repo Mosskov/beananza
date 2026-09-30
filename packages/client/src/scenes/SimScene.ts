@@ -15,11 +15,14 @@ export abstract class SimScene<S extends SimStateBase, C> extends Phaser.Scene i
   protected look: BeanLook = DEFAULT_LOOK;
   /** The named layout asked for (`?layout=`), or null for the scene's default. */
   protected layout: string | null = null;
+  /** The region the player came back from (`?from=`), or null. */
+  protected from: string | null = null;
 
   init(data: SceneStartData): void {
     this.paused = data.paused === true;
     this.look = data.look ?? DEFAULT_LOOK;
     this.layout = data.layout ?? null;
+    this.from = data.from ?? null;
     this.stepper.reset();
   }
 
@@ -32,6 +35,11 @@ export abstract class SimScene<S extends SimStateBase, C> extends Phaser.Scene i
   override update(_time: number, deltaMs: number): void {
     const alpha = this.paused ? 1 : this.stepper.advance(deltaMs / 1000, () => this.stepOnce());
     this.drawState(alpha);
+  }
+
+  /** Paused: by `?paused=1` or by a tool stepping to an exact time. */
+  protected get isPaused(): boolean {
+    return this.paused;
   }
 
   protected abstract createSim(): Sim<S, C>;

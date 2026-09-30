@@ -34,6 +34,10 @@ exploration) and are not loaded yet.
 - `front.svg` also has `eyes-sleep` (closed eyes), hidden unless the bean dozes on the bench;
   seated beans always face the camera, so only the front view needs it. (The doze "z" is an
   effect, see "Effects" below.)
+- **Reaction faces (D26):** the views with a face (`front`, `front-34`, `side`) also have
+  `eyes-happy` and `mouth-open` (Eureka!) and `eyes-squeeze` and `mouth-wavy` (Oops), hidden
+  until a reaction shows them in place of `eyes` and `mouth` (`REACTION_PARTS`,
+  `packages/client/src/rig/reaction-parts.ts`). They have no highlight, so no `-left` drawings.
 - **Effect anchors (D26, D22):** every view has `anchor-fx-head` (above and beside the head, where
   the doze "z" floats from), `anchor-fx-brow` (the brow, for sweat) and `anchor-fx-ground`
   (between the feet, for dust), in that view's own frame; mirrored views mirror them. They may lie
@@ -97,6 +101,9 @@ it in `effect-sources.ts`; `pnpm art:check` finds a file that is not registered.
 `effect-contract.ts` and `packages/client/test/effect-art.test.ts`.
 - `doze-z.svg`: the two drawn "z" shapes beside the dozing bean, on `fxHead`. Moved out of
   `bean/front.svg`, unchanged except that the origin is now the anchor `fx-head` (32, −124).
+- `eureka-bulb.svg`: Eureka!'s lightbulb with rays, on `fxHead`, drawn back over the head's
+  middle (30 units in from the anchor) and popping about its own centre (`data-pivot`).
+- `sweat-drop.svg`: Oops's sweat drop, on `fxBrow`; the clip slides it down the head.
 
 ## Boss (`baron/`), parked
 - `heavy-baron.svg`: The Heavy Baron in his smug default expression.
@@ -104,7 +111,8 @@ it in `effect-sources.ts`; `pnpm art:check` finds a file that is not registered.
 
 ## Palette
 New colours used by props and cosmetics (not in the tables below): the tree's greens, the
-bench's wood uses the cart's browns, and the bow (`#D94F6B`, knot `#B23A55`).
+bench's wood uses the cart's browns, the bow (`#D94F6B`, knot `#B23A55`), the open mouth's
+inside (`#7A3B2E`) and the lightbulb's base (`#B07A4F`).
 UI and world:
 | Use | Hex |
 |---|---|

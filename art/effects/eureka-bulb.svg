@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-60 -60 70 66" width="140" height="132">
+  <!-- Eureka!'s lightbulb (D26; showcase "Eureka!"): a glowing bulb with rays over the head. Origin (0, 0) is the
+       effect's anchor, fx-head on the bean (above and beside the head), so the bulb is drawn back over the head's
+       middle. It pops, grows and shrinks about its own centre (data-pivot). Drawn shapes only (D17). -->
+  <g id="eureka-bulb" data-pivot="-30 -30">
+    <circle cx="-30" cy="-30" r="20" fill="#F6C66B" opacity="0.35"/>
+    <path d="M-30 -52 V-46 M-41.3 -41.3 L-45.6 -45.6 M-18.7 -41.3 L-14.4 -45.6 M-46 -30 H-52 M-14 -30 H-8" fill="none" stroke="#E3A93B" stroke-width="2.5" stroke-linecap="round"/>
+    <path d="M-35 -21 C-35 -24 -41 -26 -41 -31 A11 11 0 1 1 -19 -31 C-19 -26 -25 -24 -25 -21 Z" fill="#F6C66B"/>
+    <path d="M-35 -33 a6 6 0 0 1 4 -5" fill="none" stroke="#FFF8EC" stroke-width="2" stroke-linecap="round"/>
+    <rect x="-35.5" y="-21" width="11" height="7" rx="2" fill="#B07A4F"/>
+    <path d="M-35 -18 H-25" stroke="#8A5C3C" stroke-width="1.2"/>
+  </g>
+</svg>

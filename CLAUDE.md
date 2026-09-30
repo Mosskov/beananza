@@ -22,7 +22,6 @@ and at home.
 - `docs/ART_PIPELINE.md`: the art pipeline (Claude draws SVG text, contract checks, review sheets)
 - `docs/TOPICS.md`: design topics backlog
 - `docs/STATUS.md`: the current state (what works, open issues, next)
-- `docs/D9-options.md`: prepared options for D9 (the first expedition), asked in-session
 - `docs/archive/`: frozen history (old session reports, the assumptions log, the old prompts'
   handover). Not maintained; read only when a detail is needed.
 - `reference/`: the showcase page and the bean rotation comparison (open in a browser). Behavior reference only; never port their code.

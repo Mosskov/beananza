@@ -8,13 +8,14 @@ import { BeanRig, createBeanShadow } from '../rig/BeanRig';
 import { beanArt } from '../rig/bean-art';
 import { chooseClip, samplePose } from '../rig/player';
 import { hitsBeanBody } from '../rig/hit';
+import { reactionParts } from '../rig/reaction-parts';
 import { chooseReaction } from '../rig/reactions';
 import { viewForFacing } from '../rig/views';
 import { frameCamera, layoutCentre, sharpText, useRenderScale } from '../screen-scale';
 import { SimScene } from './SimScene';
 import { CART_RIDER_DEPTH, CartView, drawRiderMask, drawRail, speedReadout } from './hub-carts';
 import { CLASSMATES, greetingAt, type Classmate } from './classmates';
-import { PART_DEFAULTS, presentAct, type Placement, type ToggledPart } from './hub-presentation';
+import { PART_DEFAULTS, presentAct, type Placement } from './hub-presentation';
 import { cartStandOff, characterScreen, depthKey, depthScale, groundFromScreen, toScreen } from './hub-view';
 
 const m = (meters: number) => meters * PIXELS_PER_METER;
@@ -296,10 +297,12 @@ export class HubScene extends SimScene<HubState, HubCommand> {
     const choice = viewForFacing(b.facingX, b.facingY);
     const { clip, t } = chooseClip(b, time, this.sim.state.gravity, look.clip);
     rig.setView(choice);
-    for (const [part, shown] of Object.entries(PART_DEFAULTS)) rig.setPartVisible(part, look.parts[part as ToggledPart] ?? shown);
+    const reaction = chooseReaction(this.sim.state, time);
+    // The act's parts, then the running reaction's face and effect over them (D26).
+    const parts: Partial<Record<string, boolean>> = { ...look.parts, ...reactionParts(reaction) };
+    for (const [part, shown] of Object.entries(PART_DEFAULTS)) rig.setPartVisible(part, parts[part] ?? shown);
     // Keep the readout of the cart in use above the bean's head (headwear included), with a gap.
     if (look.usingCart) this.carts.get(look.usingCart)?.keepReadoutAbove(feet.y + (rig.drawnTop() - READOUT_GAP_UNITS) * scale);
-    const reaction = chooseReaction(this.sim.state, time);
     const pose = samplePose({ clip, t, time, view: choice.view, mirrored: choice.mirrored, reducedMotion: this.reducedMotion, reaction });
     rig.applyPose(pose);
     // The bean's body is wider than its footprint: next to a cart's end (pushing or not), draw

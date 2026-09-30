@@ -2,10 +2,23 @@ import { SIM_HZ, type HubAct, type HubActKind, type HubState } from '@beananza/s
 import type { ActClip } from '../../rig/player';
 
 /**
- * Parts some act shows or hides, and how every other act draws them. `doze-z` is an effect
- * (`art/effects/`), shown and hidden by its part id like a bean part.
+ * Parts some act or reaction shows or hides (`REACTION_PARTS`), and how they are drawn otherwise.
+ * `doze-z`, `eureka-bulb` and `sweat-drop` are effects (`art/effects/`), shown and hidden by their
+ * part id like a bean part.
  */
-export const PART_DEFAULTS = { 'arm-far-push': false, eyes: true, 'eyes-sleep': false, 'doze-z': false } as const;
+export const PART_DEFAULTS = {
+  'arm-far-push': false,
+  eyes: true,
+  mouth: true,
+  'eyes-sleep': false,
+  'doze-z': false,
+  'eyes-happy': false,
+  'mouth-open': false,
+  'eyes-squeeze': false,
+  'mouth-wavy': false,
+  'eureka-bulb': false,
+  'sweat-drop': false,
+} as const;
 export type ToggledPart = keyof typeof PART_DEFAULTS;
 
 /** Where the bean draws. */

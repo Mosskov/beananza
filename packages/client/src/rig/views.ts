@@ -137,11 +137,19 @@ export const REQUIRED_ANCHORS: Readonly<Record<BeanView, readonly string[]>> = {
 };
 
 /**
- * Hidden unless something turns them on: earned goggles (catapult), the far arm (pushing) and the
- * closed eyes (dozing). Effects (`art/effects/`, such as the doze "z") are all hidden until
- * turned on, without being listed here.
+ * Hidden unless something turns them on: earned goggles (catapult), the far arm (pushing), the
+ * closed eyes (dozing) and the reaction faces (`REACTION_PARTS`). Effects (`art/effects/`, such
+ * as the doze "z") are all hidden until turned on, without being listed here.
  */
-export const HIDDEN_BY_DEFAULT: ReadonlySet<string> = new Set(['headwear-goggles', 'arm-far-push', 'eyes-sleep']);
+export const HIDDEN_BY_DEFAULT: ReadonlySet<string> = new Set([
+  'headwear-goggles',
+  'arm-far-push',
+  'eyes-sleep',
+  'eyes-happy',
+  'mouth-open',
+  'eyes-squeeze',
+  'mouth-wavy',
+]);
 
 /** Feet stay on the ground; every other part moves with the body (bob, squash, lean). */
 export function isGroundPart(partId: string): boolean {

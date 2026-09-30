@@ -5,6 +5,7 @@ import { prefersReducedMotion } from '../accessibility';
 import { GAME_HEIGHT, GAME_WIDTH, PALETTE, UI_FONT as FONT, cssColor } from '../config';
 import { BeanRig, createBeanShadow } from '../rig/BeanRig';
 import { CLIP_PARTS } from '../rig/clip-parts';
+import { reactionParts } from '../rig/reaction-parts';
 import { CLIP_NAMES, CLIPS, familyOf } from '../rig/clips';
 import { samplePose, type Pose, type ReactionLayer } from '../rig/player';
 import { pickDirections, screenAngleDeg, type ViewChoice } from '../rig/views';
@@ -202,12 +203,10 @@ export class AnimViewerScene extends Phaser.Scene implements TestableScene, Anim
       return { d, x: RING.x + RING.rx * Math.cos(a), feetY: RING.y + RING.ry * Math.sin(a), scale: RING.scale };
     });
     placed.sort((a, b) => a.feetY - b.feetY);
-    const parts = { ...PART_DEFAULTS, ...CLIP_PARTS[clip] };
     this.beans = placed.map(({ d, x, feetY, scale }) => {
       const shadow = createBeanShadow(this).setPosition(x, feetY).setScale(scale);
       const rig = new BeanRig(this, this.look);
       rig.setView(d.choice);
-      for (const [part, visible] of Object.entries(parts)) rig.setPartVisible(part, visible);
       rig.root.setPosition(x, feetY).setScale(scale);
       return { direction: d.name, choice: d.choice, rig, shadow, pose: null };
     });
@@ -224,7 +223,10 @@ export class AnimViewerScene extends Phaser.Scene implements TestableScene, Anim
     this.reaction = null;
     if (kind && p < this.span) this.reaction = { kind, t: p, groups: reactionGroups(clip, kind) ?? [] };
     const reducedMotion = this.reducedMotion;
+    // The clip's parts (as its act shows them), then the reaction's face and effect over them.
+    const parts = { ...PART_DEFAULTS, ...CLIP_PARTS[clip], ...reactionParts(this.reaction) };
     for (const bean of this.beans) {
+      for (const [part, visible] of Object.entries(parts)) bean.rig.setPartVisible(part, visible);
       const data = CLIPS[clip][familyOf(bean.choice.view)];
       // As in the hub: a looping clip runs on the clock, a one-shot clip from the start of the pass.
       const t = data.loop ? this.clock : p;

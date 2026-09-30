@@ -13,6 +13,8 @@ import type { EffectSlot } from '../rig/views';
  */
 export const EFFECTS: Readonly<Record<string, { slot: EffectSlot; parts: readonly string[] }>> = {
   'doze-z': { slot: 'fxHead', parts: ['doze-z'] },
+  'eureka-bulb': { slot: 'fxHead', parts: ['eureka-bulb'] },
+  'sweat-drop': { slot: 'fxBrow', parts: ['sweat-drop'] },
 };
 
 export interface EffectArtSpec {

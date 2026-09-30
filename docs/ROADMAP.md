@@ -17,8 +17,8 @@ Each milestone should land as several small, runnable slices. Nothing here is ap
 4. **Animations:** idle, walk, run, jump, land; reduced-motion fallback
 5. **Customization basics:** color, one pattern, three headwear pieces, one face variant
 6. **Interactables:** cart on a rail (push, inertia, collisions between two carts) and a bench (sit)
-7. **One expedition prototype** (after D9 is designed): side-view projectile, predict → launch →
-   compare, result saved to a local notebook
+7. **One expedition prototype** (after D9 is designed; the topic is open, not the projectile
+   launch): predict → test → compare, result saved to a local notebook
 - **Done when:** a student can walk the plaza, push the carts, sit on the bench, enter the
   expedition, make a prediction and see it logged. Sim behavior is covered by tests.
 

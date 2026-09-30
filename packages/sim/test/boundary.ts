@@ -180,6 +180,28 @@ export function exportedNames(source: string): string[] {
   return names;
 }
 
+/**
+ * Every identifier or string literal in `source` that is one of `names` or matches one of
+ * `patterns`: how the sim would name a rig slot, a clip, a part or an art file (D26). Comments
+ * do not count.
+ */
+export function findArtNames(fileName: string, source: string, names: ReadonlySet<string>, patterns: readonly RegExp[]): Violation[] {
+  const sf = ts.createSourceFile(fileName, source, ts.ScriptTarget.ES2022, true, ts.ScriptKind.TS);
+  const out: Violation[] = [];
+  const visit = (node: ts.Node) => {
+    if (ts.isIdentifier(node) || ts.isStringLiteralLike(node)) {
+      const text = node.text;
+      if (names.has(text) || patterns.some((p) => p.test(text))) {
+        const { line } = sf.getLineAndCharacterOfPosition(node.getStart(sf));
+        out.push({ file: fileName, line: line + 1, message: `names art (${text})` });
+      }
+    }
+    ts.forEachChild(node, visit);
+  };
+  visit(sf);
+  return out;
+}
+
 /** Every use of one of `names` as an identifier in `source` (imports, types, values). */
 export function findNameUses(fileName: string, source: string, names: ReadonlySet<string>): Violation[] {
   const sf = ts.createSourceFile(fileName, source, ts.ScriptTarget.ES2022, true, ts.ScriptKind.TS);

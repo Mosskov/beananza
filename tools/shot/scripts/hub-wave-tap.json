@@ -1,0 +1,18 @@
+{
+  "scene": "hub",
+  "steps": [
+    { "wait": 0.2 },
+    { "shot": "standing" },
+    { "tap": [390, 345] },
+    { "wait": 0.3 },
+    { "shot": "tap-wave-standing" },
+    { "wait": 1.6 },
+    { "shot": "tap-wave-over" },
+    { "tap": [280, 170] },
+    { "wait": 2.0 },
+    { "shot": "seated" },
+    { "tap": [240, 160] },
+    { "wait": 0.3 },
+    { "shot": "tap-wave-seated" }
+  ]
+}

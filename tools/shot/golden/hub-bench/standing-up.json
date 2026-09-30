@@ -97,7 +97,8 @@
         "startTick": 462,
         "endTick": 480,
         "then": null
-      }
+      },
+      "reaction": null
     },
     "rail": {
       "carts": [

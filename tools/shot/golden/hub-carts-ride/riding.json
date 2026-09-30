@@ -94,7 +94,8 @@
         "kind": "riding",
         "cart": "light",
         "since": 127
-      }
+      },
+      "reaction": null
     },
     "rail": {
       "carts": [

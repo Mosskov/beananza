@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
-import { checkFiles, compileDiagnostics, exportedNames, findNameUses, findViolations, listTsFiles, type BoundaryRules, type Violation } from './boundary';
+import { checkFiles, compileDiagnostics, exportedNames, findArtNames, findNameUses, findViolations, listTsFiles, type BoundaryRules, type Violation } from './boundary';
 
 const repo = resolve(fileURLToPath(new URL('.', import.meta.url)), '../../..');
 const simSrc = join(repo, 'packages/sim/src');
@@ -15,6 +15,11 @@ const rules: BoundaryRules = {
   // public math.random helper. Neither affects results.
   allowedPackages: ['@beananza/shared', 'planck'],
 };
+/**
+ * Loading the TypeScript program takes under a second alone, but about 5 s while `pnpm verify`
+ * runs browsers beside it, which is vitest's default timeout.
+ */
+const COMPILE_TIMEOUT_MS = 30_000;
 const format = (vs: Violation[]) => vs.map((v) => `${v.file}:${v.line} ${v.message}`);
 
 describe('sim boundary', () => {
@@ -35,12 +40,33 @@ describe('sim boundary', () => {
     expect(findNameUses(join(simSrc, '__fixture__.ts'), "export * from '../../shared/src/look';", names).length).toBeGreaterThan(0);
   });
 
+  it('packages/sim names no rig slot, clip, part, anchor or art file for reactions (D26)', () => {
+    const slots = new Set(['fx', 'fxHead', 'fxBrow', 'fxGround', 'footA', 'footB', 'armA', 'armB', 'eyes', 'tail', 'doze-z']);
+    const clips = new Set(['idle', 'walk', 'run', 'fall', 'land', 'push', 'pushHeavy', 'sit', 'doze', 'wave']);
+    const anywhere = [/^anchor-/, /art\/effects/, /\.svg$/, /^doze/];
+    // Reactions get the stricter rule: the file names no clip, slot or drawing word at all.
+    const reactions = [/clip/i, /slot/i, /anchor/i, /svg/i, /sprite/i, /particle/i, /lightbulb/i, /sparkle/i, /sweat/i];
+    const all = listTsFiles(simSrc);
+    const reactionsFile = join(simSrc, 'reactions.ts');
+    expect(all).toContain(reactionsFile);
+    const uses = all.flatMap((f) => findArtNames(f, readFileSync(f, 'utf8'), slots, anywhere));
+    expect(format(uses)).toEqual([]);
+    const strict = findArtNames(reactionsFile, readFileSync(reactionsFile, 'utf8'), new Set([...slots, ...clips]), [...anywhere, ...reactions]);
+    expect(format(strict)).toEqual([]);
+    // The check can fail.
+    const fixture = join(simSrc, '__fixture__.ts');
+    expect(findArtNames(fixture, "export const slot = 'fxHead';", slots, anywhere).length).toBeGreaterThan(0);
+    expect(findArtNames(fixture, "export const a = 'anchor-fx-head';", slots, anywhere).length).toBeGreaterThan(0);
+    expect(findArtNames(fixture, 'export const clip = 1;', new Set([...slots, ...clips]), reactions).length).toBeGreaterThan(0);
+    expect(findArtNames(fixture, "export const x = 'waveHi'; // the clip is the client's", slots, anywhere)).toEqual([]);
+  });
+
   it('packages/sim type-checks against the ES library only (no DOM, no Node types)', () => {
     const { options, messages } = compileDiagnostics(simTsconfig);
     expect(messages).toEqual([]);
     expect((options.lib ?? []).some((l) => /dom|webworker/i.test(l))).toBe(false);
     expect(options.types).toEqual([]);
-  });
+  }, COMPILE_TIMEOUT_MS);
 
   // The checks above are only worth something if they can fail. Feed them known-bad code.
   describe('catches violations', () => {
@@ -87,6 +113,6 @@ describe('sim boundary', () => {
       expect(messages.some((m) => m.includes("'document'"))).toBe(true);
       expect(messages.some((m) => m.includes("'setTimeout'"))).toBe(true);
       expect(messages.some((m) => m.includes("'process'"))).toBe(true);
-    });
+    }, COMPILE_TIMEOUT_MS);
   });
 });

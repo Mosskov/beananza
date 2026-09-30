@@ -1,0 +1,126 @@
+{
+  "script": "hub-wave",
+  "shot": "wave-walking",
+  "scene": "hub",
+  "layout": null,
+  "look": null,
+  "state": {
+    "layout": {
+      "walkable": {
+        "minX": -5.8,
+        "maxX": 5.8,
+        "minY": -3,
+        "maxY": 2
+      },
+      "props": [
+        {
+          "id": "tree",
+          "art": "tree",
+          "x": 2.2,
+          "y": 0.2,
+          "halfWidth": 0.25,
+          "halfDepth": 0.2
+        }
+      ],
+      "benches": [
+        {
+          "id": "bench",
+          "art": "bench",
+          "usable": true,
+          "x": -3.6,
+          "y": 1.2,
+          "halfWidth": 0.8,
+          "halfDepth": 0.225,
+          "seatHeight": 0.3,
+          "seatDy": -0.15,
+          "seats": [
+            {
+              "id": "west",
+              "dx": -0.4
+            },
+            {
+              "id": "east",
+              "dx": 0.4,
+              "taken": true
+            }
+          ]
+        }
+      ],
+      "start": {
+        "x": -2.5,
+        "y": -0.8
+      },
+      "rail": {
+        "y": -2.1,
+        "minX": -3.68,
+        "maxX": 3.68,
+        "carts": [
+          {
+            "id": "light",
+            "mass": 5,
+            "x": -2.1,
+            "ridable": true
+          },
+          {
+            "id": "heavy",
+            "mass": 20,
+            "x": 1.6,
+            "ridable": false
+          }
+        ]
+      }
+    },
+    "gravity": 9.81,
+    "input": {
+      "x": -1,
+      "y": 0,
+      "run": false
+    },
+    "bean": {
+      "x": -3.9400000000000013,
+      "y": -0.8,
+      "z": 0,
+      "vx": -2.4,
+      "vy": 0,
+      "vz": 0,
+      "grounded": true,
+      "facingX": -1,
+      "facingY": 0,
+      "target": null,
+      "stuckSteps": 0,
+      "jumps": 0,
+      "lastJump": null,
+      "act": {
+        "kind": "free"
+      },
+      "reaction": {
+        "kind": "waveHi",
+        "since": 144
+      }
+    },
+    "rail": {
+      "carts": [
+        {
+          "id": "light",
+          "mass": 5,
+          "riderMass": 0,
+          "x": -2.1,
+          "v": 0
+        },
+        {
+          "id": "heavy",
+          "mass": 20,
+          "riderMass": 0,
+          "x": 1.6,
+          "v": 0
+        }
+      ],
+      "collisions": [],
+      "riders": []
+    },
+    "tick": 162,
+    "rng": {
+      "s": 1
+    }
+  }
+}

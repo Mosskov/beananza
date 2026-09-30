@@ -40,9 +40,10 @@ Pick a scene with `?scene=<name>`:
 |---|---|---|
 | `empty` | http://localhost:5180/?scene=empty | Background only; proves the client boots |
 | `drop` | http://localhost:5180/?scene=drop | A 1 kg and a 10 kg ball released from 10 m, with a timer. R or tap: drop again |
-| `hub` (default) | http://localhost:5180/?scene=hub | The hub plaza in ¾ top-down view, with one tree to walk behind and in front of, and a rail with a 5 kg and a 20 kg cart (speed shown in m/s). Arrows or WASD move, Shift runs, Space jumps, tap or click walks to a spot. Walk into a cart's end to push it (Shift pushes harder); E hops in or out of the 5 kg cart, Space also gets out. Tap the bench, or press E near it, to walk over and sit next to Priya, a blue classmate, who says "Hi!" and waves (the bean dozes after 5 s); any movement, E or Space stands up. The bean, the tree, the carts and the bench are drawn art from `art/`; the plaza floor and the rail are placeholder shapes |
+| `hub` (default) | http://localhost:5180/?scene=hub | The hub plaza in ¾ top-down view, with one tree to walk behind and in front of, and a rail with a 5 kg and a 20 kg cart (speed shown in m/s). Arrows or WASD move, Shift runs, Space jumps, tap or click walks to a spot. Walk into a cart's end to push it (Shift pushes harder); E hops in or out of the 5 kg cart, Space also gets out. Q, or a tap on your own bean, waves (a reaction; ignored mid-hop). Tap the bench, or press E near it, to walk over and sit next to Priya, a blue classmate, who says "Hi!" and waves (the bean dozes after 5 s); any movement, E or Space stands up. The bean, the tree, the carts and the bench are drawn art from `art/`; the plaza floor and the rail are placeholder shapes |
 | `bean` | http://localhost:5180/?scene=bean | Rig gallery for review: the 8 directions, then walk, run, jump, fall, land, breathing, a blink, sitting and dozing at fixed clip times (labelled; no sim) |
 | `looks` | http://localhost:5180/?scene=looks | Customization gallery for review: spots, the sprout, bear ears, the bow and glasses each on all 8 directions, then the 10 colours with mixed pieces (labelled; no sim) |
+| `reactions` | http://localhost:5180/?scene=reactions | Reaction gallery for review (D26): eureka, oops, wave hi and dizzy, each at three times in a run, in every act the compatibility table allows (standing, walking, pushing, riding, sitting), drawn by the real player from constructed sim states (labelled) |
 | `clip` | http://localhost:5180/?scene=clip&clip=walk&views=all&phases=8 | Clip sheet for review: one clip at n phases (columns) in the chosen directions (rows), drawn by the rig player; `pnpm clip:sheet` shoots it (labelled; no sim) |
 
 `&paused=1` starts the scene's sim paused at t = 0 (tools/shot uses this to step to an exact time).
@@ -114,6 +115,9 @@ Also, in `packages/client/test/`:
   replaced, anchors, and rejecting broken markup).
 - `prop-art.test.ts`: the art contract for `art/props/*.svg` (the tree, cart and bench parts,
   wheel pivots and radius, and anchors that agree with the sim: the cart floor and the seats).
+- `effect-art.test.ts`: the art contract for `art/effects/*.svg` (origin at the anchor, no text,
+  no key colours, no anchors), the doze "z" drawn where it was, the three effect slots and their
+  anchors in every view, and `effectSeed` (placement from the start tick and index only).
 - `looks.test.ts`: parsing `?look=`, the colour swaps (all six key colours, derived far
   shades, cream's outline, scarf and face never recoloured), the cosmetic art contract, patterns
   clipped to each view's body and headwear at each view's anchor, the bow on the bean's left in
@@ -343,6 +347,8 @@ Scripts in `tools/shot/scripts/`:
 | `hub-bench.json` | Tap the bench: walk over to the free (west) seat, hop on, sit next to Priya, who says "Hi!" and waves for 2.4 s (feet swinging, two phases), then no greeting, a doze after 5 s, then → stands up and walks off |
 | `hub-bench-depth.json` | On the bench's row (drawn in front), behind it (drawn behind), in front of it, then E to sit |
 | `hub-bench-around.json` | From behind the bench, a tap on it: the bean walks out past its west end and round to the front, then sits |
+| `hub-wave.json` | Q while standing (the wave), Q while walking (the arm only), Q again after the wave ends, then to the cart: Q is ignored mid-hop in, the wave while riding, Q ignored mid-hop out. The logs carry `bean.reaction` |
+| `hub-wave-tap.json` | A tap on your own standing bean waves (it does not walk); tap the bench to sit, then a tap on the seated bean waves (it stays seated) |
 
 After the three cart scripts, `pnpm shot:check-carts` recomputes from their logs the push
 accelerations (F/m − 0.26 m/s²), the cap, momentum and restitution of the collision, the riding

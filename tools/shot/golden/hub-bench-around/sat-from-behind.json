@@ -95,7 +95,8 @@
         "bench": "bench",
         "seat": "west",
         "since": 193
-      }
+      },
+      "reaction": null
     },
     "rail": {
       "carts": [

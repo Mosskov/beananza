@@ -17,5 +17,5 @@
   <g id="arm-near" data-pivot="2 -50"><path d="M2 -50 q10 12 4 28" fill="none" stroke="#C96F42" stroke-width="10" stroke-linecap="round"/></g>
   <g id="foot-near" data-pivot="12 0"><ellipse cx="12" cy="0" rx="13" ry="7" fill="#B8622F"/></g>
   <!-- Anchors (never drawn): headwear sits at the top of the body; lean is the point whose forward tip the pushing stand-off adds. -->
-  <g id="anchors" display="none"><circle id="anchor-headwear" cx="2" cy="-114" r="0"/><circle id="anchor-lean" cx="0" cy="-40" r="0"/></g>
+  <g id="anchors" display="none"><circle id="anchor-headwear" cx="2" cy="-114" r="0"/><circle id="anchor-lean" cx="0" cy="-40" r="0"/><circle id="anchor-fx-head" cx="34" cy="-124" r="0"/><circle id="anchor-fx-brow" cx="10" cy="-96" r="0"/><circle id="anchor-fx-ground" cx="0" cy="0" r="0"/></g>
 </svg>

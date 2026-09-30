@@ -63,7 +63,8 @@
         "cart": "light",
         "dir": 1,
         "run": false
-      }
+      },
+      "reaction": null
     },
     "rail": {
       "carts": [

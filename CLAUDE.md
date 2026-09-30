@@ -76,7 +76,7 @@ art/
 ## Commands
 Details in `README.md`.
 - `pnpm install`, then once `pnpm shot:install` (Playwright Chromium)
-- `pnpm dev`: game at http://localhost:5180/?scene=<name> (`hub` is the default; also `bean`, `looks`, `clip`, `drop`, `empty`; `&paused=1` starts paused; `&look=blue,spots,bow,glasses` sets the bean's look; `&layout=bench` opens a test yard instead of the plaza)
+- `pnpm dev`: game at http://localhost:5180/?scene=<name> (`hub` is the default; also `bean`, `looks`, `reactions`, `clip`, `drop`, `empty`; `&paused=1` starts paused; `&look=blue,spots,bow,glasses` sets the bean's look; `&layout=bench` opens a test yard instead of the plaza)
 - `pnpm check`: typecheck, lint, tests and build (`pnpm test`, `pnpm typecheck`, `pnpm lint`, `pnpm build`)
 - `pnpm verify`: the whole pass in about a minute: check, every scene and script, the looks, and
   the sim states against `tools/shot/golden/` (`pnpm verify --update-golden` rewrites them; the

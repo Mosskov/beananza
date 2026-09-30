@@ -60,7 +60,8 @@
       "lastJump": null,
       "act": {
         "kind": "free"
-      }
+      },
+      "reaction": null
     },
     "rail": {
       "carts": [

@@ -96,7 +96,8 @@
       },
       "act": {
         "kind": "free"
-      }
+      },
+      "reaction": null
     },
     "rail": {
       "carts": [

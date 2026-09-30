@@ -6,6 +6,7 @@ import { DropScene } from './DropScene';
 import { EmptyScene } from './EmptyScene';
 import { HubScene } from './HubScene';
 import { LooksGalleryScene } from './LooksGalleryScene';
+import { ReactionsGalleryScene } from './ReactionsGalleryScene';
 import type { TestableScene } from './TestableScene';
 
 export type SceneClass = new () => TestableScene;
@@ -21,6 +22,7 @@ export const SCENES: Readonly<Record<string, SceneClass>> = {
   bean: BeanGalleryScene,
   looks: LooksGalleryScene,
   clip: ClipSheetScene,
+  reactions: ReactionsGalleryScene,
 };
 
 /** Plain localhost:5180 opens the hub (D20). */

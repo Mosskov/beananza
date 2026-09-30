@@ -5,15 +5,22 @@
 Updated in place by every pull request (the `pr-ready` skill). The dated sections below it are
 history; no new ones are added.
 
-**Last updated:** 2026-09-30, tools prep session (branch `tools/prep`).
+**Last updated:** 2026-09-30, reactions first session (branch `feat/reactions`).
 
 **What works** (M1 so far):
+- **Reactions (D26), the model:** `bean.reaction` in the sim (Eureka!, Oops, Wave hi, dizzy),
+  the `emote` command (Q, or a tap on your own bean: the bean waves; ignored mid-hop), the
+  compatibility table per act, a reaction layer in the rig player with reduced motion, the
+  `reactions` gallery scene and the `hub-wave` script. Eureka!, Oops and dizzy have no trigger
+  in play until predictions (D9) and the catapult exist.
+- **Effect slots:** `fxHead`, `fxBrow`, `fxGround` with anchors in the bean views, effects as
+  SVG files in `art/effects/` under their own contract (only the doze "z" so far).
 - The hub plaza: walking and running, jumping, two carts on a rail (push, ride, the hop in and
   out), the bench with Priya, and customization by `?look=` (10 colours, spots, three headwear
   pieces, glasses). Test yards per interaction (`?layout=bench`, `?layout=carts`).
-- Tool scenes: `bean` and `looks` galleries, the `clip` sheet, the `drop` test.
+- Tool scenes: `bean`, `looks` and `reactions` galleries, the `clip` sheet, the `drop` test.
 - **Workflow:** CI on every push (check and verify); golden sim states in
-  `tools/shot/golden/` (64 files); `art:check`, `art:part`, `clip:sheet`; skills for each
+  `tools/shot/golden/` (81 files); `art:check`, `art:part`, `clip:sheet`; skills for each
   procedure, the `reviewer` agent, the PR template, and a guard hook. At most two lanes (one
   art, one behaviour) at a time (CLAUDE.md).
 
@@ -22,13 +29,18 @@ history; no new ones are added.
 - CI runs twice per push to a PR branch (push and pull_request).
 - The flaky browser close during long runs (seen once in M1 session 3 and once in the workflow
   session); no retry, recorded if it recurs.
+- Reactions: the wave reads weakly in the side and back-¾ views (the arm art stays in front of
+  the body); no face or effect art yet (the `face` and `effect` groups and the three effect
+  slots are ready for it); `pnpm verify --update-golden --scripts <new>` deadlocks for a new
+  script (details in `docs/ASSUMPTIONS.md`, "Reactions, first session").
 - From M1 session 3: the depth tie with Priya, the rim-line strip in mid-hop, the mask filter's
   cost, `Math.hypot` and trig for cross-engine determinism (M2), seat occupancy as layout data,
   no touch buttons, no in-game wardrobe, the other body forms (D7).
 
 **Next:** the D9 design pass (`prompts/D9-design-pass.md`), then M1 session 4
-(`prompts/M1-fourth-session.md`, the expedition) as the behaviour lane, and the reactions build
-(`prompts/reactions-first-session.md`) or other art as the art lane.
+(`prompts/M1-fourth-session.md`, the expedition) as the behaviour lane, and the reaction art
+(faces, the lightbulb, sparkles, stars, sweat, dust, a side-view wave; no prompt written yet) or
+other art as the art lane.
 
 ## M1, session 3: interaction states, the bench, customization basics (2026-09-29)
 

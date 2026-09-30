@@ -74,20 +74,37 @@ export function viewForFacing(facingX: number, facingY: number): ViewChoice {
 }
 
 /**
- * Rig slots the animation clips drive, and which drawn part fills each slot in each view. `fx`
- * is an effect drawn with the bean (the doze "z"); views without that part skip it.
+ * Effect slots (D26): effects are drawn apart from the bean (`art/effects/`, contract in
+ * `art/effect-contract.ts`) and placed at one of the view's effect anchors. Clips move and scale
+ * an effect in its slot about the anchor. The head and brow slots ride with the body (bob,
+ * squash); the ground slot stays on the ground like the feet.
+ *
+ * Derived effects (D26) get no sim field: the sweat on `fxBrow` reads the `pushing` row
+ * (`presentation/cart.ts`, `HEAVY_PUSH_KG`), the dust on `fxGround` reads `lastJump.landedAt`
+ * (`player.ts`), and Thinking on `fxHead` will read the pending prediction once D9 exists.
  */
-export const SLOTS = ['body', 'footA', 'footB', 'armA', 'armB', 'eyes', 'tail', 'fx'] as const;
+export const EFFECT_SLOTS = ['fxHead', 'fxBrow', 'fxGround'] as const;
+export type EffectSlot = (typeof EFFECT_SLOTS)[number];
+
+/** The anchor (`EFFECT_ANCHORS`, in each bean view's file) each effect slot sits at. */
+export const EFFECT_SLOT_ANCHORS: Readonly<Record<EffectSlot, (typeof EFFECT_ANCHORS)[number]>> = {
+  fxHead: 'fx-head',
+  fxBrow: 'fx-brow',
+  fxGround: 'fx-ground',
+};
+
+/** Rig slots the animation clips drive, and which drawn part fills each slot in each view. */
+export const SLOTS = ['body', 'footA', 'footB', 'armA', 'armB', 'eyes', 'tail', ...EFFECT_SLOTS] as const;
 export type Slot = (typeof SLOTS)[number];
 
-type PartSlot = Exclude<Slot, 'body'>;
+type PartSlot = Exclude<Slot, 'body' | EffectSlot>;
 
 export const SLOT_PARTS: Readonly<Record<BeanView, Readonly<Record<PartSlot, string>>>> = {
-  front: { footA: 'foot-left', footB: 'foot-right', armA: 'arm-left', armB: 'arm-right', eyes: 'eyes', tail: 'scarf-tail', fx: 'doze-z' },
-  back: { footA: 'foot-left', footB: 'foot-right', armA: 'arm-left', armB: 'arm-right', eyes: 'eyes', tail: 'scarf-tail', fx: 'doze-z' },
-  'front-34': { footA: 'foot-near', footB: 'foot-far', armA: 'arm-near', armB: 'arm-far', eyes: 'eyes', tail: 'scarf-tail', fx: 'doze-z' },
-  'back-34': { footA: 'foot-near', footB: 'foot-far', armA: 'arm-near', armB: 'arm-far', eyes: 'eyes', tail: 'scarf-tail', fx: 'doze-z' },
-  side: { footA: 'foot-near', footB: 'foot-far', armA: 'arm-near', armB: 'arm-far-push', eyes: 'eyes', tail: 'scarf-tail', fx: 'doze-z' },
+  front: { footA: 'foot-left', footB: 'foot-right', armA: 'arm-left', armB: 'arm-right', eyes: 'eyes', tail: 'scarf-tail' },
+  back: { footA: 'foot-left', footB: 'foot-right', armA: 'arm-left', armB: 'arm-right', eyes: 'eyes', tail: 'scarf-tail' },
+  'front-34': { footA: 'foot-near', footB: 'foot-far', armA: 'arm-near', armB: 'arm-far', eyes: 'eyes', tail: 'scarf-tail' },
+  'back-34': { footA: 'foot-near', footB: 'foot-far', armA: 'arm-near', armB: 'arm-far', eyes: 'eyes', tail: 'scarf-tail' },
+  side: { footA: 'foot-near', footB: 'foot-far', armA: 'arm-near', armB: 'arm-far-push', eyes: 'eyes', tail: 'scarf-tail' },
 };
 
 /** Parts every view must have (the art contract checks this). */
@@ -100,22 +117,31 @@ export const REQUIRED_PARTS: Readonly<Record<BeanView, readonly string[]>> = {
 };
 
 /**
+ * Where effects are placed on the bean (D26, D22): every view has these three anchors, each in
+ * the view's own frame (mirrored views mirror x). `fx-head` is above and beside the head (the
+ * doze "z"), `fx-brow` on the brow (sweat), `fx-ground` on the ground between the feet (dust).
+ * They may lie outside the body, so the body-outline check skips them (`checks.ts`).
+ */
+export const EFFECT_ANCHORS = ['fx-head', 'fx-brow', 'fx-ground'] as const;
+
+/**
  * Anchors every view must have (D22): `headwear` at the top of the body; in the side view,
- * `lean`, the point whose forward tip the pushing stand-off adds.
+ * `lean`, the point whose forward tip the pushing stand-off adds; and the effect anchors.
  */
 export const REQUIRED_ANCHORS: Readonly<Record<BeanView, readonly string[]>> = {
-  front: ['headwear'],
-  'front-34': ['headwear'],
-  side: ['headwear', 'lean'],
-  'back-34': ['headwear'],
-  back: ['headwear'],
+  front: ['headwear', ...EFFECT_ANCHORS],
+  'front-34': ['headwear', ...EFFECT_ANCHORS],
+  side: ['headwear', 'lean', ...EFFECT_ANCHORS],
+  'back-34': ['headwear', ...EFFECT_ANCHORS],
+  back: ['headwear', ...EFFECT_ANCHORS],
 };
 
 /**
- * Hidden unless something turns them on: earned goggles (catapult), the far arm (pushing), the
- * closed eyes and the "z" (dozing).
+ * Hidden unless something turns them on: earned goggles (catapult), the far arm (pushing) and the
+ * closed eyes (dozing). Effects (`art/effects/`, such as the doze "z") are all hidden until
+ * turned on, without being listed here.
  */
-export const HIDDEN_BY_DEFAULT: ReadonlySet<string> = new Set(['headwear-goggles', 'arm-far-push', 'eyes-sleep', 'doze-z']);
+export const HIDDEN_BY_DEFAULT: ReadonlySet<string> = new Set(['headwear-goggles', 'arm-far-push', 'eyes-sleep']);
 
 /** Feet stay on the ground; every other part moves with the body (bob, squash, lean). */
 export function isGroundPart(partId: string): boolean {

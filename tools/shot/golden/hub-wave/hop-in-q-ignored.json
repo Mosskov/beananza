@@ -1,0 +1,132 @@
+{
+  "script": "hub-wave",
+  "shot": "hop-in-q-ignored",
+  "scene": "hub",
+  "layout": null,
+  "look": null,
+  "state": {
+    "layout": {
+      "walkable": {
+        "minX": -5.8,
+        "maxX": 5.8,
+        "minY": -3,
+        "maxY": 2
+      },
+      "props": [
+        {
+          "id": "tree",
+          "art": "tree",
+          "x": 2.2,
+          "y": 0.2,
+          "halfWidth": 0.25,
+          "halfDepth": 0.2
+        }
+      ],
+      "benches": [
+        {
+          "id": "bench",
+          "art": "bench",
+          "usable": true,
+          "x": -3.6,
+          "y": 1.2,
+          "halfWidth": 0.8,
+          "halfDepth": 0.225,
+          "seatHeight": 0.3,
+          "seatDy": -0.15,
+          "seats": [
+            {
+              "id": "west",
+              "dx": -0.4
+            },
+            {
+              "id": "east",
+              "dx": 0.4,
+              "taken": true
+            }
+          ]
+        }
+      ],
+      "start": {
+        "x": -2.5,
+        "y": -0.8
+      },
+      "rail": {
+        "y": -2.1,
+        "minX": -3.68,
+        "maxX": 3.68,
+        "carts": [
+          {
+            "id": "light",
+            "mass": 5,
+            "x": -2.1,
+            "ridable": true
+          },
+          {
+            "id": "heavy",
+            "mass": 20,
+            "x": 1.6,
+            "ridable": false
+          }
+        ]
+      }
+    },
+    "gravity": 9.81,
+    "input": {
+      "x": 1,
+      "y": 0,
+      "run": false
+    },
+    "bean": {
+      "x": -2.0299111384111383,
+      "y": -2.1,
+      "z": 0.34739583333333335,
+      "vx": 0,
+      "vy": 0,
+      "vz": 0,
+      "grounded": true,
+      "facingX": 1,
+      "facingY": 0,
+      "target": null,
+      "stuckSteps": 0,
+      "jumps": 0,
+      "lastJump": null,
+      "act": {
+        "kind": "boarding",
+        "cart": "light",
+        "startTick": 510,
+        "hopTick": 517,
+        "endTick": 541,
+        "fromX": -2.243411138411138,
+        "fromY": -2.1,
+        "arc": 0.495,
+        "facingX": 1,
+        "facingY": 0
+      },
+      "reaction": null
+    },
+    "rail": {
+      "carts": [
+        {
+          "id": "light",
+          "mass": 5,
+          "riderMass": 0,
+          "x": -1.2186111384111382,
+          "v": 1.8480000000000003
+        },
+        {
+          "id": "heavy",
+          "mass": 20,
+          "riderMass": 0,
+          "x": 1.6,
+          "v": 0
+        }
+      ],
+      "collisions": [],
+      "riders": []
+    },
+    "tick": 522,
+    "rng": {
+      "s": 1
+    }
+  }
+}

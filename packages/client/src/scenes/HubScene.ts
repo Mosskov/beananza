@@ -7,6 +7,8 @@ import { GAME_HEIGHT, GAME_WIDTH, PALETTE, UI_FONT, cssColor } from '../config';
 import { BeanRig, createBeanShadow } from '../rig/BeanRig';
 import { beanArt } from '../rig/bean-art';
 import { chooseClip, samplePose } from '../rig/player';
+import { hitsBeanBody } from '../rig/hit';
+import { chooseReaction } from '../rig/reactions';
 import { viewForFacing } from '../rig/views';
 import { frameCamera, layoutCentre, sharpText, useRenderScale } from '../screen-scale';
 import { SimScene } from './SimScene';
@@ -156,7 +158,7 @@ export class HubScene extends SimScene<HubState, HubCommand> {
     // the world at the window's bottom right corner, which stays put because the camera does.
     sharpText(
       this.add
-        .text(center.x + GAME_WIDTH / 2 - 20, center.y + GAME_HEIGHT / 2 - 16, 'Move: arrows or WASD   Run: Shift   Jump: Space   Action: E', HINT_STYLE)
+        .text(center.x + GAME_WIDTH / 2 - 20, center.y + GAME_HEIGHT / 2 - 16, 'Move: arrows or WASD   Run: Shift   Jump: Space   Action: E   Wave (Q)', HINT_STYLE)
         .setOrigin(1, 1)
         .setDepth(UI_DEPTH),
     );
@@ -192,11 +194,19 @@ export class HubScene extends SimScene<HubState, HubCommand> {
     kb.on('keydown-E', (event: KeyboardEvent) => {
       if (!event.repeat) this.sim.enqueue({ type: 'action' });
     });
+    kb.on('keydown-Q', (event: KeyboardEvent) => {
+      if (!event.repeat) this.sim.enqueue({ type: 'emote', kind: 'waveHi' });
+    });
     kb.on(Phaser.Input.Keyboard.Events.ANY_KEY_DOWN, () => this.syncHeldInput());
     kb.on(Phaser.Input.Keyboard.Events.ANY_KEY_UP, () => this.syncHeldInput());
 
     this.input.on(Phaser.Input.Events.POINTER_DOWN, (pointer: Phaser.Input.Pointer) => {
       if (pointer.button !== 0) return; // Primary button or touch only.
+      // A tap on your own bean waves (D26), instead of walking to where it already is.
+      if (this.hitsOwnBean(pointer.worldX, pointer.worldY)) {
+        this.sim.enqueue({ type: 'emote', kind: 'waveHi' });
+        return;
+      }
       // A tap on a usable prop's drawing uses it (the bench: walk over and sit); anywhere else
       // walks there.
       for (const id of this.usable) {
@@ -208,6 +218,15 @@ export class HubScene extends SimScene<HubState, HubCommand> {
       const ground = groundFromScreen(pointer.worldX, pointer.worldY);
       this.sim.enqueue({ type: 'moveTo', x: ground.x, y: ground.y });
     });
+  }
+
+  /**
+   * Whether a world point is on the bean's body (`hitsBeanBody`), from the rig root (the feet) up.
+   * Only the body part counts, not headwear or an effect: a cosmetic never changes what a tap does.
+   */
+  private hitsOwnBean(worldX: number, worldY: number): boolean {
+    const { rig } = this.bean;
+    return hitsBeanBody({ x: worldX, y: worldY }, { x: rig.root.x, y: rig.root.y }, rig.root.scaleX, rig.bodySpan(), rig.bodyTop());
   }
 
   /** Send a `move` command whenever the held direction or Run changes. */
@@ -280,7 +299,8 @@ export class HubScene extends SimScene<HubState, HubCommand> {
     for (const [part, shown] of Object.entries(PART_DEFAULTS)) rig.setPartVisible(part, look.parts[part as ToggledPart] ?? shown);
     // Keep the readout of the cart in use above the bean's head (headwear included), with a gap.
     if (look.usingCart) this.carts.get(look.usingCart)?.keepReadoutAbove(feet.y + (rig.drawnTop() - READOUT_GAP_UNITS) * scale);
-    const pose = samplePose({ clip, t, time, view: choice.view, reducedMotion: this.reducedMotion });
+    const reaction = chooseReaction(this.sim.state, time);
+    const pose = samplePose({ clip, t, time, view: choice.view, mirrored: choice.mirrored, reducedMotion: this.reducedMotion, reaction });
     rig.applyPose(pose);
     // The bean's body is wider than its footprint: next to a cart's end (pushing or not), draw
     // it back so the body meets the end instead of overlapping it. Drawing only (and its shadow).

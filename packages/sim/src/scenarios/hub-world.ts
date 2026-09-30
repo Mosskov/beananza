@@ -4,6 +4,7 @@ import { EARTH_GRAVITY } from '../constants';
 import type { Rail, RailCart, RailCollision } from '../rail';
 import type { BenchAct } from '../interactions/bench';
 import type { CartAct } from '../interactions/cart';
+import type { EmoteKind, HubReaction } from '../reactions';
 
 /**
  * The hub's data: layout, state, commands and the numbers every part of the hub shares. The
@@ -188,6 +189,8 @@ export interface HubBean {
   lastJump: HubJump | null;
   /** The interaction state (D21). */
   act: HubAct;
+  /** A running reaction (D26), beside the act: acts never read it. Cleared by the sim. */
+  reaction: HubReaction | null;
 }
 
 /** The bean getting into (touchdown) or out of (take-off) a cart, logged for the scripted checks. */
@@ -241,7 +244,9 @@ export type HubCommand =
   /** E, the context action: get into the ridable cart or sit on the bench when near, or get out or up. */
   | { type: 'action' }
   /** A tap on a prop (by id), e.g. the bench: walk over and use it. */
-  | { type: 'use'; id: string };
+  | { type: 'use'; id: string }
+  /** Q, or a tap on your own bean: a reaction to show (D26). Ignored mid-hop; changes no movement. */
+  | { type: 'emote'; kind: EmoteKind };
 
 export interface HubOptions {
   layout?: PlazaLayout;

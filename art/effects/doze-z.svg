@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-20 -40 60 60" width="120" height="120">
+  <!-- The doze "z": two drawn z shapes (no text), moved here from art/bean/front.svg. Origin (0, 0) is the
+       effect's anchor, fx-head on the bean (beside the head), so the clip moves and scales it about that point. -->
+  <g id="doze-z"><path d="M-6 -6 H6 L-6 6 H6" fill="none" stroke="#5A4A40" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 -18 H15 L8 -11 H15" fill="none" stroke="#5A4A40" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></g>
+</svg>

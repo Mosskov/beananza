@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { DEFAULT_PLAZA } from '@beananza/sim';
+import { DEFAULT_PLAZA, polygonBounds } from '@beananza/sim';
 import { cartStandOff, characterScreen, depthKey, depthScale, groundFromScreen, toScreen } from '../src/scenes/hub-view';
 
-const walk = DEFAULT_PLAZA.walkable;
+const walk = polygonBounds(DEFAULT_PLAZA.walkable);
 
 describe('hub view projection', () => {
   it('draws north and height as up the screen, 100 px per metre', () => {

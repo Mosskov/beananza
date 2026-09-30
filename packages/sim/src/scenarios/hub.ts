@@ -64,20 +64,8 @@ const ARRIVE_BLOCKED_M = 0.02;
  */
 function buildWorld(layout: PlazaLayout): { world: World; bean: Body; carts: Map<string, Body> } {
   const world = new World({ gravity: { x: 0, y: 0 }, warmStarting: false, allowSleep: false });
-  const w = layout.walkable;
   const edges = world.createBody();
-  edges.createFixture(
-    new ChainShape(
-      [
-        { x: w.minX, y: w.minY },
-        { x: w.maxX, y: w.minY },
-        { x: w.maxX, y: w.maxY },
-        { x: w.minX, y: w.maxY },
-      ],
-      true,
-    ),
-    { friction: 0 },
-  );
+  edges.createFixture(new ChainShape(layout.walkable.points.map((p) => ({ x: p.x, y: p.y })), true), { friction: 0 });
   // Props and benches are solid footprints.
   for (const prop of [...layout.props, ...layout.benches]) {
     const body = world.createBody({ position: { x: prop.x, y: prop.y } });
@@ -291,7 +279,7 @@ export function createHubScenario(options: HubOptions = {}): Scenario<HubState, 
 
 function structuredCloneLayout(layout: PlazaLayout): PlazaLayout {
   return {
-    walkable: { ...layout.walkable },
+    walkable: { points: layout.walkable.points.map((p) => ({ ...p })) },
     props: layout.props.map((p) => ({ ...p })),
     benches: layout.benches.map((b) => ({ ...b, seats: b.seats.map((q) => ({ ...q })) })),
     start: { ...layout.start },

@@ -12,6 +12,7 @@ import {
   Sim,
   createHubScenario,
   createRng,
+  polygonBounds,
   rngInt,
   rngNext,
   rngRange,
@@ -37,7 +38,7 @@ const expectResting = (gap: number, r: number) => {
   expect(gap).toBeGreaterThanOrEqual(r - SLOP);
   expect(gap).toBeLessThanOrEqual(r + SKIN + SLOP);
 };
-const walk = DEFAULT_PLAZA.walkable;
+const walk = polygonBounds(DEFAULT_PLAZA.walkable);
 const tree = DEFAULT_PLAZA.props[0]!;
 
 describe('hub movement: tuned numbers', () => {

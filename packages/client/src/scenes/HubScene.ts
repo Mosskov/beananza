@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { PIXELS_PER_METER } from '@beananza/shared';
-import { CART_HALF_DEPTH, CART_HALF_LENGTH, DEFAULT_LAYOUT, FIXED_DT, HUB_BEAN_RADIUS_M, HUB_LAYOUTS, Sim, createHubScenario, seatSpot, standSpot, type HubCommand, type HubInput, type HubState } from '@beananza/sim';
+import { CART_HALF_DEPTH, CART_HALF_LENGTH, DEFAULT_LAYOUT, FIXED_DT, HUB_BEAN_RADIUS_M, HUB_LAYOUTS, Sim, createHubScenario, polygonBounds, seatSpot, standSpot, type HubCommand, type HubInput, type HubState, type Rect } from '@beananza/sim';
 import { prefersReducedMotion } from '../accessibility';
 import { PROP_PARTS, propAnchor, propPart } from '../art/props';
 import { GAME_HEIGHT, GAME_WIDTH, PALETTE, UI_FONT, cssColor } from '../config';
@@ -102,6 +102,8 @@ export class HubScene extends SimScene<HubState, HubCommand> {
   private classmates: { who: Classmate; rig: BeanRig; bubble: Phaser.GameObjects.Text; greeting: number | null; clip: string }[] = [];
   /** The rider's mask shape (world coordinates), used while the bean is in a cart. */
   private riderMaskShape!: Phaser.GameObjects.Graphics;
+  /** The walkable area's bounding box (m), for the depth scale. */
+  private bounds!: Rect;
 
   constructor() {
     super({ key: 'hub' });
@@ -115,6 +117,7 @@ export class HubScene extends SimScene<HubState, HubCommand> {
   protected createSim(): Sim<HubState, HubCommand> {
     const layout = HUB_LAYOUTS[this.layoutName];
     if (!layout) throw new Error(`No hub layout "${this.layoutName}".`);
+    this.bounds = polygonBounds(layout.walkable);
     return new Sim(createHubScenario({ layout }), 1);
   }
 
@@ -161,7 +164,7 @@ export class HubScene extends SimScene<HubState, HubCommand> {
   }
 
   private drawGround(): void {
-    const w = this.sim.state.layout.walkable;
+    const w = this.bounds;
     const g = this.add.graphics().setDepth(GROUND_DEPTH);
     const b = BACKDROP;
     g.fillStyle(PALETTE.grass, 1).fillRect(m(b.minX), m(b.minY), m(b.width), m(b.height));
@@ -235,7 +238,7 @@ export class HubScene extends SimScene<HubState, HubCommand> {
     const x = lerp(this.prev.x, b.x);
     const y = lerp(this.prev.y, b.y);
     const z = lerp(this.prev.z, b.z);
-    const scale = depthScale(y, this.sim.state.layout.walkable);
+    const scale = depthScale(y, this.bounds);
     const rail = this.sim.state.layout.rail;
     const act = b.act;
     // Animation runs on sim time (interpolated like the positions), never on wall-clock time,
@@ -328,7 +331,7 @@ export class HubScene extends SimScene<HubState, HubCommand> {
       rig.setView({ view: 'front', mirrored: false });
       const at = toScreen(bench.x, bench.y);
       const anchor = propAnchor('bench', `seat-${seat.id}`);
-      const scale = depthScale(seatSpot(bench, seat).y, this.sim.state.layout.walkable);
+      const scale = depthScale(seatSpot(bench, seat).y, this.bounds);
       // Just behind a bean on the same row (the player draws in front of a classmate on a tie).
       rig.root.setPosition(at.x + anchor.x, at.y + anchor.y).setScale(scale).setDepth(depthKey(bench.y) + CLASSMATE_TIE_BREAK);
       const bubble = this.add

@@ -4,6 +4,9 @@ import { EARTH_GRAVITY } from '../constants';
 import type { Rail, RailCart, RailCollision } from '../rail';
 import type { BenchAct } from '../interactions/bench';
 import type { CartAct } from '../interactions/cart';
+import { closestPointInConvex, hexagon, insetConvex, polygonFromRect, type ConvexPolygon } from '../geometry';
+
+export type { ConvexPolygon, Point, Rect } from '../geometry';
 
 /**
  * The hub's data: layout, state, commands and the numbers every part of the hub shares. The
@@ -34,13 +37,6 @@ export const CART_HALF_DEPTH = 0.2;
  * drawing's `floor` anchor must agree (a test checks it).
  */
 export const CART_FLOOR_M = 0.1;
-
-export interface Rect {
-  minX: number;
-  maxX: number;
-  minY: number;
-  maxY: number;
-}
 
 /** A solid prop, as its footprint on the ground: a box centred on (x, y). */
 export interface PropFootprint {
@@ -96,8 +92,8 @@ export interface BenchSpec extends PropFootprint {
 }
 
 export interface PlazaLayout {
-  /** Where the bean's centre and footprint may go. */
-  walkable: Rect;
+  /** Where the bean's footprint may go: a convex polygon (the plaza's rectangle, the island's hexagon). */
+  walkable: ConvexPolygon;
   props: PropFootprint[];
   benches: BenchSpec[];
   /** Where the bean starts. */
@@ -110,7 +106,7 @@ export interface PlazaLayout {
  * PLACEHOLDER layout until D2 (hub layout) is designed.
  */
 export const DEFAULT_PLAZA: PlazaLayout = {
-  walkable: { minX: -5.8, maxX: 5.8, minY: -3, maxY: 2 },
+  walkable: polygonFromRect({ minX: -5.8, maxX: 5.8, minY: -3, maxY: 2 }),
   props: [{ id: 'tree', art: 'tree', x: 2.2, y: 0.2, halfWidth: 0.25, halfDepth: 0.2 }],
   // D24: 1.6 × 0.45 m, seat 0.30 m high, seats 0.4 m either side of the centre. PLACEHOLDER
   // spot in the plaza (D2).
@@ -141,6 +137,36 @@ export const DEFAULT_PLAZA: PlazaLayout = {
     carts: [
       { id: 'light', mass: 5, x: -2.1, ridable: true },
       { id: 'heavy', mass: 20, x: 1.6, ridable: false },
+    ],
+  },
+};
+
+/** The sky island's size (D2): a flat-top hexagon, 24 m corner to corner, about 20.8 m north to south. */
+export const ISLAND_CIRCUMRADIUS_M = 12;
+
+/**
+ * The hub (D2, confirmed 2026-09-30): a flat-top hexagon island floating in the sky, big enough
+ * for a class of about 30. The arrival pad is the centre; the rail and its carts sit in the
+ * south-east, the bench with Priya in the south-west. The north half and the west are kept clear
+ * for the region portals. Positions are tuned from screenshots.
+ */
+export const ISLAND: PlazaLayout = {
+  walkable: hexagon(ISLAND_CIRCUMRADIUS_M),
+  props: [
+    { id: 'tree-west', art: 'tree', x: -7.2, y: 2.6, halfWidth: 0.25, halfDepth: 0.2 },
+    { id: 'tree-east', art: 'tree', x: 8.4, y: 1.8, halfWidth: 0.25, halfDepth: 0.2 },
+    { id: 'tree-south', art: 'tree', x: -0.8, y: -7.6, halfWidth: 0.25, halfDepth: 0.2 },
+  ],
+  benches: DEFAULT_PLAZA.benches.map((b) => ({ ...b, x: -5, y: -4.6, seats: b.seats.map((q) => ({ ...q })) })),
+  start: { x: 0, y: -1 },
+  // The plaza's rail (7.36 m) and cart spots, moved 4.2 m east and 3.9 m south.
+  rail: {
+    y: -6,
+    minX: 0.52,
+    maxX: 7.88,
+    carts: [
+      { id: 'light', mass: 5, x: 2.1, ridable: true },
+      { id: 'heavy', mass: 20, x: 5.8, ridable: false },
     ],
   },
 };
@@ -250,16 +276,7 @@ export interface HubOptions {
   gravity?: number;
 }
 
-const clamp = (v: number, lo: number, hi: number) => Math.min(Math.max(v, lo), hi);
-
-/** The walkable area shrunk by the bean's radius: where its centre can be. */
-function centreArea(walkable: Rect): Rect {
-  const r = HUB_BEAN_RADIUS_M;
-  return { minX: walkable.minX + r, maxX: walkable.maxX - r, minY: walkable.minY + r, maxY: walkable.maxY - r };
-}
-
-/** Clamp a tap target so the bean's centre can reach it. */
-export function clampTarget(walkable: Rect, x: number, y: number): { x: number; y: number } {
-  const area = centreArea(walkable);
-  return { x: clamp(x, area.minX, area.maxX), y: clamp(y, area.minY, area.maxY) };
+/** Clamp a tap target so the bean's centre can reach it: the closest point of the walkable area shrunk by its radius. */
+export function clampTarget(walkable: ConvexPolygon, x: number, y: number): { x: number; y: number } {
+  return closestPointInConvex(insetConvex(walkable, HUB_BEAN_RADIUS_M), { x, y });
 }

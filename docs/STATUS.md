@@ -2,8 +2,8 @@
 
 ## Current state
 
-Updated in place by every pull request (CLAUDE.md, "How we work"). History is in git, the pull
-requests, and `docs/archive/`.
+Updated in place by every session's branch (CLAUDE.md, "How we work"). History is in git, the
+pull requests, and `docs/archive/`.
 
 **Last updated:** 2026-09-30, the animation viewer (branch `art/anim-viewer`).
 
@@ -23,10 +23,13 @@ requests, and `docs/archive/`.
   steps), the `drop` test, and a dev-only options panel in `pnpm dev` (scene, layout, look,
   paused; the anim viewer's controls, live; `packages/client/src/dev-panel.ts`).
 - **Workflow:** short sessions, one at a time, steered by the user (CLAUDE.md, "How we work").
-  CI runs check and verify on every pull request and push to main (sessions don't wait for it); golden sim states in `tools/shot/golden/`;
+  The user creates branches; a session commits and pushes, with no pull request unless asked.
+  GitHub deletes merged branches, and a SessionStart hook (`.claude/hooks/sync-branches.sh`)
+  fast-forwards local `main` and deletes merged local branches. CI runs check and verify on
+  every push (sessions don't wait for it); golden sim states in `tools/shot/golden/`;
   `art:check`, `art:part`, `art:sheet`, `clip:sheet`; skills for the technical recipes
   (`hub-interaction`, `draw-piece`, `add-clip`); the `reviewer` agent for sim and physics
-  changes; the PR template and a guard hook.
+  changes; the PR template (when asked) and a guard hook.
 
 **Open issues:**
 - **New scripts and golden files:** `pnpm verify --update-golden --scripts <new script>` cannot

@@ -39,7 +39,7 @@ its golden states stay untouched until the finished thing moves in (D2).
       `hub-world.ts` (a shared file: add the field only, optional so the plaza is unchanged),
       plus the key in `yard()`'s `Pick<…>` and its default in the object `yard()` returns. If
       the plaza's logged layout gains the field, every plaza golden file changes: update
-      golden in its own commit and say why in the PR.
+      golden in its own commit and say why in its message.
 - [ ] A prop it uses names its drawing (`art`) in the layout; `usable: true` sends taps on it as
       `use`. New art follows the `draw-piece` skill.
 - [ ] Write scripts `tools/shot/scripts/hub-<name>*.json` with `"layout": "<name>"`, covering
@@ -65,5 +65,5 @@ its golden states stay untouched until the finished thing moves in (D2).
       `pnpm verify --update-golden --scripts <the new scripts>` and read the new files.
 - [ ] At the end: the full `pnpm verify`. The plaza's golden states must show **no diff**; if one
       does, the interaction leaked into the plaza. Fix that rather than updating golden.
-- [ ] Put routine choices in the PR description; describe the yard, scripts and tests in
+- [ ] Put routine choices in the commit message; describe the yard, scripts and tests in
       `README.md` (tests list, scripts). Finish as CLAUDE.md "How we work" says.

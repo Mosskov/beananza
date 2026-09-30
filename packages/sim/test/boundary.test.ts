@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
-import { checkFiles, compileDiagnostics, exportedNames, findNameUses, findViolations, listTsFiles, type BoundaryRules, type Violation } from './boundary';
+import { checkFiles, compileDiagnostics, exportedNames, findArtNames, findNameUses, findViolations, listTsFiles, type BoundaryRules, type Violation } from './boundary';
 
 const repo = resolve(fileURLToPath(new URL('.', import.meta.url)), '../../..');
 const simSrc = join(repo, 'packages/sim/src');
@@ -33,6 +33,27 @@ describe('sim boundary', () => {
     const fixture = ["import { type BeanLook } from '@beananza/shared';", 'export const radius = (look: BeanLook) => 0.25;'].join('\n');
     expect(findNameUses(join(simSrc, '__fixture__.ts'), fixture, names).length).toBeGreaterThan(0);
     expect(findNameUses(join(simSrc, '__fixture__.ts'), "export * from '../../shared/src/look';", names).length).toBeGreaterThan(0);
+  });
+
+  it('packages/sim names no rig slot, clip, part, anchor or art file for reactions (D26)', () => {
+    const slots = new Set(['fx', 'fxHead', 'fxBrow', 'fxGround', 'footA', 'footB', 'armA', 'armB', 'eyes', 'tail', 'doze-z']);
+    const clips = new Set(['idle', 'walk', 'run', 'fall', 'land', 'push', 'pushHeavy', 'sit', 'doze', 'wave']);
+    const anywhere = [/^anchor-/, /art\/effects/, /\.svg$/, /^doze/];
+    // Reactions get the stricter rule: the file names no clip, slot or drawing word at all.
+    const reactions = [/clip/i, /slot/i, /anchor/i, /svg/i, /sprite/i, /particle/i, /lightbulb/i, /sparkle/i, /sweat/i];
+    const all = listTsFiles(simSrc);
+    const reactionsFile = join(simSrc, 'reactions.ts');
+    expect(all).toContain(reactionsFile);
+    const uses = all.flatMap((f) => findArtNames(f, readFileSync(f, 'utf8'), slots, anywhere));
+    expect(format(uses)).toEqual([]);
+    const strict = findArtNames(reactionsFile, readFileSync(reactionsFile, 'utf8'), new Set([...slots, ...clips]), [...anywhere, ...reactions]);
+    expect(format(strict)).toEqual([]);
+    // The check can fail.
+    const fixture = join(simSrc, '__fixture__.ts');
+    expect(findArtNames(fixture, "export const slot = 'fxHead';", slots, anywhere).length).toBeGreaterThan(0);
+    expect(findArtNames(fixture, "export const a = 'anchor-fx-head';", slots, anywhere).length).toBeGreaterThan(0);
+    expect(findArtNames(fixture, 'export const clip = 1;', new Set([...slots, ...clips]), reactions).length).toBeGreaterThan(0);
+    expect(findArtNames(fixture, "export const x = 'waveHi'; // the clip is the client's", slots, anywhere)).toEqual([]);
   });
 
   it('packages/sim type-checks against the ES library only (no DOM, no Node types)', () => {

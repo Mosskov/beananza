@@ -544,8 +544,8 @@ export async function runScript(session: Session, scriptPath: string, outName: s
 
 /** `--jobs <n>`: scripts run in parallel. Anything but a whole number ≥ 1 would run none. */
 export function parseJobs(arg: string): number {
-  const jobs = Number(arg);
-  if (arg.trim() === '' || !Number.isInteger(jobs) || jobs < 1) throw new Error(`--jobs wants a whole number of at least 1, got "${arg}"`);
+  const jobs = /^\s*\d+\s*$/.test(arg) ? Number(arg) : NaN;
+  if (!(jobs >= 1)) throw new Error(`--jobs wants a whole number of at least 1, got "${arg}"`);
   return jobs;
 }
 

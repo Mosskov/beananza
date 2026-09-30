@@ -50,7 +50,7 @@ describe('parseJobs', () => {
     expect(parseJobs('4')).toBe(4);
     expect(parseJobs(' 1 ')).toBe(1);
   });
-  it.each(['0', '-2', '1.5', 'abc', '', 'Infinity'])('rejects %j (it would run no scripts)', (arg) => {
+  it.each(['0', '-2', '1.5', 'abc', '', 'Infinity', '0x10', '1e1'])('rejects %j (it would run no scripts)', (arg) => {
     expect(() => parseJobs(arg)).toThrow(/--jobs wants a whole number of at least 1/);
   });
 });

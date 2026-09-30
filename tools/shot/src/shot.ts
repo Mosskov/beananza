@@ -5,7 +5,7 @@ import { mkdirSync } from 'node:fs';
 import { basename, resolve } from 'node:path';
 import { parseArgs } from 'node:util';
 import { scriptOutputNames } from './script';
-import { DEFAULT_RUN, describeShot, listScenes, lookFolder, openSession, REPO, runScripts, shootScene, type RunOptions, type SessionOptions } from './session';
+import { DEFAULT_RUN, describeShot, listScenes, lookFolder, openSession, parseJobs, REPO, runScripts, shootScene, type RunOptions, type SessionOptions } from './session';
 
 function printHelp(): void {
   console.log(`Usage: pnpm shot [options]
@@ -104,7 +104,7 @@ function parseOptions(): Options | null {
     // Like --out, relative script paths resolve against the repo root (pnpm runs this tool
     // from tools/shot, so the working directory says nothing useful).
     scripts: scripts.map((f) => resolve(REPO, f)),
-    jobs: Math.max(1, Math.floor(num('jobs', values.jobs))),
+    jobs: parseJobs(values.jobs),
     times: times && times.length > 0 ? times : [undefined],
     session: {
       port: values.port === undefined ? undefined : num('port', values.port),

@@ -35,8 +35,9 @@ exploration) and are not loaded yet.
   seated beans always face the camera, so only the front view needs it. (The doze "z" is an
   effect, see "Effects" below.)
 - **Reaction faces (D26):** the views with a face (`front`, `front-34`, `side`) also have
-  `eyes-happy` and `mouth-open` (Eureka!) and `eyes-squeeze` and `mouth-wavy` (Oops), and `eyes-spiral` (dizzy, with Oops's
-  `mouth-wavy`), hidden
+  `eyes-happy` and `mouth-open` (Eureka!) and `eyes-squeeze` and `mouth-wavy` (Oops), and `eye-spiral-a` and `-b` (dizzy, with Oops's
+  `mouth-wavy`; one part per eye, round, each spinning about its own `data-pivot`; `a` is the
+  screen-left eye in front, the near eye in front ¾ and the one eye in the side view), hidden
   until a reaction shows them in place of `eyes` and `mouth` (`REACTION_PARTS`,
   `packages/client/src/rig/reaction-parts.ts`). They have no highlight, so no `-left` drawings.
 - **Effect anchors (D26, D22):** every view has `anchor-fx-head` (above and beside the head, where

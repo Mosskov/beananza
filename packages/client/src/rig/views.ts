@@ -149,7 +149,8 @@ export const HIDDEN_BY_DEFAULT: ReadonlySet<string> = new Set([
   'mouth-open',
   'eyes-squeeze',
   'mouth-wavy',
-  'eyes-spiral',
+  'eye-spiral-a',
+  'eye-spiral-b',
 ]);
 
 /** Feet stay on the ground; every other part moves with the body (bob, squash, lean). */

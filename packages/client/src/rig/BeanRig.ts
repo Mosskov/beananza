@@ -40,10 +40,12 @@ interface BuiltView {
   parts: Map<string, PartImage>;
   /** The effect parts on each effect slot (hidden until shown by part id). */
   effects: Map<EffectSlot, { id: string; part: PartImage }[]>;
+  effectIds: Set<string>;
 }
 
 const DEG = Math.PI / 180;
 const NO_OFFSET: ParticleOffset = { x: 0, y: 0, scale: 1 };
+const NEUTRAL_SLOT: SlotTransform = { x: 0, y: 0, rotation: 0, scaleX: 1, scaleY: 1 };
 
 /**
  * The ground shadow under a bean, origin at the ground point between the feet, in art units
@@ -151,7 +153,7 @@ export class BeanRig {
       parts.set(ep.partId, placed);
       effects.set(ep.slot, [...(effects.get(ep.slot) ?? []), { id: ep.partId, part: placed }]);
     }
-    return { container, bodySegments, parts, effects };
+    return { container, bodySegments, parts, effects, effectIds: new Set([...effects.values()].flat().map((e) => e.id)) };
   }
 
   /**
@@ -202,7 +204,7 @@ export class BeanRig {
       const k = p.scale / ART_RESOLUTION;
       part.image
         .setPosition(part.base.x + s.x + p.x, part.base.y + s.y + p.y)
-        .setRotation(s.rotation * DEG)
+        .setRotation((s.rotation + (p.rotation ?? 0)) * DEG)
         .setScale(part.sign * k * s.scaleX, k * s.scaleY);
     };
     for (const slot of SLOTS) {
@@ -213,6 +215,11 @@ export class BeanRig {
       }
       const part = view.parts.get(SLOT_PARTS[this.choice.view][slot as Exclude<Slot, 'body' | EffectSlot>]);
       if (part) place(part, pose[slot]);
+    }
+    // Parts with no slot that still move on their own (the spiral eyes): the offset alone.
+    for (const [id, p] of Object.entries(particles)) {
+      const part = view.parts.get(id);
+      if (part && !view.effectIds.has(id)) place(part, NEUTRAL_SLOT, p);
     }
   }
 

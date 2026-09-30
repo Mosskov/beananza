@@ -16,7 +16,7 @@ describe('reaction parts (D26)', () => {
     expect(reactionParts(layer('oops', ['face']))).toEqual({ eyes: false, 'eyes-sleep': false, mouth: false, 'eyes-squeeze': true, 'mouth-wavy': true });
     expect(reactionParts(layer('oops', ['effect']))).toEqual({ 'doze-z': false, 'sweat-drop': true });
     expect(reactionParts({ kind: 'dizzy', t: 0.5, groups: ['effect'] })).toEqual({ 'doze-z': false, 'dizzy-star-1': true, 'dizzy-star-2': true, 'dizzy-star-3': true });
-    expect(reactionParts({ kind: 'dizzy', t: 0.5, groups: ['face'] })).toEqual({ eyes: false, 'eyes-sleep': false, mouth: false, 'eyes-spiral': true, 'mouth-wavy': true });
+    expect(reactionParts({ kind: 'dizzy', t: 0.5, groups: ['face'] })).toEqual({ eyes: false, 'eyes-sleep': false, mouth: false, 'eye-spiral-a': true, 'eye-spiral-b': true, 'mouth-wavy': true });
     expect(reactionParts(layer('eureka', ['arms', 'body']))).toEqual({});
   });
 
@@ -29,9 +29,11 @@ describe('reaction parts (D26)', () => {
   it('face parts are drawn in every view with a face, hidden until a reaction shows them', () => {
     const spec = buildBeanArtSpec(BEAN_SVGS);
     const shown = Object.values(REACTION_PARTS).flatMap((g) => Object.entries(g.face ?? {}).filter(([, on]) => on).map(([id]) => id));
-    expect([...new Set(shown)].sort()).toEqual(['eyes-happy', 'eyes-spiral', 'eyes-squeeze', 'mouth-open', 'mouth-wavy']);
+    expect([...new Set(shown)].sort()).toEqual(['eye-spiral-a', 'eye-spiral-b', 'eyes-happy', 'eyes-squeeze', 'mouth-open', 'mouth-wavy']);
     for (const view of spec.views.filter((v) => ['front', 'front-34', 'side'].includes(v.view))) {
-      for (const id of shown) expect(view.parts.find((p) => p.id === id)?.hiddenByDefault, `${view.view}: ${id}`).toBe(true);
+      // The side view has one eye, so one spiral (`a`).
+      for (const id of shown.filter((id) => !(view.view === 'side' && id === 'eye-spiral-b'))) expect(view.parts.find((p) => p.id === id)?.hiddenByDefault, `${view.view}: ${id}`).toBe(true);
+      if (view.view === 'side') expect(view.parts.some((p) => p.id === 'eye-spiral-b')).toBe(false);
     }
   });
 

@@ -24,7 +24,7 @@ export const REACTION_PARTS: { readonly [K in ReactionKind]: Partial<Record<Reac
   },
   waveHi: {},
   dizzy: {
-    face: { eyes: false, 'eyes-sleep': false, mouth: false, 'eyes-spiral': true, 'mouth-wavy': true },
+    face: { eyes: false, 'eyes-sleep': false, mouth: false, 'eye-spiral-a': true, 'eye-spiral-b': true, 'mouth-wavy': true },
     effect: { 'doze-z': false, ...STARS },
   },
 };

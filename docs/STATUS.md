@@ -17,11 +17,11 @@ pull requests, and `docs/archive/`.
   `reactions` gallery scene and the `hub-wave` script. Eureka!, Oops and dizzy have no trigger
   in play until predictions (D9) and the catapult exist.
 - **Reaction faces and effects:** Eureka! (happy eyes, open smile, a popping lightbulb) and Oops
-  (squeezed eyes, wavy mouth, a sweat drop) and dizzy (spiral eyes, the wavy mouth, the stars
+  (squeezed eyes, wavy mouth, a sweat drop) and dizzy (spinning spiral eyes, the wavy mouth, the stars
   and a sway that dies down, only while standing still), shown by `REACTION_PARTS`
   (`packages/client/src/rig/reaction-parts.ts`) only for the groups the act allows, in the hub,
   the `reactions` gallery and the `anim` viewer; reduced motion holds the effects still. The
-  three stars each circle the head on their own (`packages/client/src/rig/particles.ts`, the
+  three stars each circle the head, and each spiral eye spins, on its own (`packages/client/src/rig/particles.ts`, the
   rig's per-part offsets), starting where `effectSeed` of the reaction's start tick puts them.
 - **Effect slots:** `fxHead`, `fxBrow`, `fxGround` with anchors in the bean views, effects as
   SVG files in `art/effects/` under their own contract (the doze "z", the lightbulb, the sweat

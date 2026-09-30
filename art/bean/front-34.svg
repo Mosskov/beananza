@@ -19,7 +19,8 @@
   <g id="mouth-open"><path d="M4 -68 q7 12 14 0 Z" fill="#7A3B2E"/><ellipse cx="11" cy="-63.8" rx="3" ry="1.6" fill="#E07A55"/></g>
   <g id="eyes-squeeze"><path d="M-9 -86 l10 6 l-10 6 M29 -86 l-9 5.5 l9 5.5" fill="none" stroke="#2B211C" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></g>
   <g id="mouth-wavy"><path d="M3 -65 q4 -4.5 8 0 q4 4.5 8 0" fill="none" stroke="#2B211C" stroke-width="2.5" stroke-linecap="round"/></g>
-  <g id="eyes-spiral"><path d="M-4 -80 A1.4 1.68 0 0 0 -6.8 -80 A2.8 3.36 0 0 0 -1.2 -80 A4.2 5.04 0 0 0 -9.6 -80 A5.6 6.72 0 0 0 1.6 -80 M24 -80 A1.12 1.61 0 0 1 26.24 -80 A2.24 3.22 0 0 1 21.76 -80 A3.36 4.83 0 0 1 28.48 -80 A4.48 6.44 0 0 1 19.52 -80" fill="none" stroke="#2B211C" stroke-width="2.4" stroke-linecap="round"/></g>
+  <g id="eye-spiral-a" data-pivot="-4 -80"><path d="M-4 -80 A1.47 1.47 0 0 0 -6.94 -80 A2.94 2.94 0 0 0 -1.06 -80 A4.41 4.41 0 0 0 -9.88 -80 A5.88 5.88 0 0 0 1.88 -80" fill="none" stroke="#2B211C" stroke-width="2.4" stroke-linecap="round"/></g>
+  <g id="eye-spiral-b" data-pivot="24 -80"><path d="M24 -80 A1.26 1.26 0 0 1 26.52 -80 A2.52 2.52 0 0 1 21.48 -80 A3.78 3.78 0 0 1 29.04 -80 A5.04 5.04 0 0 1 18.96 -80" fill="none" stroke="#2B211C" stroke-width="2.4" stroke-linecap="round"/></g>
   <g id="headwear-goggles">
     <path d="M-44 -98 Q4 -112 46 -96" fill="none" stroke="#6B4A36" stroke-width="5"/>
     <circle cx="-4" cy="-102" r="10" fill="#BFE3EA" stroke="#6B4A36" stroke-width="4"/><ellipse cx="24" cy="-102" rx="8" ry="10" fill="#BFE3EA" stroke="#6B4A36" stroke-width="4"/>

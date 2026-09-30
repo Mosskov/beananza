@@ -1,16 +1,18 @@
-import type { ReactionKind } from '@beananza/sim';
 import { effectSeed, seedUnit } from './effect-seed';
 import type { ReactionLayer } from './player';
 
 /**
- * Effect particles that each move on their own (D26): an offset per effect part, added to its
- * slot's transform by the rig (`BeanRig.applyPose`). Pure functions of the reaction's time and
+ * Parts that each move on their own (D26): an offset per part, added to its slot's transform by
+ * the rig (`BeanRig.applyPose`): the dizzy stars (effect parts) and the spinning spiral eyes
+ * (face parts, which have no slot). Pure functions of the reaction's time and
  * start tick, so a paused or scripted shot always draws the same frame, on every client.
  */
 export interface ParticleOffset {
   x: number;
   y: number;
   scale: number;
+  /** Degrees, clockwise on screen, about the part's pivot. 0 when left out. */
+  rotation?: number;
 }
 
 /** The stars' orbit over the head (showcase `orbit`: 24 by 7 units, once a second). */
@@ -21,9 +23,6 @@ export const STAR_PARTS = ['dizzy-star-1', 'dizzy-star-2', 'dizzy-star-3'] as co
 export const STAR_BACK_SCALE = 0.75;
 /** How far (a share of the orbit) each star may sit off even spacing, from its seed. */
 const STAR_JITTER = 0.08;
-
-/** The reactions that show the stars: dizzy only (a knock on the head; not Oops, DESIGN.md §6). */
-export const STAR_REACTIONS: ReadonlySet<ReactionKind> = new Set(['dizzy']);
 
 /**
  * Each star's offset from the orbit's centre at `t` seconds into the reaction. Where the ring
@@ -43,13 +42,35 @@ export function starOffsets(t: number, since: number, reducedMotion: boolean): R
   return out;
 }
 
-/** A reaction clip played alone (the clip sheet, the anim viewer) draws its particles as if it started at tick 0. */
-export function clipParticles(clip: string, t: number, reducedMotion: boolean): Record<string, ParticleOffset> {
-  return STAR_REACTIONS.has(clip as ReactionKind) ? starOffsets(t, 0, reducedMotion) : {};
+/** Dizzy's spiral eyes (`eye-spiral-a`, `eye-spiral-b` in the bean views): one turn in this many seconds. */
+export const SPIRAL_TURN_S = 0.8;
+
+/**
+ * The spiral eyes' spin at `t` seconds into dizzy: each eye turns the way it winds (`a`
+ * anticlockwise, `b` clockwise), so the pair stays mirrored. Still under reduced motion.
+ */
+export function spiralSpin(t: number, reducedMotion: boolean): Record<string, ParticleOffset> {
+  const deg = reducedMotion ? 0 : ((t / SPIRAL_TURN_S) % 1) * 360;
+  return { 'eye-spiral-a': { x: 0, y: 0, scale: 1, rotation: -deg }, 'eye-spiral-b': { x: 0, y: 0, scale: 1, rotation: deg } };
 }
 
-/** The particle offsets a running reaction draws, by effect part id; none without one or its effect group. */
+/** Everything a reaction moves part by part, for the groups it may play (stars: effect; spiral eyes: face). */
+function reactionParticles(kind: string, groups: readonly string[] | null, t: number, since: number, reducedMotion: boolean): Record<string, ParticleOffset> {
+  if (kind !== 'dizzy') return {};
+  const all = groups === null;
+  return {
+    ...(all || groups.includes('effect') ? starOffsets(t, since, reducedMotion) : {}),
+    ...(all || groups.includes('face') ? spiralSpin(t, reducedMotion) : {}),
+  };
+}
+
+/** A reaction clip played alone (the clip sheet, the anim viewer) draws its particles as if it started at tick 0. */
+export function clipParticles(clip: string, t: number, reducedMotion: boolean): Record<string, ParticleOffset> {
+  return reactionParticles(clip, null, t, 0, reducedMotion);
+}
+
+/** The offsets a running reaction draws, by part id; none without one, or for groups the act does not allow. */
 export function particleOffsets(reaction: ReactionLayer | null | undefined, reducedMotion: boolean): Record<string, ParticleOffset> {
-  if (!reaction || !reaction.groups.includes('effect') || !STAR_REACTIONS.has(reaction.kind)) return {};
-  return starOffsets(reaction.t, reaction.since ?? 0, reducedMotion);
+  if (!reaction) return {};
+  return reactionParticles(reaction.kind, reaction.groups, reaction.t, reaction.since ?? 0, reducedMotion);
 }

@@ -83,7 +83,7 @@ decisions asked in-session). Kept as it was:
 
 **Decided with the user:**
 - **Design passes run in a separate short chat** before a build session, so the build runs
-  without waiting on answers. The D9 questions are now in `docs/D9-options.md`.
+  without waiting on answers. The D9 questions were in `docs/D9-options.md` (archived 2026-09-30 as `docs/archive/D9-options-projectile.md`).
 - **Concurrent sessions each use their own git worktree** at a short path, on their own branch.
 - **Art changes are reviewed with `pnpm art:sheet`** (D13).
 

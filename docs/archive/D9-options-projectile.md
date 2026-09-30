@@ -1,4 +1,8 @@
-# D9 options: the first expedition
+# D9 options: the first expedition (archived)
+
+> **Archived 2026-09-30:** the user moved the first expedition later and said it will not be the
+> projectile launch. These questions assume a projectile; kept for the parts that carry over
+> (the prediction without free text, measuring and comparing, the notebook, getting there and back).
 
 The questions D9 (Open) depends on. The session that builds the first expedition asks the ones
 its slice needs at the start (options plus one recommendation each, CLAUDE.md "How we work"),

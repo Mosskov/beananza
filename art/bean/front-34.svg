@@ -14,6 +14,11 @@
   </g>
   <g id="cheeks"><ellipse cx="-17" cy="-66" rx="7" ry="4" fill="#F08F7A" opacity="0.6"/><ellipse cx="35" cy="-66" rx="5" ry="3.5" fill="#F08F7A" opacity="0.6"/></g>
   <g id="mouth"><path d="M5 -66 q6 6 12 0" fill="none" stroke="#2B211C" stroke-width="2.5" stroke-linecap="round"/></g>
+  <!-- Reaction faces (D26; hidden unless a reaction shows them): Eureka! (happy eyes, open smile) and Oops (squeezed eyes, wavy mouth). -->
+  <g id="eyes-happy"><path d="M-10 -78 q6 -9 12 0 M19.5 -78 q4.5 -8 9 0" fill="none" stroke="#2B211C" stroke-width="3.2" stroke-linecap="round"/></g>
+  <g id="mouth-open"><path d="M4 -68 q7 12 14 0 Z" fill="#7A3B2E"/><ellipse cx="11" cy="-63.8" rx="3" ry="1.6" fill="#E07A55"/></g>
+  <g id="eyes-squeeze"><path d="M-9 -86 l10 6 l-10 6 M29 -86 l-9 5.5 l9 5.5" fill="none" stroke="#2B211C" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></g>
+  <g id="mouth-wavy"><path d="M3 -65 q4 -4.5 8 0 q4 4.5 8 0" fill="none" stroke="#2B211C" stroke-width="2.5" stroke-linecap="round"/></g>
   <g id="headwear-goggles">
     <path d="M-44 -98 Q4 -112 46 -96" fill="none" stroke="#6B4A36" stroke-width="5"/>
     <circle cx="-4" cy="-102" r="10" fill="#BFE3EA" stroke="#6B4A36" stroke-width="4"/><ellipse cx="24" cy="-102" rx="8" ry="10" fill="#BFE3EA" stroke="#6B4A36" stroke-width="4"/>

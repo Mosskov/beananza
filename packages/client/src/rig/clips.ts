@@ -338,6 +338,13 @@ const layer = (group: ReactionGroup, track: Track): Track => ({ ...track, group 
  * holds at the prototype's crouch (1.06, 0.94).
  */
 const EUREKA_JUMP = keys([0, 0], [0.2, -42], [0.35, -46], [0.55, 0], [1, 0]);
+/**
+ * The lightbulb (`art/effects/eureka-bulb.svg` on `fxHead`; showcase `pop`): nothing for the
+ * crouch, then it pops to 1.25 and settles at 1 by the top of the jump, stays, and shrinks away
+ * over the last fifth. It rises a little as it pops. Under reduced motion it shows at full size,
+ * still. The `x` key holds it over the head when the doze "z"'s drift runs underneath.
+ */
+const BULB_SCALE = keys([0, 0], [0.1, 0], [0.22, 1.25], [0.35, 1], [0.8, 1], [1, 0]);
 const EUREKA = same({
   duration: 1.8,
   loop: false,
@@ -348,6 +355,10 @@ const EUREKA = same({
     layer('body', t('footB', 'y', EUREKA_JUMP, { motion: true })),
     layer('body', body('scaleX', keys([0, 1.06], [0.2, 0.95], [0.35, 1], [0.55, 1.08], [0.68, 1], [1, 1]), { still: 1.06 })),
     layer('body', body('scaleY', keys([0, 0.94], [0.2, 1.05], [0.35, 1], [0.55, 0.92], [0.68, 1], [1, 1]), { still: 0.94 })),
+    layer('effect', t('fxHead', 'scaleX', BULB_SCALE, { motion: true, still: 1 })),
+    layer('effect', t('fxHead', 'scaleY', BULB_SCALE, { motion: true, still: 1 })),
+    layer('effect', t('fxHead', 'y', keys([0, 6], [0.22, 0], [1, -6]), { motion: true, still: 0 })),
+    layer('effect', t('fxHead', 'x', keys([0, 0], [1, 0]))),
   ],
 });
 
@@ -361,10 +372,20 @@ const shake = (s: number): [number, number][] => [
   [s / 3 + 0.75 / 3, 8],
   [(s + 1) / 3, 0],
 ];
+/**
+ * The sweat drop (`art/effects/sweat-drop.svg` on `fxBrow`; showcase `sweat`, 1.1 s): it appears
+ * as the shaking starts, slides 20 units down and 6 out along the head, and shrinks away. Under
+ * reduced motion it sits on the brow at full size.
+ */
+const SWEAT_SCALE = keys([0, 0], [0.08, 0], [0.2, 1], [0.75, 1], [0.95, 0.2], [1, 0]);
 const OOPS = same({
   duration: 1.5,
   loop: false,
   tracks: [
+    layer('effect', t('fxBrow', 'scaleX', SWEAT_SCALE, { motion: true, still: 1 })),
+    layer('effect', t('fxBrow', 'scaleY', SWEAT_SCALE, { motion: true, still: 1 })),
+    layer('effect', t('fxBrow', 'y', keys([0, 0], [0.2, 0], [0.95, 20], [1, 20]), { motion: true, still: 0 })),
+    layer('effect', t('fxBrow', 'x', keys([0, 0], [0.2, 0], [0.95, -6], [1, -6]), { motion: true, still: 0 })),
     layer('body', body('rotation', keys([0, 0], ...shake(0), ...shake(1), ...shake(2)))),
     layer('body', body('scaleX', keys([0, 1], [0.82, 1], [0.92, 1.1], [1, 1]), { still: 1.06 })),
     layer('body', body('scaleY', keys([0, 1], [0.82, 1], [0.92, 0.9], [1, 1]), { still: 0.94 })),

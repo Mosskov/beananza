@@ -16,10 +16,11 @@ import { prefersReducedMotion } from '../accessibility';
 import { GAME_HEIGHT, GAME_WIDTH, PALETTE, UI_FONT as FONT, cssColor } from '../config';
 import { BeanRig, createBeanShadow } from '../rig/BeanRig';
 import { chooseClip, samplePose, type Pose } from '../rig/player';
+import { reactionParts } from '../rig/reaction-parts';
 import { chooseReaction } from '../rig/reactions';
 import { viewForFacing } from '../rig/views';
 import { frameMainCamera, sharpText } from '../screen-scale';
-import { PART_DEFAULTS, presentAct, type ToggledPart } from './hub-presentation';
+import { PART_DEFAULTS, presentAct } from './hub-presentation';
 import type { TestableScene } from './TestableScene';
 
 const KINDS: readonly ReactionKind[] = ['eureka', 'oops', 'waveHi', 'dizzy'];
@@ -145,7 +146,8 @@ export class ReactionsGalleryScene extends Phaser.Scene implements TestableScene
         if (look.shadow) createBeanShadow(this).setPosition(x, feetY).setScale(SCALE);
         const rig = new BeanRig(this);
         rig.setView(choice);
-        for (const [part, shown] of Object.entries(PART_DEFAULTS)) rig.setPartVisible(part, look.parts[part as ToggledPart] ?? shown);
+        const parts: Partial<Record<string, boolean>> = { ...look.parts, ...reactionParts(reaction) };
+        for (const [part, shown] of Object.entries(PART_DEFAULTS)) rig.setPartVisible(part, parts[part] ?? shown);
         rig.applyPose(pose);
         rig.root.setPosition(x, feetY).setScale(SCALE);
         this.shown.push(summary(sc.label, col.kind, reaction?.t ?? null, reaction?.groups ?? [], clip, choice, pose));

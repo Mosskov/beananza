@@ -223,6 +223,26 @@ describe('reaction clips (D26)', () => {
     }
   });
 
+  it('eureka: the lightbulb pops to 1.25 after the crouch, settles at 1, and shrinks away at the end', () => {
+    const bulb = (t: number, rm = false) => pose('eureka', t, 'front', rm).fxHead;
+    expect(bulb(0).scaleX).toBe(0);
+    expect(bulb(0.1 * EUREKA_S).scaleY).toBe(0);
+    expect(bulb(0.22 * EUREKA_S)).toMatchObject({ scaleX: expect.closeTo(1.25, 12) as number, y: expect.closeTo(0, 12) as number });
+    expect(bulb(0.5 * EUREKA_S).scaleX).toBeCloseTo(1, 12);
+    expect(bulb(EUREKA_S).scaleY).toBe(0);
+    // Reduced motion: shown at full size, still, for the whole reaction.
+    for (const t of SAMPLES) expect(bulb(t, true)).toMatchObject({ x: 0, y: 0, scaleX: 1, scaleY: 1 });
+  });
+
+  it('oops: the sweat drop appears as the shaking starts, slides 20 down and 6 out, and shrinks away', () => {
+    const drop = (t: number, rm = false) => pose('oops', t, 'front', rm).fxBrow;
+    expect(drop(0.08 * OOPS_S).scaleX).toBe(0);
+    expect(drop(0.2 * OOPS_S)).toMatchObject({ x: expect.closeTo(0, 12) as number, y: expect.closeTo(0, 12) as number, scaleX: expect.closeTo(1, 12) as number });
+    expect(drop(0.95 * OOPS_S)).toMatchObject({ x: expect.closeTo(-6, 12) as number, y: expect.closeTo(20, 12) as number, scaleY: expect.closeTo(0.2, 12) as number });
+    expect(drop(OOPS_S).scaleX).toBe(0);
+    for (const t of SAMPLES) expect(drop(t, true)).toMatchObject({ x: 0, y: 0, scaleX: 1, scaleY: 1 });
+  });
+
   it('oops: three 0.5 s shakes of ±8°, and a squish over the last one', () => {
     expect(pose('oops', 0.125).body.rotation).toBeCloseTo(-8, 12);
     expect(pose('oops', 0.375).body.rotation).toBeCloseTo(8, 12);
@@ -279,7 +299,10 @@ describe('reaction clips (D26)', () => {
     it('skips a group the act does not allow', () => {
       const act = pose('walk', 0.14, 'front');
       expect(over('walk', 0.14, { kind: 'waveHi', t: 0.27, groups: ['face', 'effect'] })).toEqual(act);
-      expect(over('walk', 0.14, { kind: 'eureka', t: 0.63, groups: ['face', 'effect', 'arms'] })).toEqual(act);
+      // Eureka!'s body jump is skipped; only its effect (the bulb on `fxHead`) plays.
+      const eureka = over('walk', 0.14, { kind: 'eureka', t: 0.63, groups: ['face', 'effect', 'arms'] });
+      expect({ ...eureka, fxHead: act.fxHead }).toEqual(act);
+      expect(over('walk', 0.14, { kind: 'eureka', t: 0.63, groups: ['face', 'arms'] })).toEqual(act);
     });
 
     it('the body part plays over a still bean: the feet leave the ground with the body, and the blink is left alone', () => {

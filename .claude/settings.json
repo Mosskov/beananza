@@ -1,0 +1,84 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": {
+    "allow": [
+      "Bash(git status)",
+      "Bash(git status *)",
+      "Bash(git log)",
+      "Bash(git log *)",
+      "Bash(git diff)",
+      "Bash(git diff *)",
+      "Bash(pnpm test)",
+      "Bash(pnpm test *)",
+      "Bash(pnpm typecheck)",
+      "Bash(pnpm lint)",
+      "Bash(pnpm check)",
+      "Bash(pnpm verify)",
+      "Bash(pnpm verify *)",
+      "Bash(pnpm shot)",
+      "Bash(pnpm shot *)",
+      "Bash(pnpm shot:check-carts)",
+      "Bash(pnpm shot:check-carts *)",
+      "Bash(pnpm shot:check-looks)",
+      "Bash(pnpm shot:check-looks *)",
+      "Bash(pnpm shot:compare-states)",
+      "Bash(pnpm shot:compare-states *)",
+      "Bash(pnpm shot:sheet)",
+      "Bash(pnpm shot:sheet *)",
+      "Bash(pnpm art:check)",
+      "Bash(pnpm art:check *)",
+      "Bash(pnpm art:part)",
+      "Bash(pnpm art:part *)",
+      "Bash(pnpm art:sheet)",
+      "Bash(pnpm art:sheet *)",
+      "Bash(pnpm clip:sheet)",
+      "Bash(pnpm clip:sheet *)",
+      "PowerShell(git status)",
+      "PowerShell(git status *)",
+      "PowerShell(git log)",
+      "PowerShell(git log *)",
+      "PowerShell(git diff)",
+      "PowerShell(git diff *)",
+      "PowerShell(pnpm test)",
+      "PowerShell(pnpm test *)",
+      "PowerShell(pnpm typecheck)",
+      "PowerShell(pnpm lint)",
+      "PowerShell(pnpm check)",
+      "PowerShell(pnpm verify)",
+      "PowerShell(pnpm verify *)",
+      "PowerShell(pnpm shot)",
+      "PowerShell(pnpm shot *)",
+      "PowerShell(pnpm shot:check-carts)",
+      "PowerShell(pnpm shot:check-carts *)",
+      "PowerShell(pnpm shot:check-looks)",
+      "PowerShell(pnpm shot:check-looks *)",
+      "PowerShell(pnpm shot:compare-states)",
+      "PowerShell(pnpm shot:compare-states *)",
+      "PowerShell(pnpm shot:sheet)",
+      "PowerShell(pnpm shot:sheet *)",
+      "PowerShell(pnpm art:check)",
+      "PowerShell(pnpm art:check *)",
+      "PowerShell(pnpm art:part)",
+      "PowerShell(pnpm art:part *)",
+      "PowerShell(pnpm art:sheet)",
+      "PowerShell(pnpm art:sheet *)",
+      "PowerShell(pnpm clip:sheet)",
+      "PowerShell(pnpm clip:sheet *)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash|PowerShell",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/guard.mjs\"",
+            "timeout": 10,
+            "statusMessage": "Checking the command against the repo's guard"
+          }
+        ]
+      }
+    ]
+  }
+}

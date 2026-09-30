@@ -233,7 +233,8 @@ describe('reaction clips (D26)', () => {
     expect(pose('waveHi', 1.5, 'front').armB.rotation).toBeCloseTo(-110, 12);
     expect(pose('waveHi', 1.8, 'front').armB.rotation).toBe(0);
     // The side view has no screen-right arm to spare (`armB` is the hidden pushing arm): the near arm waves.
-    expect(pose('waveHi', 0.27, 'side').armA.rotation).toBeCloseTo(-138, 12);
+    // and it goes further (−165° instead of −110°), because in the side view the arm swings forward.
+    expect(pose('waveHi', 0.27, 'side').armA.rotation).toBeCloseTo(-193, 12);
     expect(pose('waveHi', 0.27, 'side').armB.rotation).toBe(0);
     expect(pose('waveHi', 0.27, 'front-34').armB.rotation).toBeCloseTo(-138, 12);
   });
@@ -242,13 +243,13 @@ describe('reaction clips (D26)', () => {
     for (const family of FAMILIES) expect(CLIPS.dizzy[family].tracks).toEqual([]);
   });
 
-  it('reduced motion: no jump, no shake; the squash holds at 1.06 × 0.94 and the raised arm at −110°', () => {
+  it('reduced motion: no jump, no shake; the squash holds at 1.06 × 0.94 and the raised arm at −110° (−165° in the side view)', () => {
     for (const t of SAMPLES) {
       for (const name of ['eureka', 'oops'] as const) {
         expect(pose(name, t, 'side', true).body, `${name} ${t}`).toEqual({ x: 0, y: 0, rotation: 0, scaleX: 1.06, scaleY: 0.94 });
       }
       expect(pose('waveHi', t, 'front', true).armB.rotation, `${t}`).toBe(-110);
-      expect(pose('waveHi', t, 'side', true).armA.rotation, `${t}`).toBe(-110);
+      expect(pose('waveHi', t, 'side', true).armA.rotation, `${t}`).toBe(-165);
     }
   });
 

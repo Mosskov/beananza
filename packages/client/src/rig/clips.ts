@@ -375,18 +375,20 @@ const OOPS = same({
  * Under reduced motion the arm stays raised at the middle of the flap.
  */
 const WAVE_UP = -110;
-const waveArm = (slot: 'armA' | 'armB'): Track =>
+/** In the side view the arm swings forward, so it has to go further to be over the head. */
+const WAVE_UP_SIDE = -165;
+const waveArm = (slot: 'armA' | 'armB', up: number): Track =>
   layer(
     'arms',
-    t(slot, 'rotation', keys([0, 0], [0.08, WAVE_UP], [0.15, WAVE_UP - 28], [0.3, WAVE_UP + 8], [0.45, WAVE_UP - 28], [0.6, WAVE_UP], [0.85, WAVE_UP], [1, 0]), {
+    t(slot, 'rotation', keys([0, 0], [0.08, up], [0.15, up - 28], [0.3, up + 8], [0.45, up - 28], [0.6, up], [0.85, up], [1, 0]), {
       motion: true,
-      still: WAVE_UP,
+      still: up,
     }),
   );
 const WAVE_HI: Families = {
-  front: { duration: 1.8, loop: false, tracks: [waveArm('armB')] },
-  'three-quarter': { duration: 1.8, loop: false, tracks: [waveArm('armB')] },
-  side: { duration: 1.8, loop: false, tracks: [waveArm('armA')] },
+  front: { duration: 1.8, loop: false, tracks: [waveArm('armB', WAVE_UP)] },
+  'three-quarter': { duration: 1.8, loop: false, tracks: [waveArm('armB', WAVE_UP)] },
+  side: { duration: 1.8, loop: false, tracks: [waveArm('armA', WAVE_UP_SIDE)] },
 };
 
 /**

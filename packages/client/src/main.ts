@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { URL_PARAM_LAYOUT, URL_PARAM_LOOK, URL_PARAM_PAUSED, URL_PARAM_SCENE, parseLook } from '@beananza/shared';
 import { HUB_LAYOUT_NAMES } from '@beananza/sim';
 import { PALETTE } from './config';
+import { loadEffectArt } from './art/effects';
 import { loadPropArt } from './art/props';
 import { loadBeanArt } from './rig/bean-art';
 import { DEFAULT_SCENE, SCENE_NAMES, SCENES, coloursFor } from './scenes/registry';
@@ -25,9 +26,9 @@ function bootError(message: string): void {
   console.error(message);
 }
 
-// The bean's and props' parts are checked against the art contract and rasterized before any
-// scene starts, in the bean colours the scene needs.
-const artError = await Promise.all([loadBeanArt(coloursFor(sceneName, look)), loadPropArt()]).then(
+// The bean's, props' and effects' parts are checked against the art contract and rasterized
+// before any scene starts, in the bean colours the scene needs.
+const artError = await Promise.all([loadBeanArt(coloursFor(sceneName, look)), loadPropArt(), loadEffectArt()]).then(
   () => null,
   (err: unknown) => (err instanceof Error ? err.message : String(err)),
 );

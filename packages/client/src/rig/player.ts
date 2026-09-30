@@ -118,6 +118,8 @@ export function chooseClip(bean: BeanMotion, time: number, gravity: number, actC
     if (bean.vz >= 0 || gravity <= 0) return { clip: 'jump', t: Math.max(0, time - (bean.lastJump?.startedAt ?? time)) };
     return { clip: 'fall', t: -bean.vz / gravity };
   }
+  // The landing dust (D26, derived, no sim field) will read this same `lastJump.landedAt`, on the
+  // fxGround slot, with its placement from effectSeed(landedAt tick, index).
   const landedAt = bean.lastJump?.landedAt;
   if (landedAt != null && time - landedAt < LAND_DURATION) return { clip: 'land', t: Math.max(0, time - landedAt) };
   if (actClip) return { clip: actClip.clip, t: actClip.t };

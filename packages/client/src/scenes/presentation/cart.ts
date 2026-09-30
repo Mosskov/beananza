@@ -7,6 +7,8 @@ export const HEAVY_PUSH_KG = 10;
 
 /** How the bean looks pushing, getting into, riding and getting out of a cart (D23). */
 export const CART_ROWS: Rows<CartActKind> = {
+  // The effort face and the sweat (D26, derived, no sim field) will read this row: the cart's mass
+  // against HEAVY_PUSH_KG, the same test that picks `pushHeavy`; the sweat goes on the fxBrow slot.
   pushing: (act, state, time) => {
     const cart = state.rail?.carts.find((c) => c.id === act.cart);
     const clip: ClipName = (cart?.mass ?? 0) >= HEAVY_PUSH_KG ? 'pushHeavy' : 'push';

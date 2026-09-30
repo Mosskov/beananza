@@ -1,6 +1,6 @@
 # Art
 
-The game loads `bean/` and `props/` at runtime, by part id (D3, D12): these files are the
+The game loads `bean/`, `props/` and `effects/` at runtime, by part id (D3, D12, D26): these files are the
 source of the bean and the props, drawn as SVG text (D13's leaning). Their look is still a first
 pass and may change. `bean/forms.svg` and `baron/` are reference only (from the design
 exploration) and are not loaded yet.
@@ -31,9 +31,16 @@ exploration) and are not loaded yet.
   also has `anchor-lean` (the point whose forward tip the pushing stand-off adds). The `-left`
   files have no anchors: mirrored views mirror their base view's. Anchors must lie inside the
   viewBox.
-- `front.svg` also has `eyes-sleep` (closed eyes) and `doze-z` (a drawn "z", not text), hidden
-  unless the bean dozes on the bench; seated beans always face the camera, so only the front
-  view needs them.
+- `front.svg` also has `eyes-sleep` (closed eyes), hidden unless the bean dozes on the bench;
+  seated beans always face the camera, so only the front view needs it. (The doze "z" is an
+  effect, see "Effects" below.)
+- **Effect anchors (D26, D22):** every view has `anchor-fx-head` (above and beside the head, where
+  the doze "z" floats from), `anchor-fx-brow` (the brow, for sweat) and `anchor-fx-ground`
+  (between the feet, for dust), in that view's own frame; mirrored views mirror them. They may lie
+  outside the body (the body-outline check skips them). Effects are placed at them by slot
+  (`fxHead`, `fxBrow`, `fxGround`, `packages/client/src/rig/views.ts`); head and brow ride with the
+  body, ground stays on the ground. The positions are a first guess from the prototype (the "z"
+  and the sweat drop in `reference/showcase.html`); the art lane tunes them per view.
 - **Customization (D25), composed at load time, never per combination:**
   - **Colours:** the bean is drawn in orange key colours (body `#E08A5B`, arm `#C96F42`, foot
     `#B8622F`, belly `#F2B48C`, and the side and ¾ views' far foot `#A3572A` and far arm
@@ -76,6 +83,20 @@ the tree's greens (`#5F9150`, `#6A9C5A`, `#86B874`) are new. The game loads them
   Anchors `seat-west` and `seat-east`: where a seated bean's feet point sits, 0.30 m up and
   0.15 m south of the centre line, 0.4 m either side (the sim's bench layout; a test checks they
   agree).
+
+## Effects (`effects/`)
+Effects (D26) are drawn once, apart from the bean, and placed at one of the bean's effect anchors
+(above). One file per effect, flat top-level `<g id>` parts, drawn shapes (no `<text>`, D17),
+palette colours only (they are not recoloured per bean, so no key colours), and the file's origin
+(0, 0) **is** the anchor it is placed at: clips move and scale it about that point, and a part
+may say `data-pivot` for another. 100 units = 1 m, y grows downwards. No anchors in an effect
+file. The effect is hidden until something shows it by its part id; the same drawing is used in
+every view (in mirrored views its position mirrors and the drawing does not flip). Register a new
+effect in `EFFECTS` (its slot and parts, `packages/client/src/art/effect-contract.ts`) and import
+it in `effect-sources.ts`; `pnpm art:check` finds a file that is not registered. The checks are in
+`effect-contract.ts` and `packages/client/test/effect-art.test.ts`.
+- `doze-z.svg`: the two drawn "z" shapes beside the dozing bean, on `fxHead`. Moved out of
+  `bean/front.svg`, unchanged except that the origin is now the anchor `fx-head` (32, −124).
 
 ## Boss (`baron/`), parked
 - `heavy-baron.svg`: The Heavy Baron in his smug default expression.

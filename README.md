@@ -114,6 +114,9 @@ Also, in `packages/client/test/`:
   replaced, anchors, and rejecting broken markup).
 - `prop-art.test.ts`: the art contract for `art/props/*.svg` (the tree, cart and bench parts,
   wheel pivots and radius, and anchors that agree with the sim: the cart floor and the seats).
+- `effect-art.test.ts`: the art contract for `art/effects/*.svg` (origin at the anchor, no text,
+  no key colours, no anchors), the doze "z" drawn where it was, the three effect slots and their
+  anchors in every view, and `effectSeed` (placement from the start tick and index only).
 - `looks.test.ts`: parsing `?look=`, the colour swaps (all six key colours, derived far
   shades, cream's outline, scarf and face never recoloured), the cosmetic art contract, patterns
   clipped to each view's body and headwear at each view's anchor, the bow on the bean's left in

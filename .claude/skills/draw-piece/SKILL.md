@@ -13,9 +13,12 @@ shown to the user (D13), so plan for that from the start.
 - [ ] Is the piece confirmed? D25 confirmed specific cosmetics (spots; sprout, bear ears, bow;
       glasses). A **new** cosmetic, prop or form is a design choice: check `docs/DECISIONS.md`
       and the prompt, and ask the user if neither names it. Redrawing an existing piece is fine.
-- [ ] **Effects** (D26: `art/effects/`, effect slots at anchors) have no folder, loader or
-      contract yet. Building that is its own step with its own prompt
-      (`prompts/reactions-first-session.md`); this skill covers the parts that exist today.
+- [ ] **Effects** (D26: `art/effects/<id>.svg`, placed on the effect slots at the `fx-head`,
+      `fx-brow` and `fx-ground` anchors) have a folder, a loader and a contract
+      (`packages/client/src/art/effect-contract.ts`; `art/README.md`, "Effects"): origin at the
+      anchor, palette colours only, no text, registered in `EFFECTS` and `effect-sources.ts`.
+      `pnpm art:part art/effects/<id>.svg` draws one as it is. What to draw is the art lane's
+      call (D26).
 - [ ] Read `art/README.md` (parts, units, key colours, anchors, palette) and
       `docs/ART_PIPELINE.md` §2.
 - [ ] Render the nearest existing piece so you draw to the same scale and style:

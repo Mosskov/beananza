@@ -13,6 +13,7 @@ import { parseArgs } from 'node:util';
 import { chromium } from 'playwright';
 import { DEFAULT_LOOK, parseLook, type BeanLook } from '@beananza/shared';
 import { artFileKind, checkArt, sortArt, type ArtFileKind } from '@beananza/client/art/checks';
+import { buildEffectArtSpec } from '@beananza/client/art/effect-contract';
 import { buildPropArtSpec } from '@beananza/client/art/prop-contract';
 import { buildBeanArtSpec, type BeanArtSpec } from '@beananza/client/rig/bean-contract';
 import { recolour } from '@beananza/client/rig/colours';
@@ -109,7 +110,7 @@ async function main(): Promise<number> {
   if (values.help || positionals.length !== 1) {
     console.log(`Usage: pnpm art:part <art file> [--look ids] [--views all|S,SE,…|front,side,…] [--zoom n] [--out dir]
 
-  <art file>   a bean view (art/bean/side.svg), a cosmetic (art/bean/headwear/bow.svg) or a prop
+  <art file>   a bean view (art/bean/side.svg), a cosmetic (art/bean/headwear/bow.svg), a prop or an effect
   --look       colour and pieces, as ?look= (a cosmetic file adds itself); default orange
   --views      directions (S SE E NE N NW W SW) or view names; default all 8 (props: one drawing)
   --zoom       CSS pixels per art unit (default 2)
@@ -126,14 +127,14 @@ Writes <out>/<file name>[--<look>].png and prints the anchors, pivots and contra
   const art = readArt();
   const findings = checkArt(art).filter((f) => f.file === file);
   const doc = parseSvgParts(art[file] as string);
-  const { bean, cosmetics: cosmeticSources, props } = sortArt(art);
+  const { bean, cosmetics: cosmeticSources, props, effects } = sortArt(art);
 
   let cells: Cell[];
   let look: BeanLook | null = null;
-  if (kind.kind === 'prop') {
+  if (kind.kind === 'prop' || kind.kind === 'effect') {
     let drawn: SvgDoc | undefined;
     try {
-      drawn = buildPropArtSpec(props).docs[kind.id];
+      drawn = (kind.kind === 'prop' ? buildPropArtSpec(props) : buildEffectArtSpec(effects)).docs[kind.id];
     } catch {
       // Broken or unregistered: still drawn as it is; the findings say why.
     }

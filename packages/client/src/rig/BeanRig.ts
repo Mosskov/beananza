@@ -1,18 +1,33 @@
 import Phaser from 'phaser';
+import { effectImage, effectParts } from '../art/effects';
 import { ART_RESOLUTION, partImage } from '../art/raster';
 import { DEFAULT_LOOK, type BeanLook } from '@beananza/shared';
 import { SHADOW_TEXTURE, addBeanTextures, beanArt, textureKey } from './bean-art';
 import { viewKey, type RigView } from './bean-contract';
 import { lookParts } from './looks';
-import type { Pose } from './player';
+import type { Pose, SlotTransform } from './player';
 import type { Point } from './svg-parts';
-import { SLOTS, SLOT_PARTS, isGroundPart, screenReach, type Slot, type ViewChoice } from './views';
+import {
+  EFFECT_SLOTS,
+  EFFECT_SLOT_ANCHORS,
+  SLOTS,
+  SLOT_PARTS,
+  isGroundPart,
+  screenReach,
+  type EffectSlot,
+  type Slot,
+  type ViewChoice,
+} from './views';
 
 interface PartImage {
   image: Phaser.GameObjects.Image;
-  pivot: Point;
-  /** Drawn as seen on screen inside a mirrored view: counter-flipped. */
-  screenSpace: boolean;
+  /** Where the image sits at rest, in the view's frame (clips add their slot's x and y to it). */
+  base: Point;
+  /**
+   * -1 for a drawing that is counter-flipped inside a mirrored view so that it shows as drawn
+   * (a screen-space part, or an effect); otherwise 1.
+   */
+  sign: 1 | -1;
   /** Top of the drawing (art units, the view's frame). */
   top: number;
 }
@@ -22,6 +37,8 @@ interface BuiltView {
   /** Every run of consecutive body parts shares the body transform (feet stay on the ground). */
   bodySegments: Phaser.GameObjects.Container[];
   parts: Map<string, PartImage>;
+  /** The effect parts on each effect slot (hidden until shown by part id). */
+  effects: Map<EffectSlot, PartImage[]>;
 }
 
 const DEG = Math.PI / 180;
@@ -100,14 +117,37 @@ export class BeanRig {
         segmentIsBody = onBody;
         if (onBody) bodySegments.push(segment);
       }
+      // A screen-space part inside the flipped view is placed at its mirrored pivot and flipped back.
+      const base = { x: part.screenSpace ? -part.pivot.x : part.pivot.x, y: part.pivot.y };
+      const sign = part.screenSpace ? -1 : 1;
       const image = partImage(this.scene, tex, part.pivot)
-        .setPosition(part.screenSpace ? -part.pivot.x : part.pivot.x, part.pivot.y)
+        .setPosition(base.x, base.y)
         .setVisible(!part.hiddenByDefault);
       if (part.screenSpace) image.setScale(-1 / ART_RESOLUTION, 1 / ART_RESOLUTION);
       segment.add(image);
-      parts.set(part.id, { image, pivot: part.pivot, screenSpace: part.screenSpace, top: tex.bounds.y });
+      parts.set(part.id, { image, base, sign, top: tex.bounds.y });
     }
-    return { container, bodySegments, parts };
+
+    // Effects go in front of everything, at their slot's anchor in this view (mirrored views mirror
+    // the anchor with the rest of the view, and the drawing is flipped back). The head and brow
+    // slots ride with the body; the ground slot stays on the ground like the feet.
+    const anchors = art.spec.anchors[spec.view];
+    const head = this.scene.add.container(0, 0);
+    const ground = this.scene.add.container(0, 0);
+    container.add([head, ground]);
+    bodySegments.push(head);
+    const effects = new Map<EffectSlot, PartImage[]>();
+    for (const ep of effectParts()) {
+      const anchor = anchors[EFFECT_SLOT_ANCHORS[ep.slot]] as Point;
+      const base = { x: anchor.x + ep.pivot.x, y: anchor.y + ep.pivot.y };
+      const sign = spec.mirrored ? -1 : 1;
+      const image = effectImage(this.scene, ep).setPosition(base.x, base.y).setScale(sign / ART_RESOLUTION, 1 / ART_RESOLUTION).setVisible(false);
+      (ep.slot === 'fxGround' ? ground : head).add(image);
+      const placed = { image, base, sign, top: anchor.y + ep.texture.bounds.y } satisfies PartImage;
+      parts.set(ep.partId, placed);
+      effects.set(ep.slot, [...(effects.get(ep.slot) ?? []), placed]);
+    }
+    return { container, bodySegments, parts, effects };
   }
 
   /**
@@ -141,19 +181,22 @@ export class BeanRig {
     if (!view) return;
     const b = pose.body;
     for (const seg of view.bodySegments) seg.setPosition(b.x, b.y).setRotation(b.rotation * DEG).setScale(b.scaleX, b.scaleY);
+    // A flipped-back part shows as drawn while its motion mirrors like every other part.
+    const place = (part: PartImage, s: SlotTransform) => {
+      const k = 1 / ART_RESOLUTION;
+      part.image
+        .setPosition(part.base.x + s.x, part.base.y + s.y)
+        .setRotation(s.rotation * DEG)
+        .setScale(part.sign * k * s.scaleX, k * s.scaleY);
+    };
     for (const slot of SLOTS) {
       if (slot === 'body') continue;
-      const part = view.parts.get(SLOT_PARTS[this.choice.view][slot as Exclude<Slot, 'body'>]);
-      if (!part) continue;
-      const s = pose[slot];
-      const k = 1 / ART_RESOLUTION;
-      // A screen-space part inside the flipped view is placed at its mirrored pivot and flipped
-      // back, so it shows as drawn while its motion mirrors like every other part.
-      const baseX = part.screenSpace ? -part.pivot.x : part.pivot.x;
-      part.image
-        .setPosition(baseX + s.x, part.pivot.y + s.y)
-        .setRotation(s.rotation * DEG)
-        .setScale((part.screenSpace ? -k : k) * s.scaleX, k * s.scaleY);
+      if ((EFFECT_SLOTS as readonly Slot[]).includes(slot)) {
+        for (const part of view.effects.get(slot as EffectSlot) ?? []) place(part, pose[slot]);
+        continue;
+      }
+      const part = view.parts.get(SLOT_PARTS[this.choice.view][slot as Exclude<Slot, 'body' | EffectSlot>]);
+      if (part) place(part, pose[slot]);
     }
   }
 

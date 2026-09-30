@@ -1,3 +1,4 @@
+import type { ReactionGroup, ReactionKind } from '@beananza/sim';
 import type { BeanView, Slot } from './views';
 
 /**
@@ -44,6 +45,12 @@ export interface Track {
    * that stop swinging but still dangle).
    */
   still?: number;
+  /**
+   * Only reaction clips (D26) set this: the layer the track belongs to. The sim's compatibility
+   * table says which groups may play in the bean's current act; a track of a group that is not
+   * allowed is skipped. Tracks without a group belong to act clips and always play.
+   */
+  group?: ReactionGroup;
 }
 
 export interface Clip {
@@ -53,7 +60,12 @@ export interface Clip {
   tracks: Track[];
 }
 
-export const CLIP_NAMES = ['idle', 'walk', 'run', 'jump', 'fall', 'land', 'push', 'pushHeavy', 'sit', 'doze', 'wave'] as const;
+/**
+ * Reaction clips (D26) are named like the sim's `ReactionKind`; they are played on top of the
+ * act's clip (`samplePose`'s `reaction`), and alone by `pnpm clip:sheet`.
+ */
+export const REACTION_CLIP_NAMES = ['eureka', 'oops', 'waveHi', 'dizzy'] as const satisfies readonly ReactionKind[];
+export const CLIP_NAMES = ['idle', 'walk', 'run', 'jump', 'fall', 'land', 'push', 'pushHeavy', 'sit', 'doze', 'wave', ...REACTION_CLIP_NAMES] as const;
 export type ClipName = (typeof CLIP_NAMES)[number];
 
 // Small builders so the data reads like the prototype's keyframes.
@@ -316,6 +328,73 @@ const WAVE = same({
   ],
 });
 
+/** A track of a reaction clip, in its layer (D26). */
+const layer = (group: ReactionGroup, track: Track): Track => ({ ...track, group });
+
+/**
+ * Eureka! (D26; showcase `eureka`, 1.8 s = `EUREKA_S`): a crouch, a jump of 46 units with the
+ * stretch and a squash on landing, then upright. The prototype loops and starts and ends on the
+ * crouch; this plays once, so it ends at rest. Under reduced motion the jump goes and the squash
+ * holds at the prototype's crouch (1.06, 0.94).
+ */
+const EUREKA = same({
+  duration: 1.8,
+  loop: false,
+  tracks: [
+    layer('body', body('y', keys([0, 0], [0.2, -42], [0.35, -46], [0.55, 0], [1, 0]))),
+    layer('body', body('scaleX', keys([0, 1.06], [0.2, 0.95], [0.35, 1], [0.55, 1.08], [0.68, 1], [1, 1]), { still: 1.06 })),
+    layer('body', body('scaleY', keys([0, 0.94], [0.2, 1.05], [0.35, 1], [0.55, 0.92], [0.68, 1], [1, 1]), { still: 0.94 })),
+  ],
+});
+
+/**
+ * Oops (showcase `youshake`, 1.5 s = `OOPS_S`): three shakes of ±8° (0.5 s each, the prototype's
+ * 0, 25 %, 75 %, 100 % keys), and a squish over the last shake that settles back. Under reduced
+ * motion the shake goes and the squish holds at (1.06, 0.94), a slump.
+ */
+const shake = (s: number): [number, number][] => [
+  [s / 3 + 0.25 / 3, -8],
+  [s / 3 + 0.75 / 3, 8],
+  [(s + 1) / 3, 0],
+];
+const OOPS = same({
+  duration: 1.5,
+  loop: false,
+  tracks: [
+    layer('body', body('rotation', keys([0, 0], ...shake(0), ...shake(1), ...shake(2)))),
+    layer('body', body('scaleX', keys([0, 1], [0.82, 1], [0.92, 1.1], [1, 1]), { still: 1.06 })),
+    layer('body', body('scaleY', keys([0, 1], [0.82, 1], [0.92, 0.9], [1, 1]), { still: 0.94 })),
+  ],
+});
+
+/**
+ * Wave hi (showcase `wave`, 1.8 s = `WAVE_HI_S`): the arm goes up, two flaps (−28° then +8° then
+ * −28° again in the first 60 %), holds, and comes down. The screen-right arm in the front, back
+ * and ¾ views (`armB`, as Priya's `wave`), the near arm in the side view (`armB` is the hidden
+ * pushing arm there). Only the `arms` group: it plays in every act that leaves the arm free.
+ * Under reduced motion the arm stays raised at the middle of the flap.
+ */
+const WAVE_UP = -110;
+const waveArm = (slot: 'armA' | 'armB'): Track =>
+  layer(
+    'arms',
+    t(slot, 'rotation', keys([0, 0], [0.08, WAVE_UP], [0.15, WAVE_UP - 28], [0.3, WAVE_UP + 8], [0.45, WAVE_UP - 28], [0.6, WAVE_UP], [0.85, WAVE_UP], [1, 0]), {
+      motion: true,
+      still: WAVE_UP,
+    }),
+  );
+const WAVE_HI: Families = {
+  front: { duration: 1.8, loop: false, tracks: [waveArm('armB')] },
+  'three-quarter': { duration: 1.8, loop: false, tracks: [waveArm('armB')] },
+  side: { duration: 1.8, loop: false, tracks: [waveArm('armA')] },
+};
+
+/**
+ * Dizzy (D26, 1.6 s = `DIZZY_S`; set by a hard landing, the catapult's). The stars are an effect
+ * and the sway a body track, both waiting for their art (the art lane), so there are no tracks yet.
+ */
+const DIZZY = same({ duration: 1.6, loop: false, tracks: [] });
+
 export const CLIPS: Readonly<Record<ClipName, Families>> = {
   idle: IDLE,
   walk: WALK_CLIPS,
@@ -328,6 +407,10 @@ export const CLIPS: Readonly<Record<ClipName, Families>> = {
   sit: SIT,
   doze: DOZE,
   wave: WAVE,
+  eureka: EUREKA,
+  oops: OOPS,
+  waveHi: WAVE_HI,
+  dizzy: DIZZY,
 };
 
 /** Blinking plays on top of every clip: every 4 s, eyes squeeze to 10% for a moment. */

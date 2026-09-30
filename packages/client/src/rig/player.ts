@@ -1,4 +1,5 @@
 import { BLINK, CLIPS, LAND_DURATION, familyOf, type Channel, type Clip, type ClipName, type Track } from './clips';
+import type { ReactionGroup, ReactionKind } from '@beananza/sim';
 import { SLOTS, type BeanView, type Slot } from './views';
 
 /**
@@ -50,8 +51,10 @@ function channelNeutral(channel: Channel): number {
   return channel === 'scaleX' || channel === 'scaleY' ? 1 : 0;
 }
 
-function applyClip(pose: Pose, clip: Clip, seconds: number, reducedMotion: boolean): void {
+function applyClip(pose: Pose, clip: Clip, seconds: number, reducedMotion: boolean, groups: readonly ReactionGroup[] | null = null): void {
   for (const track of clip.tracks) {
+    // A reaction layer plays only the groups the act allows (D26); an act clip has no groups.
+    if (groups && !(track.group && groups.includes(track.group))) continue;
     if (reducedMotion && track.motion) {
       if (track.still !== undefined) pose[track.slot][track.channel] = track.still;
       continue;
@@ -69,12 +72,28 @@ export interface PoseRequest {
   view: BeanView;
   /** prefers-reduced-motion: no bob, squash, stretch, breathing or waddle; poses still change. */
   reducedMotion: boolean;
+  /** A reaction laid over the act's clip (`chooseReaction`); its tracks replace only the channels they name. */
+  reaction?: ReactionLayer | null;
 }
 
+/** A running reaction at `t` seconds into it, and the groups of its tracks that may play (D26). */
+export interface ReactionLayer {
+  kind: ReactionKind;
+  t: number;
+  groups: readonly ReactionGroup[];
+}
+
+/**
+ * The act's clip, the blink, then the reaction clip on top (D26): its tracks replace only the
+ * channels they name, and only for the groups the act allows. Under reduced motion the `motion`
+ * and `still` rules apply to reaction tracks like any other.
+ */
 export function samplePose(req: PoseRequest): Pose {
   const pose = neutralPose();
-  applyClip(pose, CLIPS[req.clip][familyOf(req.view)], req.t, req.reducedMotion);
+  const family = familyOf(req.view);
+  applyClip(pose, CLIPS[req.clip][family], req.t, req.reducedMotion);
   applyClip(pose, BLINK, req.time, req.reducedMotion);
+  if (req.reaction) applyClip(pose, CLIPS[req.reaction.kind][family], req.reaction.t, req.reducedMotion, req.reaction.groups);
   return pose;
 }
 

@@ -3,6 +3,77 @@
 Routine choices made while building, logged so they can be reviewed and reversed. None of them
 changes a decision in `docs/DECISIONS.md`. Newest milestone first.
 
+## Reactions, first session (branch `feat/reactions`), 2026-09-30
+
+No decision changes; D26 is built as confirmed. From `prompts/reactions-first-session.md`. The
+sim, the clips and the effect slots were built by parallel forks in separate worktrees and merged.
+
+### Baseline
+- The first `pnpm verify` crashed on the known browser-close flake (`browser.newContext`); the
+  rerun passed (340 tests, 0 golden differences).
+
+### Sim (slice 1)
+- `since` is `state.tick` when the reaction starts. The hub clears it in the step where
+  `tick + 1 >= reactionEnd`, at one fixed point after the interaction modules (as the hop timers).
+- `emote` is handled in `hub.ts` before the interaction modules; the table's `emote` flag
+  decides, and only `waveHi` is accepted.
+- Table rows: `free` allows `body` for eureka, oops and dizzy and `arms` for waveHi;
+  `approaching`, `sitting` and `riding` allow the wave's arm; `pushing` and the four hop acts
+  allow face and effect only. `dizzy` has a `body` group in `free` so a sway can come later; no
+  clip uses it yet.
+- `STILL_SPEED_M_S` is 0.01 m/s ("standing still"; the prompt gave no number).
+- The two TypeScript-compile boundary tests got a 30 s timeout: they passed alone in under a
+  second but exceeded the 5 s default when two `verify` runs shared the machine.
+- Golden files: `bean.reaction: null` added to 59 files by hand from HEAD, so `--update-golden`
+  did not reorder keys. `writeGolden` already keeps unchanged files byte for byte.
+
+### Clips and player (slice 2)
+- Reaction clips are in `CLIP_NAMES` and `CLIPS` so `clip:sheet` works unchanged; their tracks
+  carry `group`, act clips never do. Clip names equal the sim's `ReactionKind`.
+- Reduced motion holds the squash at 1.06 × 0.94 (the prototype's Eureka crouch) for eureka and
+  oops; invented for oops. One `still` value each, easy to change.
+- Oops keeps the prototype's 0.5 s shakes; the squish overlaps the last one so the clip is
+  exactly `OOPS_S`.
+- The wave uses `armB` in the front, back and ¾ views and `armA` in the side view (`armB` is the
+  hidden pushing arm there). Rest angles are invented: `WAVE_UP` −110° (from Priya's wave),
+  `WAVE_UP_SIDE` −165° (tuned on the sheet).
+- The wave arm ramps up from 0 over the first 8 %, because a reaction track replaces a channel
+  and cannot see the act's arm angle; walking shows a small pop at the start.
+- A tap on your own bean is a hit test on the rig's feet-to-top rectangle and the body span of
+  the current view (`HubScene.hitsOwnBean`), checked before props and ground taps.
+- `gallery`: the `reactions` scene draws the bean on open ground with the act's own clip and
+  parts (no props, carts or bench), samples each reaction at 15 %, 40 % and 70 %, uses animation
+  time 10 s with acts started 1 s earlier, and faces the walking and pushing rows east.
+
+### Effect slots (slice 3)
+- Effects use palette colours only (not recoloured per bean); the contract flags key colours.
+- `fxHead` and `fxBrow` ride with the body; `fxGround` stays on the ground. Effect images draw in
+  front of the bean's parts.
+- Anchor positions are a first guess from the prototype's "z" and sweat drop; the art lane tunes
+  them. Effects mirror their position in mirrored views and are not flipped.
+- Only the "z" is registered (`art/effects/doze-z.svg`, on `fxHead`). Sweat and dust have slots
+  and anchors but no drawings.
+- Only `front.svg` had the "z" (the prompt said five views); the one that existed was removed.
+  Effects do not depend on the view, so the `doze` clip sheet now shows the "z" in all eight
+  directions. In the hub a seated bean always faces the camera, so nothing changes there.
+
+### Known limitations (for the art lane)
+- In the side views (E, W, and while walking, pushing or riding) the wave lifts the arm from
+  mid-torso to about eye level but keeps it in front of the body, so it reads weakly. A clear
+  side-view wave needs a side arm drawn to reach outside the silhouette.
+- The back-¾ views show the wave faintly for the same reason (short arm, partly behind the body).
+- In mirrored front-¾ views the screen-left arm waves (the clip names a slot, not a screen side).
+
+### Tooling gaps found
+- `hub-interaction` says to run `pnpm verify --update-golden --scripts <new script>`, but that
+  run includes `pnpm check`, whose golden completeness test fails until the files exist, and
+  `--update-golden` refuses to write after a failed step. Adding `hub-wave` needed `writeGolden`
+  called directly for that script (12 files added, no other file touched).
+- `pnpm art:sheet --base` cannot compare the anchors change: its "before" runs the current code
+  on old art, which fails the new anchor requirement. The slice 3 fork used a scratch worktree
+  of main for the before images.
+- Two `verify` runs at once make the sim's TypeScript-compile tests slow (see the timeout above).
+
 ## Tools prep session (branch `tools/prep`), 2026-09-30
 
 No decision changes. From `prompts/tools-prep-session.md`.

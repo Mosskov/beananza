@@ -19,9 +19,8 @@
     <path d="M-44 -98 Q0 -112 44 -98" fill="none" stroke="#6B4A36" stroke-width="5"/>
     <circle cx="-14" cy="-102" r="10" fill="#BFE3EA" stroke="#6B4A36" stroke-width="4"/><circle cx="14" cy="-102" r="10" fill="#BFE3EA" stroke="#6B4A36" stroke-width="4"/>
   </g>
-  <!-- Dozing on the bench (hidden unless dozing): closed eyes, and a drawn "z" that floats up (a shape, not text). -->
+  <!-- Dozing on the bench (hidden unless dozing): closed eyes. The drawn "z" that floats up is an effect: art/effects/doze-z.svg. -->
   <g id="eyes-sleep"><path d="M-21 -80 q6 5 12 0 M9 -80 q6 5 12 0" fill="none" stroke="#2B211C" stroke-width="3" stroke-linecap="round"/></g>
-  <g id="doze-z" data-pivot="32 -124"><path d="M26 -130 H38 L26 -118 H38" fill="none" stroke="#5A4A40" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><path d="M40 -142 H47 L40 -135 H47" fill="none" stroke="#5A4A40" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></g>
   <!-- Anchors (never drawn): headwear sits at the top of the body. -->
   <g id="anchors" display="none"><circle id="anchor-headwear" cx="0" cy="-114" r="0"/><circle id="anchor-fx-head" cx="32" cy="-124" r="0"/><circle id="anchor-fx-brow" cx="-30" cy="-96" r="0"/><circle id="anchor-fx-ground" cx="0" cy="0" r="0"/></g>
 </svg>

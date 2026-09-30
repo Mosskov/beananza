@@ -165,14 +165,14 @@ describe('sitting on the bench', () => {
     for (const t of [0, 0.3, 0.65, 1.1]) {
       expect(pose('sit', t, 'front', true).footA.y).toBe(12);
       expect(pose('sit', t, 'front', true).footB.y).toBe(12);
-      expect(pose('doze', t, 'front', true).fx).toEqual({ x: 4, y: -4, rotation: 0, scaleX: 1, scaleY: 1 });
+      expect(pose('doze', t, 'front', true).fxHead).toEqual({ x: 4, y: -4, rotation: 0, scaleX: 1, scaleY: 1 });
     }
   });
 
   it('dozing: feet still at 12 units, the "z" rises over 2 s', () => {
     expect(pose('doze', 0.4, 'front').footA.y).toBe(12);
-    expect(pose('doze', 0, 'front').fx.y).toBeCloseTo(6, 12);
-    expect(pose('doze', 1.9, 'front').fx.y).toBeLessThan(-15);
+    expect(pose('doze', 0, 'front').fxHead.y).toBeCloseTo(6, 12);
+    expect(pose('doze', 1.9, 'front').fxHead.y).toBeLessThan(-15);
   });
 
   it('waving (Priya): sitting, with the screen-right arm raised and waving every 0.4 s; still raised under reduced motion', () => {

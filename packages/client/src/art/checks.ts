@@ -10,6 +10,7 @@ import { ArtContractError, parseSvgParts, partPivot, type Point, type SvgDoc } f
 import { EFFECT_ANCHORS, MIRRORED_VIEWS, VIEWS, type BeanView } from '../rig/views';
 import { outsideBy, rightEdgeAt, shapeOutlines } from './geometry';
 import { FACE_IDS, HEADWEAR_IDS, PATTERN_IDS } from '@beananza/shared';
+import { buildEffectArtSpec, EFFECTS } from './effect-contract';
 import { buildPropArtSpec, PROP_PARTS } from './prop-contract';
 
 export interface ArtFinding {
@@ -25,6 +26,7 @@ export type ArtFileKind =
   | { kind: 'bean'; name: string }
   | { kind: 'cosmetic'; cosmetic: CosmeticKind; id: string }
   | { kind: 'prop'; id: string }
+  | { kind: 'effect'; id: string }
   | { kind: 'reference' }
   /** Under art/ but neither loaded nor listed as reference: a file the game will never see. */
   | { kind: 'unknown' };
@@ -46,21 +48,30 @@ export function artFileKind(path: string): ArtFileKind {
   }
   const prop = /^art\/props\/([a-z0-9-]+)\.svg$/.exec(path);
   if (prop) return { kind: 'prop', id: prop[1] as string };
+  const effect = /^art\/effects\/([a-z0-9-]+)\.svg$/.exec(path);
+  if (effect) return { kind: 'effect', id: effect[1] as string };
   return { kind: 'unknown' };
 }
 
-/** The loaded art, sorted by kind: bean views by name, cosmetics by kind and id, props by id. */
-export function sortArt(files: ArtFiles): { bean: Record<string, string>; cosmetics: CosmeticSources; props: Record<string, string> } {
+/** The loaded art, sorted by kind: bean views by name, cosmetics by kind and id, props and effects by id. */
+export function sortArt(files: ArtFiles): {
+  bean: Record<string, string>;
+  cosmetics: CosmeticSources;
+  props: Record<string, string>;
+  effects: Record<string, string>;
+} {
   const bean: Record<string, string> = {};
   const cosmetics: Record<CosmeticKind, Record<string, string>> = { pattern: {}, headwear: {}, face: {} };
   const props: Record<string, string> = {};
+  const effects: Record<string, string> = {};
   for (const [path, text] of Object.entries(files)) {
     const k = artFileKind(path);
     if (k.kind === 'bean') bean[k.name] = text;
     else if (k.kind === 'cosmetic') cosmetics[k.cosmetic][k.id] = text;
     else if (k.kind === 'prop') props[k.id] = text;
+    else if (k.kind === 'effect') effects[k.id] = text;
   }
-  return { bean, cosmetics, props };
+  return { bean, cosmetics, props, effects };
 }
 
 /** Parts that lie on the body, so every point of them must be inside its outline. */
@@ -212,10 +223,11 @@ export function beanSpecProblems(spec: BeanArtSpec): string[] {
 }
 
 /** Which file a contract problem line names (`side: …`, `headwear bow: …`, `cart: …`). */
-function fileOf(line: string, kind: 'bean' | 'cosmetic' | 'prop'): string {
+function fileOf(line: string, kind: 'bean' | 'cosmetic' | 'prop' | 'effect'): string {
   const head = line.split(':')[0] ?? '';
   if (kind === 'bean') return `art/bean/${head}.svg`;
   if (kind === 'prop') return `art/props/${head}.svg`;
+  if (kind === 'effect') return `art/effects/${head}.svg`;
   const [cosmetic, id] = head.split(' ') as [CosmeticKind, string];
   return `art/bean/${COSMETIC_FOLDERS[cosmetic] ?? cosmetic}/${id}.svg`;
 }
@@ -247,7 +259,7 @@ export function registrationFindings(files: ArtFiles): ArtFinding[] {
   for (const path of Object.keys(files)) {
     const k = artFileKind(path);
     if (k.kind === 'unknown') {
-      out.push({ file: path, message: `${path}: not a file the game loads (bean views, art/bean/patterns|headwear|faces/<id>.svg, art/props/<id>.svg; ids are lowercase letters, digits and "-") and not listed as reference art (REFERENCE_ART in packages/client/src/art/checks.ts)` });
+      out.push({ file: path, message: `${path}: not a file the game loads (bean views, art/bean/patterns|headwear|faces/<id>.svg, art/props/<id>.svg, art/effects/<id>.svg; ids are lowercase letters, digits and "-") and not listed as reference art (REFERENCE_ART in packages/client/src/art/checks.ts)` });
     } else if (k.kind === 'cosmetic') {
       onDisk[k.cosmetic].add(k.id);
       if (!COSMETIC_IDS[k.cosmetic].includes(k.id)) {
@@ -257,6 +269,10 @@ export function registrationFindings(files: ArtFiles): ArtFinding[] {
       if (!(k.id in PROP_PARTS)) {
         out.push({ file: path, message: `${k.id}: not registered, so the game never loads it: list its parts and anchors in PROP_PARTS and PROP_ANCHORS (packages/client/src/art/prop-contract.ts) and import it in packages/client/src/art/prop-sources.ts` });
       }
+    } else if (k.kind === 'effect') {
+      if (!(k.id in EFFECTS)) {
+        out.push({ file: path, message: `${k.id}: not registered, so the game never loads it: list its slot and parts in EFFECTS (packages/client/src/art/effect-contract.ts) and import it in packages/client/src/art/effect-sources.ts` });
+      }
     }
   }
   for (const kind of Object.keys(COSMETIC_IDS) as CosmeticKind[]) {
@@ -264,16 +280,16 @@ export function registrationFindings(files: ArtFiles): ArtFinding[] {
       if (!onDisk[kind].has(id)) out.push({ file: `art/bean/${COSMETIC_FOLDERS[kind]}/${id}.svg`, message: `${kind} ${id}: in ${ID_LIST[kind]} but there is no drawing` });
     }
   }
-  // A registered prop or bean view with no drawing is already a contract problem
+  // A registered prop, effect or bean view with no drawing is already a contract problem
   // ("<prop>: missing", "<view>: missing"), so it is not repeated here.
   return out;
 }
 
 /** Every finding for the loaded art in `files` (all of art/, as the game loads it). */
 export function checkArt(files: ArtFiles): ArtFinding[] {
-  const { bean, cosmetics, props } = sortArt(files);
+  const { bean, cosmetics, props, effects } = sortArt(files);
   const findings: ArtFinding[] = [...registrationFindings(files)];
-  const add = (kind: 'bean' | 'cosmetic' | 'prop', lines: readonly string[]) => {
+  const add = (kind: 'bean' | 'cosmetic' | 'prop' | 'effect', lines: readonly string[]) => {
     for (const line of lines) findings.push({ file: fileOf(line, kind), message: line });
   };
 
@@ -291,5 +307,6 @@ export function checkArt(files: ArtFiles): ArtFinding[] {
   if (beanSpec.value) add('bean', beanSpecProblems(beanSpec.value));
   add('cosmetic', contract(() => buildCosmeticsSpec(cosmetics)).problems);
   add('prop', contract(() => buildPropArtSpec(props)).problems);
+  add('effect', contract(() => buildEffectArtSpec(effects)).problems);
   return findings;
 }

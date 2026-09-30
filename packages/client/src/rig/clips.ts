@@ -282,8 +282,9 @@ const SIT = same({
 });
 
 /**
- * Dozing after 5 s on the bench: feet hang still, slow deep breaths, and the drawn "z" (the
- * `fx` slot) floats up and fades by shrinking every 2 s. The closed eyes are a part swap.
+ * Dozing after 5 s on the bench: feet hang still, slow deep breaths, and the drawn "z"
+ * (`art/effects/doze-z.svg`, on the `fxHead` slot) floats up and fades by shrinking every 2 s.
+ * The closed eyes are a part swap.
  */
 const DOZE = same({
   duration: 2,
@@ -294,10 +295,10 @@ const DOZE = same({
     body('scaleX', keys([0, 1], [0.5, 1.045], [1, 1]), { period: 4 }),
     body('scaleY', keys([0, 1], [0.5, 0.955], [1, 1]), { period: 4 }),
     ...SIT_ARMS,
-    t('fx', 'x', keys([0, 0], [1, 10]), { motion: true, still: 4 }),
-    t('fx', 'y', keys([0, 6], [1, -22]), { motion: true, still: -4 }),
-    t('fx', 'scaleX', keys([0, 0.6], [0.7, 1.1], [1, 0.2]), { motion: true, still: 1 }),
-    t('fx', 'scaleY', keys([0, 0.6], [0.7, 1.1], [1, 0.2]), { motion: true, still: 1 }),
+    t('fxHead', 'x', keys([0, 0], [1, 10]), { motion: true, still: 4 }),
+    t('fxHead', 'y', keys([0, 6], [1, -22]), { motion: true, still: -4 }),
+    t('fxHead', 'scaleX', keys([0, 0.6], [0.7, 1.1], [1, 0.2]), { motion: true, still: 1 }),
+    t('fxHead', 'scaleY', keys([0, 0.6], [0.7, 1.1], [1, 0.2]), { motion: true, still: 1 }),
   ],
 });
 

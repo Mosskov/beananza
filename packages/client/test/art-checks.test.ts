@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { artFileKind, checkArt, type ArtFiles } from '../src/art/checks';
+import { EFFECT_SVGS } from '../src/art/effect-sources';
 import { PROP_SVGS } from '../src/art/prop-sources';
 import { BEAN_SVGS } from '../src/rig/bean-art-sources';
 import { COSMETIC_SVGS } from '../src/rig/looks-sources';
@@ -26,6 +27,7 @@ describe('the art contract checks (pnpm art:check)', () => {
     expect(artFileKind('art/bean/side-left.svg')).toEqual({ kind: 'bean', name: 'side-left' });
     expect(artFileKind('art/bean/headwear/bow.svg')).toEqual({ kind: 'cosmetic', cosmetic: 'headwear', id: 'bow' });
     expect(artFileKind('art/props/cart.svg')).toEqual({ kind: 'prop', id: 'cart' });
+    expect(artFileKind('art/effects/doze-z.svg')).toEqual({ kind: 'effect', id: 'doze-z' });
     expect(artFileKind('art/bean/forms.svg')).toEqual({ kind: 'reference' });
     expect(Object.keys(ART)).toContain('art/bean/front.svg');
   });
@@ -77,7 +79,9 @@ describe('the art contract checks (pnpm art:check)', () => {
     expect(messages(noBow)).toContain('art/bean/headwear/bow.svg | headwear bow: in HEADWEAR_IDS but there is no drawing');
     // A file the game can never load, and a new folder, are findings, not silently reference art.
     expect(messages({ ...ART, 'art/bean/headwear/top_hat.svg': sprout }).join('\n')).toMatch(/top_hat\.svg: not a file the game loads/);
-    expect(messages({ ...ART, 'art/effects/sparkle.svg': sprout }).join('\n')).toMatch(/art\/effects\/sparkle\.svg: not a file the game loads/);
+    expect(messages({ ...ART, 'art/fx/sparkle.svg': sprout }).join('\n')).toMatch(/art\/fx\/sparkle\.svg: not a file the game loads/);
+    // An effect file is loaded once it is registered (EFFECTS), like a prop.
+    expect(messages({ ...ART, 'art/effects/sparkle.svg': ART['art/effects/doze-z.svg'] as string })).toEqual([expect.stringMatching(/^art\/effects\/sparkle\.svg \| sparkle: not registered.*EFFECTS/)]);
     const noTree: Record<string, string> = { ...ART };
     delete noTree['art/props/tree.svg'];
     expect(messages(noTree)).toContain('art/props/tree.svg | tree: missing');
@@ -90,6 +94,7 @@ describe('the art contract checks (pnpm art:check)', () => {
       return k.kind === 'cosmetic' ? [`${k.cosmetic} ${k.id}`] : [];
     });
     expect(cosmetics.sort()).toEqual(onDisk.sort());
+    expect(Object.keys(EFFECT_SVGS).sort()).toEqual(Object.keys(ART).flatMap((p) => (artFileKind(p).kind === 'effect' ? [p.replace(/^art\/effects\/|\.svg$/g, '')] : [])).sort());
     expect(Object.keys(PROP_SVGS).sort()).toEqual(Object.keys(ART).flatMap((p) => (artFileKind(p).kind === 'prop' ? [p.replace(/^art\/props\/|\.svg$/g, '')] : [])).sort());
     expect(Object.keys(BEAN_SVGS).sort()).toEqual(Object.keys(ART).flatMap((p) => {
       const k = artFileKind(p);
@@ -100,6 +105,8 @@ describe('the art contract checks (pnpm art:check)', () => {
   it('reports contract problems against the file they are in', () => {
     expect(messages(edit('art/bean/headwear/sprout.svg', 'id="back"', 'id="rear"'))).toContain('art/bean/headwear/sprout.svg | headwear sprout: missing the "back" group');
     expect(messages(edit('art/props/cart.svg', 'anchor-floor', 'anchor-flor'))).toContain('art/props/cart.svg | cart: missing anchor "floor"');
+    expect(messages(edit('art/effects/doze-z.svg', 'id="doze-z"', 'id="zzz"'))).toContain('art/effects/doze-z.svg | doze-z: missing part "doze-z"');
+    expect(messages(edit('art/bean/side.svg', 'id="anchor-fx-head"', 'id="anchor-fx-top"'))).toContain('art/bean/side.svg | side: missing anchor "fx-head"');
     expect(messages(edit('art/bean/back.svg', 'id="body"', 'id="bod"'))).toContain('art/bean/back.svg | back: missing part "body"');
   });
 });

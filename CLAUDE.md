@@ -84,7 +84,7 @@ Details in `README.md`.
 - `pnpm verify`: the whole pass in about a minute: check, every scene and script, the looks, and
   the sim states against `tools/shot/golden/` (`pnpm verify --update-golden` rewrites them; the
   diff is reviewed in the PR). Between steps use `pnpm verify --no-check --scripts <names>`.
-  CI runs it on every push (`.github/workflows/verify.yml`).
+  CI runs it on every pull request and on pushes to main (`.github/workflows/verify.yml`).
 - `pnpm shot --all` or `pnpm shot --scene drop --t 1.0`: PNG plus JSON log in `artifacts/shots/`.
   It starts its own server on a free port (`--reuse` for the one on 5180), and `--jobs 4` runs
   scripts in parallel.
@@ -97,8 +97,8 @@ Details in `README.md`.
 
 ## How we work
 The user's attention is the limit, so sessions are short, steered and one at a time.
-- **Start:** read "Current state" in `docs/STATUS.md` and `gh pr list`, say where things are in
-  3 lines, and agree with the user on **one slice** for the session.
+- **Start:** read "Current state" in `docs/STATUS.md` and `gh pr list` (with CI status; a red
+  run on an open PR comes first), say where things are in 3 lines, and agree with the user on **one slice** for the session.
 - **Branch:** one per session, `<area>/<topic>`, in the main checkout. Use a git worktree only
   when the user deliberately runs a second session at the same time.
 - **Open decisions:** when one comes up, ask in the session (options plus one recommendation),
@@ -112,10 +112,12 @@ The user's attention is the limit, so sessions are short, steered and one at a t
 - **Technical recipes are skills** (`.claude/skills/`): `hub-interaction`, `draw-piece`,
   `add-clip`. Show every art change as a `pnpm art:sheet` image.
 - **End:** full `pnpm verify` green (explain every golden change), update "Current state" in
-  `docs/STATUS.md` in place, commit, push, open the PR from the template, and wait for CI
-  (`.github/workflows/verify.yml`) to go green. Show the key screenshot or sheet, then hand
-  over in **at most 10 lines**: PR link, CI, what to look at, what failed, decisions needed.
-  Routine choices go in the PR description.
+  `docs/STATUS.md` in place, commit, confirm `git status` is clean (so CI tests what was
+  tested locally), push, and open the PR from the template. Don't wait for CI
+  (`.github/workflows/verify.yml`): the user checks it before merging, and a red run is fixed
+  at the start of the next session. Show the key screenshot or sheet, then hand over in **at
+  most 10 lines**: PR link, what to look at, what failed, decisions needed. Routine choices go
+  in the PR description.
 - **Reviewer agent:** only for sim, physics or determinism changes, or when the user asks. One
   round; what is left goes in the PR's open issues.
 - **The user merges.** Never merge into main, force-push, or run `pnpm share:deploy` /

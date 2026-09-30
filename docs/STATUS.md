@@ -22,7 +22,7 @@ requests, and `docs/archive/`.
   and a dev-only options panel in `pnpm dev` (scene, layout, look, paused;
   `packages/client/src/dev-panel.ts`).
 - **Workflow:** short sessions, one at a time, steered by the user (CLAUDE.md, "How we work").
-  CI runs check and verify on every push; golden sim states in `tools/shot/golden/`;
+  CI runs check and verify on every pull request and push to main (sessions don't wait for it); golden sim states in `tools/shot/golden/`;
   `art:check`, `art:part`, `art:sheet`, `clip:sheet`; skills for the technical recipes
   (`hub-interaction`, `draw-piece`, `add-clip`); the `reviewer` agent for sim and physics
   changes; the PR template and a guard hook.
@@ -38,7 +38,6 @@ requests, and `docs/archive/`.
   the body); no face or effect art yet (the `face` and `effect` groups and the three effect
   slots are ready for it).
 - The SessionStart hook is untested in a real cloud container (tested on Windows only).
-- CI runs twice per push to a PR branch (push and pull_request).
 - A flaky browser close during long runs (seen twice); no retry, note it if it recurs.
 - From M1 session 3: the depth tie with Priya, the rim-line strip in mid-hop, the mask filter's
   cost, `Math.hypot` and trig for cross-engine determinism (M2), seat occupancy as layout data,

@@ -178,7 +178,7 @@ baseline, in the repo: `<script>/<shot>.json` for every shot of every script, an
 baseline.
 
 **CI** (`.github/workflows/verify.yml`) runs `pnpm install`, `pnpm shot:install`, `pnpm check`
-and `pnpm verify` on every push and pull request, on software GL (the fps rows are
+and `pnpm verify` on every pull request and every push to main, on software GL (the fps rows are
 informational). The run's `verify-artifacts` artifact holds `artifacts/verify/`,
 `artifacts/shots/` and `artifacts/sheets/` (one contact sheet per script, and one of the
 scenes), so a reviewer can look at the frames without a clone.

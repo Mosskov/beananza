@@ -1,0 +1,81 @@
+# The mechanical half of the review gate, on every push and pull request: a fresh clone,
+# install, pnpm check, then pnpm verify (every scene and script with zero console errors, the
+# cart and looks checks, and the sim states against tools/shot/golden/). Runners have no GPU,
+# so WebGL runs on software GL; the fps numbers in the summary are informational only.
+# The frames and logs are uploaded as the "verify-artifacts" artifact of the run.
+name: verify
+
+on:
+  push:
+  pull_request:
+
+concurrency:
+  group: verify-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: pnpm (the version in package.json, through corepack)
+        run: |
+          corepack enable
+          pnpm --version
+          echo "PNPM_STORE=$(pnpm store path --silent)" >> "$GITHUB_ENV"
+          echo "PLAYWRIGHT_VERSION=$(node -p "require('./tools/shot/package.json').dependencies.playwright")" >> "$GITHUB_ENV"
+
+      - name: Cache the pnpm store
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.PNPM_STORE }}
+          key: pnpm-store-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: pnpm-store-${{ runner.os }}-
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Cache the Playwright browser
+        id: playwright-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ env.PLAYWRIGHT_VERSION }}
+
+      - name: Install the Playwright browser
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: pnpm shot:install
+
+      - name: The browser's system libraries
+        run: pnpm --filter @beananza/shot exec playwright install-deps chromium
+
+      - run: pnpm check
+
+      # pnpm check already ran above, so verify skips its own copy.
+      - run: pnpm verify --no-check
+
+      - name: One contact sheet per script, and one of the scenes
+        if: always()
+        run: |
+          [ -d artifacts/shots ] || exit 0
+          for d in artifacts/shots/*/; do
+            [ -f "$d/run.json" ] && pnpm shot:sheet "$d" --title "$(basename "$d") at ${GITHUB_SHA::7}"
+          done
+          pnpm shot:sheet artifacts/shots --out artifacts/sheets/scenes.png --title "scenes at ${GITHUB_SHA::7}"
+
+      - name: Upload frames, logs and sheets
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: verify-artifacts
+          path: |
+            artifacts/verify/
+            artifacts/shots/
+            artifacts/sheets/
+          if-no-files-found: warn
+          retention-days: 14

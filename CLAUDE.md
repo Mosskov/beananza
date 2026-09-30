@@ -79,8 +79,9 @@ Details in `README.md`.
 - `pnpm dev`: game at http://localhost:5180/?scene=<name> (`hub` is the default; also `bean`, `looks`, `drop`, `empty`; `&paused=1` starts paused; `&look=blue,spots,bow,glasses` sets the bean's look; `&layout=bench` opens a test yard instead of the plaza)
 - `pnpm check`: typecheck, lint, tests and build (`pnpm test`, `pnpm typecheck`, `pnpm lint`, `pnpm build`)
 - `pnpm verify`: the whole pass in about a minute: check, every scene and script, the looks, and
-  the log checks against the newest `docs/status/` folder. Between steps use
-  `pnpm verify --no-check --scripts <names>`.
+  the sim states against `tools/shot/golden/` (`pnpm verify --update-golden` rewrites them; the
+  diff is reviewed in the PR). Between steps use `pnpm verify --no-check --scripts <names>`.
+  CI runs it on every push (`.github/workflows/verify.yml`).
 - `pnpm shot --all` or `pnpm shot --scene drop --t 1.0`: PNG plus JSON log in `artifacts/shots/`.
   It starts its own server on a free port (`--reuse` for the one on 5180), and `--jobs 4` runs
   scripts in parallel.

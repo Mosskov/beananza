@@ -3,6 +3,52 @@
 Routine choices made while building, logged so they can be reviewed and reversed. None of them
 changes a decision in `docs/DECISIONS.md`. Newest milestone first.
 
+## Tools prep session (branch `tools/prep`), 2026-09-30
+
+No decision changes. From `prompts/tools-prep-session.md`.
+
+### Baseline
+- **main failed `pnpm check`** at `9e3d3ef`: the D26 row in DECISIONS.md has an escaped pipe
+  (`\|`) inside a cell, which `tools/share`'s table parser split into a sixth cell. The parser
+  now splits only on unescaped pipes (GFM) and unescapes them, with a test. Everything else in
+  the baseline `pnpm verify` passed (58 states, 0 differences against `docs/status/m1-s3`).
+- **pnpm on this machine** comes from corepack (`corepack enable --install-directory` into a
+  user folder), because no global pnpm was installed; nothing in the repo depends on it.
+
+### Golden sim states (`tools/shot/golden/`)
+- **`docs/status/` is no longer the baseline.** It keeps each session's images and write-ups as
+  history. `pnpm verify` compares against `tools/shot/golden/`; `--baseline <folder>` still
+  compares against an evidence folder.
+- **One file per shot**, `<script>/<shot>.json` and `<scene>_t<time>.json`, with exactly the
+  fields `script`, `shot`, `scene`, `layout`, `look` (always null) and `state` (timed shots:
+  `scene`, `t`, `layout`, `look`, `state`). Many small files make a PR diff name the shot that
+  changed. The state is stored as the game logs it, so the comparison stays exact (no rounding).
+- **Seeded from `docs/status/m1-s3`** with the documented renames applied (drawing-only fields
+  copied from main's run). `hub-yard-bench` and `hub-yard-carts` are newer than m1-s3, so their
+  6 states come from main's run at `9e3d3ef`. 64 files; 0 differences against main's scripts.
+- **The golden check also fails on a new shot without a file**, and on files no script takes
+  (a test and `verify`'s `golden` row). Evidence folders from older sessions have fewer
+  scripts, so `--baseline` does not check for extras.
+- **`--update-golden` writes only after a passing run**, and a file whose state is equal (in
+  any key order) keeps its bytes, so the diff shows only real changes. With `--scripts` it
+  touches only those scripts' files and leaves the timed shots alone. `--timed scene@t` adds a
+  timed shot (the only way to add one).
+- **Proof on a real change:** `HUB_WALK_SPEED` 2.4 → 2.5 (reverted) made
+  `verify --scripts hub-walk` fail on 3 of 4 shots, each line naming the file and fields
+  (`tools/shot/golden/hub-walk/walked-1s.json .bean.x …; .bean.vx: 2.4 ≠ 2.5`). Moving one
+  golden file away failed both the completeness row and the comparison.
+
+### CI (`.github/workflows/verify.yml`)
+- **ubuntu-latest, Node 24, pnpm through corepack** (the version in `package.json`). The pnpm
+  store is cached by the lockfile's hash, the Playwright browser by the Playwright version; the
+  browser's system libraries are installed every run (`playwright install-deps`, not cacheable).
+- **`pnpm check`, then `pnpm verify --no-check`**, so check runs once and its failure shows as
+  its own step.
+- **A contact sheet per script** (`pnpm shot:sheet`) goes into `artifacts/sheets/`, uploaded
+  with `artifacts/verify/` and `artifacts/shots/` as `verify-artifacts` (kept 14 days), even
+  when a step fails.
+- **No retry.** The known flake (the browser closing mid-run) is recorded if it shows up.
+
 ## Hub refactor for parallel work (branch `refactor/hub-parallel`), 2026-09-29
 
 No behaviour change: 58 sim states identical to `docs/status/m1-s3`, and the view blocks and all

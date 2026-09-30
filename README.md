@@ -125,9 +125,10 @@ Also, in `packages/client/test/`:
 - `player.test.ts`: clip data and timings, the rig player, reduced motion, and choosing the clip
   from sim state.
 
-And in `tools/shot/test/`: script validation, `verify`'s helpers (the newest status folder,
-`--scripts`, the summary table), the sheet layout and crops, and the art sheet's art paths and
-zoom box.
+And in `tools/shot/test/`: script validation, `verify`'s helpers (`--scripts`, `--timed`, the
+summary table), the golden files (valid, one per script shot and timed shot, no extras; a
+changed number, a missing file and a new shot each fail), the sheet layout and crops, and the
+art sheet's art paths and zoom box.
 
 ## Verify everything: `pnpm verify`
 
@@ -142,10 +143,11 @@ It runs, in order:
 1. `pnpm check`, in the background while the scripts run;
 2. every script in `tools/shot/scripts/`, four at a time;
 3. the hub scripts in the three `check-looks` looks;
-4. every scene live, plus the timed shots found in the baseline (such as `drop_t1.000`). These
-   wait for `pnpm check` to finish, so their fps samples run on a quiet machine;
-5. `check-carts`, the looks comparison, and `compare-states` against the newest `docs/status/`
-   folder (`--baseline <folder>` picks another).
+4. every scene live, plus the timed shots in `tools/shot/golden/` (such as `drop_t1.000`).
+   These wait for `pnpm check` to finish, so their fps samples run on a quiet machine;
+5. `check-carts`, the looks comparison, and the golden check: `tools/shot/golden/` is complete
+   (one file per shot of every script, none left over), and every stepped sim state of this
+   run equals its golden file.
 
 It prints only the failures, then a summary table (step, result, seconds, one line of detail),
 and exits non-zero on any failure. Everything else goes to `artifacts/verify/verify.log`, with
@@ -153,6 +155,28 @@ and exits non-zero on any failure. Everything else goes to `artifacts/verify/ver
 
 With `--scripts a,b`, it skips the scenes and any check whose scripts did not run, and says so.
 Other options: `--jobs <n>` (default 4), `--port <n>`, `--reuse`.
+
+**Golden sim states** (`tools/shot/golden/`, `tools/shot/src/golden.ts`) are the parity
+baseline, in the repo: `<script>/<shot>.json` for every shot of every script, and
+`<scene>_t<time>.json` for the timed scene shots. Each holds only the sim state
+(`sceneState.state`) and where it came from (script, shot, scene, layout, look). No PNGs.
+- A difference names the file and the field: `DIFF tools/shot/golden/hub-walk/walked-1s.json
+  .bean.vx: 2.4 ≠ 2.5`.
+- `pnpm verify --update-golden` rewrites them from this run, only if every step passed, and
+  nothing else writes them. With `--scripts`, only those scripts' files. `--timed drop@2` adds a
+  timed shot. A sim change is then a diff in the pull request, reviewed there: say in the PR
+  why each changed file changed.
+- `--baseline <folder>` compares against an old evidence folder instead (such as
+  `docs/status/m1-s2`); the renames in `compare-states.ts` still map older fields.
+
+`docs/status/` keeps each session's images and write-ups as history; it is no longer the
+baseline.
+
+**CI** (`.github/workflows/verify.yml`) runs `pnpm install`, `pnpm shot:install`, `pnpm check`
+and `pnpm verify` on every push and pull request, on software GL (the fps rows are
+informational). The run's `verify-artifacts` artifact holds `artifacts/verify/`,
+`artifacts/shots/` and `artifacts/sheets/` (one contact sheet per script, and one of the
+scenes), so a reviewer can look at the frames without a clone.
 
 ## Look at many frames: `pnpm shot:sheet`
 
@@ -308,9 +332,9 @@ speed readout, and exits non-zero on any mismatch.
 and fails if any shot's sim state differs: cosmetics never touch the sim (D25). `pnpm shot --look <ids>` runs any scene or
 script in a look and writes to `<out>/look-<ids>/`.
 
-`pnpm shot:compare-states <old status folder> [<new shots folder>]` compares the sim state of
-every stepped shot log in an earlier session's evidence (for example `docs/status/m1-s2`) with a
-fresh run of the same scripts, after mapping the fields renamed or added since (listed in
+`pnpm shot:compare-states <old status folder or tools/shot/golden> [<new shots folder>]`
+compares the sim state of every stepped shot log in an earlier session's evidence (for example
+`docs/status/m1-s2`), or in the golden files, with a fresh run of the same scripts, after mapping the fields renamed or added since (listed in
 `tools/shot/src/compare-states.ts`). Live shots are skipped: their tick depends on wall-clock
 time. It exits non-zero on any difference.
 

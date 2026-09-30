@@ -18,7 +18,7 @@ import { compareLooks, LOOKS, runLook, SHOTS } from './check-looks';
 import { compareStates, compareStateSets, readStates, type SimState } from './compare-states';
 import { GOLDEN, goldenCompleteness, goldenFiles, goldenTimedShots, timedName, timedShots, writeGolden } from './golden';
 import { parseScript, scriptOutputName } from './script';
-import { allScripts, DEFAULT_RUN, describeShot, errorMessage, listScenes, openSession, REPO, SCRIPTS_DIR, shootScene, type Session } from './session';
+import { allScripts, DEFAULT_RUN, describeShot, errorMessage, listScenes, openSession, parseJobs, REPO, SCRIPTS_DIR, shootScene, type Session } from './session';
 
 const OUT = join(REPO, 'artifacts/verify');
 
@@ -57,6 +57,9 @@ export function pickScripts(wanted: string | undefined, available: readonly stri
     .filter(Boolean);
   const unknown = names.filter((n) => !available.includes(n));
   if (unknown.length) throw new Error(`unknown script(s): ${unknown.join(', ')} (have: ${available.join(', ')})`);
+  // Both runs would write the same output folder.
+  const twice = [...new Set(names.filter((n, i) => names.indexOf(n) !== i))];
+  if (twice.length) throw new Error(`script(s) named more than once: ${twice.join(', ')}`);
   return names;
 }
 
@@ -103,6 +106,11 @@ async function main(): Promise<number> {
       reuse: { type: 'boolean', default: false },
     },
   });
+  // Arguments are checked before anything starts or writes.
+  const jobs = parseJobs(values.jobs);
+  const available = allScripts().map((p) => scriptOutputName(basename(p)));
+  const partial = values.scripts !== undefined;
+  const names = pickScripts(values.scripts, available);
   const started = Date.now();
   mkdirSync(OUT, { recursive: true });
   const logPath = join(OUT, 'verify.log');
@@ -110,11 +118,7 @@ async function main(): Promise<number> {
   const log = (line: string) => logLines.push(line);
   const rows: Row[] = [];
   const secondsSince = (t: number) => (Date.now() - t) / 1000;
-  const jobs = Math.max(1, Number(values.jobs));
 
-  const available = allScripts().map((p) => scriptOutputName(basename(p)));
-  const partial = values.scripts !== undefined;
-  const names = pickScripts(values.scripts, available);
   const scripts = names.map((n) => ({ path: join(REPO, 'tools/shot/scripts', `${n}.json`), outName: n }));
   const hub = scripts.filter((s) => s.outName.startsWith('hub'));
   const updateGolden = values['update-golden'];

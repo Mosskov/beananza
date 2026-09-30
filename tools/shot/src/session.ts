@@ -542,6 +542,13 @@ export async function runScript(session: Session, scriptPath: string, outName: s
   return result(ok ? 0 : Math.max(failures, 1));
 }
 
+/** `--jobs <n>`: scripts run in parallel. Anything but a whole number ≥ 1 would run none. */
+export function parseJobs(arg: string): number {
+  const jobs = Number(arg);
+  if (arg.trim() === '' || !Number.isInteger(jobs) || jobs < 1) throw new Error(`--jobs wants a whole number of at least 1, got "${arg}"`);
+  return jobs;
+}
+
 /**
  * Run several scripts, up to `jobs` at a time, each in its own browser context. Scripts step a
  * paused sim explicitly, so running them side by side gives the same states. Each script's

@@ -9,7 +9,7 @@ import { fileURLToPath } from 'node:url';
 import { parseArgs } from 'node:util';
 import { compareStates } from './compare-states';
 import { scriptOutputName } from './script';
-import { allScripts, DEFAULT_RUN, lookFolder, openSession, REPO, runScripts, type Session } from './session';
+import { allScripts, DEFAULT_RUN, lookFolder, openSession, parseJobs, REPO, runScripts, type Session } from './session';
 
 export const SHOTS = join(REPO, 'artifacts/shots');
 /** Every headwear, the pattern and the face, in three colours (one of them light). */
@@ -48,11 +48,12 @@ async function main(): Promise<number> {
   const { values } = parseArgs({
     options: { port: { type: 'string' }, reuse: { type: 'boolean', default: false }, jobs: { type: 'string', default: '4' } },
   });
+  const jobs = parseJobs(values.jobs);
   const scripts = hubScripts();
   const session = await openSession({ port: values.port === undefined ? undefined : Number(values.port), reuse: values.reuse });
   let runFailures = 0;
   try {
-    for (const look of [null, ...LOOKS]) runFailures += await runLook(session, look, scripts, Number(values.jobs));
+    for (const look of [null, ...LOOKS]) runFailures += await runLook(session, look, scripts, jobs);
   } finally {
     await session.close();
   }

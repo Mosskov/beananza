@@ -8,3 +8,5 @@ allowBuilds:
   # Cloudflare's local runtime (a wrangler dependency). Only `wrangler dev` needs it; the share
   # site only deploys static files, so its install script stays off.
   workerd: false
+  # Colyseus's message encoder (msgpackr) works without this native speed-up; no install script.
+  msgpackr-extract: false

@@ -6,6 +6,7 @@ export * from './sim';
 export * from './scenarios/drop';
 export * from './scenarios/hub';
 export * from './scenarios/hub-layouts';
+export * from './scenarios/hub-snapshot';
 export * from './rail';
 export * from './interactions';
 export * from './interactions/cart';

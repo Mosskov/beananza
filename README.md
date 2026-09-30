@@ -402,6 +402,23 @@ docs/       design, decisions, implementation notes, assumptions, status
 art/, reference/   design references only (never ported as code)
 ```
 
+## Multiplayer hub server (M2)
+
+`packages/server` runs the hub for a whole class: one Colyseus room per class code, stepping the
+same hub sim at 60 Hz as the authority and broadcasting a snapshot 15 times a second. Clients send
+commands only. Names are preset (D26), looks are checked, and nothing is stored: a room goes when
+its last player leaves. A dropped connection has 20 s to come back and keep its bean.
+
+```sh
+pnpm server:dev        # ws://localhost:2567, restarts on changes; GET /health answers {"ok":true}
+pnpm server:start      # the same without watching; PORT sets the port
+```
+
+The protocol (room name, class codes, messages, join options) is in
+`packages/shared/src/net.ts`; the snapshot format in `packages/sim/src/scenarios/hub-snapshot.ts`.
+`HubServerCore` (`packages/server/src/core.ts`) holds the rules without networking and is what the
+tests drive; `HubRoom` wraps it in Colyseus.
+
 ## Adding a hub interaction
 
 1. Create `packages/sim/src/interactions/<name>.ts`: its act type (`<Name>Act`), its rules per act

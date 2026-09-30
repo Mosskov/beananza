@@ -1,0 +1,25 @@
+{
+  "name": "@beananza/server",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "The multiplayer hub (M2): a Colyseus room per class code, running the hub sim as the authority.",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "dev": "tsx watch src/main.ts",
+    "start": "tsx src/main.ts",
+    "typecheck": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "@beananza/shared": "workspace:*",
+    "@beananza/sim": "workspace:*",
+    "@colyseus/core": "0.18.8",
+    "@colyseus/ws-transport": "0.18.4",
+    "tsx": "4.23.15"
+  },
+  "devDependencies": {
+    "@colyseus/sdk": "0.18.4"
+  }
+}

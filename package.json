@@ -10,6 +10,8 @@
     "dev": "pnpm --filter @beananza/client dev",
     "build": "pnpm --filter @beananza/client build",
     "preview": "pnpm --filter @beananza/client preview",
+    "server:dev": "pnpm --filter @beananza/server dev",
+    "server:start": "pnpm --filter @beananza/server start",
     "typecheck": "pnpm -r typecheck",
     "lint": "eslint .",
     "test": "vitest run",

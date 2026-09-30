@@ -63,7 +63,7 @@ export function parseLook(text: string | null): { look: BeanLook; unknown: strin
   for (const raw of (text ?? '').split(',')) {
     const id = raw.trim().toLowerCase();
     if (!id) continue;
-    if (id in BEAN_COLOURS) look.colour = id as ColourId;
+    if (Object.hasOwn(BEAN_COLOURS, id)) look.colour = id as ColourId;
     else if ((PATTERN_IDS as readonly string[]).includes(id)) look.pattern = id as PatternId;
     else if ((HEADWEAR_IDS as readonly string[]).includes(id)) look.headwear = id as HeadwearId;
     else if ((FACE_IDS as readonly string[]).includes(id)) look.face = id as FaceId;

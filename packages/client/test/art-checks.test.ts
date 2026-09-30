@@ -36,6 +36,17 @@ describe('the art contract checks (pnpm art:check)', () => {
     expect(messages(ART)).toEqual([]);
   });
 
+  it('reports a prop or effect whose id is only inherited from Object.prototype as not registered', () => {
+    const tree = ART['art/props/tree.svg'] as string;
+    const found = messages({ ...ART, 'art/props/constructor.svg': tree, 'art/effects/constructor.svg': tree });
+    expect(found).toEqual(
+      expect.arrayContaining([
+        expect.stringMatching(/^art\/props\/constructor\.svg \| constructor: not registered/),
+        expect.stringMatching(/^art\/effects\/constructor\.svg \| constructor: not registered/),
+      ]),
+    );
+  });
+
   it("reports session 3's side belly: a full circle inset from the front edge", () => {
     const slip = edit('art/bean/side.svg', /<g id="belly">[\s\S]*?<\/g>/, '<g id="belly"><ellipse cx="22" cy="-24" rx="18" ry="18" fill="#F2B48C"/></g>');
     expect(messages(slip)).toEqual([expect.stringMatching(/^art\/bean\/side\.svg \| side: "belly" stops [\d.]+ units short of the body's front edge/)]);

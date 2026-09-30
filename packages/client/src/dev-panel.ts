@@ -1,21 +1,16 @@
 import {
   COLOUR_IDS,
-  DEFAULT_LOOK,
   FACE_IDS,
   HEADWEAR_IDS,
   PATTERN_IDS,
   URL_PARAM_LAYOUT,
-  URL_PARAM_LOOK,
   URL_PARAM_PAUSED,
   URL_PARAM_SCENE,
-  lookToString,
   type BeanLook,
 } from '@beananza/shared';
 import { HUB_LAYOUT_NAMES } from '@beananza/sim';
+import { LAYOUT_SCENES, panelQuery } from './dev-panel-query';
 import { DEFAULT_SCENE, SCENE_NAMES } from './scenes/registry';
-
-/** Scenes that read `?layout=`. */
-const LAYOUT_SCENES: ReadonlySet<string> = new Set(['hub']);
 
 const OPEN_KEY = 'beananza.devPanel.open';
 
@@ -95,20 +90,13 @@ export function installDevPanel(params: URLSearchParams, look: BeanLook): void {
   layout.disabled = !LAYOUT_SCENES.has(scene.value);
 
   form.addEventListener('change', () => {
-    const next = new URLSearchParams();
-    if (scene.value !== DEFAULT_SCENE) next.set(URL_PARAM_SCENE, scene.value);
-    if (layout.value && LAYOUT_SCENES.has(scene.value)) next.set(URL_PARAM_LAYOUT, layout.value);
     const picked: BeanLook = {
       colour: colour.value as BeanLook['colour'],
       pattern: pattern.value as BeanLook['pattern'],
       headwear: headwear.value as BeanLook['headwear'],
       face: face.value as BeanLook['face'],
     };
-    const lookText = lookToString(picked);
-    if (lookText !== lookToString(DEFAULT_LOOK)) next.set(URL_PARAM_LOOK, lookText);
-    if (paused.checked) next.set(URL_PARAM_PAUSED, '1');
-    const query = next.toString().replaceAll('%2C', ',');
-    window.location.search = query ? `?${query}` : '';
+    window.location.search = panelQuery(params, { scene: scene.value, layout: layout.value, look: picked, paused: paused.checked }, DEFAULT_SCENE);
   });
 
   root.append(toggle, form);

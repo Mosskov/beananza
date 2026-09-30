@@ -156,7 +156,7 @@ export class HubScene extends SimScene<HubState, HubCommand> {
     // the world at the window's bottom right corner, which stays put because the camera does.
     sharpText(
       this.add
-        .text(center.x + GAME_WIDTH / 2 - 20, center.y + GAME_HEIGHT / 2 - 16, 'Move: arrows or WASD   Run: Shift   Jump: Space   Action: E', HINT_STYLE)
+        .text(center.x + GAME_WIDTH / 2 - 20, center.y + GAME_HEIGHT / 2 - 16, 'Move: arrows or WASD   Run: Shift   Jump: Space   Action: E   Wave (Q)', HINT_STYLE)
         .setOrigin(1, 1)
         .setDepth(UI_DEPTH),
     );
@@ -192,11 +192,19 @@ export class HubScene extends SimScene<HubState, HubCommand> {
     kb.on('keydown-E', (event: KeyboardEvent) => {
       if (!event.repeat) this.sim.enqueue({ type: 'action' });
     });
+    kb.on('keydown-Q', (event: KeyboardEvent) => {
+      if (!event.repeat) this.sim.enqueue({ type: 'emote', kind: 'waveHi' });
+    });
     kb.on(Phaser.Input.Keyboard.Events.ANY_KEY_DOWN, () => this.syncHeldInput());
     kb.on(Phaser.Input.Keyboard.Events.ANY_KEY_UP, () => this.syncHeldInput());
 
     this.input.on(Phaser.Input.Events.POINTER_DOWN, (pointer: Phaser.Input.Pointer) => {
       if (pointer.button !== 0) return; // Primary button or touch only.
+      // A tap on your own bean waves (D26), instead of walking to where it already is.
+      if (this.hitsOwnBean(pointer.worldX, pointer.worldY)) {
+        this.sim.enqueue({ type: 'emote', kind: 'waveHi' });
+        return;
+      }
       // A tap on a usable prop's drawing uses it (the bench: walk over and sit); anywhere else
       // walks there.
       for (const id of this.usable) {
@@ -208,6 +216,23 @@ export class HubScene extends SimScene<HubState, HubCommand> {
       const ground = groundFromScreen(pointer.worldX, pointer.worldY);
       this.sim.enqueue({ type: 'moveTo', x: ground.x, y: ground.y });
     });
+  }
+
+  /**
+   * Whether a world point is on the bean's drawn body: from the feet (the rig root) up to the
+   * top of the drawing, and as wide as the body in the current view. Art units are pixels at
+   * the root's scale.
+   */
+  private hitsOwnBean(worldX: number, worldY: number): boolean {
+    const { rig } = this.bean;
+    const k = rig.root.scaleX;
+    const { west, east } = rig.bodySpan();
+    return (
+      worldX >= rig.root.x + west * k &&
+      worldX <= rig.root.x + east * k &&
+      worldY >= rig.root.y + rig.drawnTop() * k &&
+      worldY <= rig.root.y
+    );
   }
 
   /** Send a `move` command whenever the held direction or Run changes. */

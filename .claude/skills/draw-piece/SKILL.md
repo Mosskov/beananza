@@ -90,4 +90,4 @@ shown to the user (D13), so plan for that from the start.
       unless the piece is in the plaza.
 - [ ] Show the user the sheet (path and what changed) before committing. Commit the SVG, the
       registration and `art/README.md` (new parts, anchors, colours) together.
-- [ ] Say in the PR which sheets you looked at.
+- [ ] Say in the handover which sheets you looked at.

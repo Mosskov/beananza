@@ -3,6 +3,7 @@ import { URL_PARAM_LAYOUT, URL_PARAM_LOOK, URL_PARAM_PAUSED, URL_PARAM_SCENE, pa
 import { HUB_LAYOUT_NAMES } from '@beananza/sim';
 import { PALETTE } from './config';
 import { loadPropArt } from './art/props';
+import { installDevPanel } from './dev-panel';
 import { loadBeanArt } from './rig/bean-art';
 import { DEFAULT_SCENE, SCENE_NAMES, SCENES, coloursFor } from './scenes/registry';
 import { canvasSizeFor, initialRenderScale, installRenderScale } from './screen-scale';
@@ -18,6 +19,9 @@ if (unknownLook.length) console.warn(`Unknown look ids in ?look=: ${unknownLook.
 // A hub layout (the plaza or a test yard). Unknown names stop the boot: a typo must not quietly
 // show the plaza instead.
 const layout = params.get(URL_PARAM_LAYOUT) ?? undefined;
+// Toggles for the options above, on the dev server only; installed first so a bad option can
+// be fixed from the panel too.
+installDevPanel(params, look);
 
 /** Logged as an error and flagged so tools/shot fails at once instead of timing out. */
 function bootError(message: string): void {

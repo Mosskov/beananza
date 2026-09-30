@@ -148,6 +148,21 @@ describe('collisions', () => {
     expect([ha.mass, hb.mass]).toEqual([m1, m2]);
   });
 
+  it('logs each cart with its own mass when a group of touching carts hits another', () => {
+    // Pushing the 5 kg cart drives the 7 kg cart it touches as one group into the 20 kg cart.
+    const a = cart('a', 5, -2);
+    const b = cart('b', 7, -2 + 2 * CART_HALF_LENGTH);
+    const c = cart('c', 20, 1);
+    const hits = run([a, b, c], 120, { cart: 'a', dir: 1, run: false }).filter((h) => h.kind === 'carts');
+    expect(hits.length).toBeGreaterThanOrEqual(1);
+    const hit = hits[0] as RailCollision;
+    expect(hit.carts.map((k) => [k.id, k.mass])).toEqual([['a', 5], ['b', 7], ['c', 20]]);
+    // Summing the logged carts gives the momentum of the impact, before and after.
+    const p = (key: 'vBefore' | 'vAfter') => hit.carts.reduce((s, k) => s + k.mass * k[key], 0);
+    expect(p('vBefore')).toBeCloseTo(12 * (hit.carts[0]?.vBefore ?? NaN), 12);
+    expect(p('vAfter')).toBeCloseTo(p('vBefore'), 12);
+  });
+
   it('solves the impact time exactly', () => {
     // A cart at rest feels no friction, so the 1.2 m gap (centres 2 m apart) closes as
     // 1.9·t − ½·0.26·t².

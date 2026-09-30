@@ -17,6 +17,34 @@ export interface ViewChoice {
   mirrored: boolean;
 }
 
+/** The 8 directions by compass name, as sim facings (x east, y north), S first as in the galleries. */
+export const COMPASS: readonly (readonly [name: string, x: number, y: number])[] = [
+  ['S', 0, -1],
+  ['SE', Math.SQRT1_2, -Math.SQRT1_2],
+  ['E', 1, 0],
+  ['NE', Math.SQRT1_2, Math.SQRT1_2],
+  ['N', 0, 1],
+  ['NW', -Math.SQRT1_2, Math.SQRT1_2],
+  ['W', -1, 0],
+  ['SW', -Math.SQRT1_2, -Math.SQRT1_2],
+];
+
+/**
+ * Directions picked by a list of compass names (`S,E`) or view names (`side`: both directions
+ * that draw it), or `all`. Throws on an unknown name. In compass order.
+ */
+export function pickDirections(spec: string): { name: string; facing: [number, number]; choice: ViewChoice }[] {
+  const all = COMPASS.map(([name, x, y]) => ({ name, facing: [x, y] as [number, number], choice: viewForFacing(x, y) }));
+  if (spec.trim() === '' || spec.trim() === 'all') return all;
+  const wanted = spec.split(',').map((s) => s.trim()).filter(Boolean);
+  for (const w of wanted) {
+    if (!all.some((d) => d.name === w.toUpperCase()) && !(VIEWS as readonly string[]).includes(w)) {
+      throw new Error(`unknown view or direction "${w}" (directions: ${all.map((d) => d.name).join(', ')}; views: ${VIEWS.join(', ')})`);
+    }
+  }
+  return all.filter((d) => wanted.some((w) => w.toUpperCase() === d.name || w === d.choice.view));
+}
+
 /**
  * Screen angle of a sim facing, in degrees. The sim's ground plane has x east and y north
  * (D15) and north draws up the screen, so screen coordinates (y down) are (x, −y).

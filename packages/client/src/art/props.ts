@@ -1,71 +1,13 @@
 import type Phaser from 'phaser';
 // Props that never turn are drawn once, as SVG files in art/props/ (D12), and loaded by part id
-// like the bean. Vite inlines the text at build time.
-import cart from '../../../../art/props/cart.svg?raw';
-import bench from '../../../../art/props/bench.svg?raw';
-import tree from '../../../../art/props/tree.svg?raw';
-import { insideViewBox, parseSvgParts, partPivot, type Point, type SvgDoc } from '../rig/svg-parts';
+// like the bean. The contract is in prop-contract.ts (pure), the files in prop-sources.ts.
+import type { Point } from '../rig/svg-parts';
+import { buildPropArtSpec, propKey, type PropArtSpec } from './prop-contract';
+import { PROP_SVGS } from './prop-sources';
 import { addTextures, partImage, rasterizeParts, type PartTexture } from './raster';
 
-export const PROP_SVGS: Readonly<Record<string, string>> = { tree, cart, bench };
-
-/** Parts each prop must have, in the art contract (`art/README.md`). */
-export const PROP_PARTS: Readonly<Record<string, readonly string[]>> = {
-  tree: ['shadow', 'trunk', 'canopy'],
-  cart: ['shadow', 'back', 'rocks', 'front', 'wheel-west', 'wheel-east'],
-  bench: ['shadow', 'back', 'seat'],
-};
-
-/**
- * Anchors each prop must have (D22). The cart: `floor` (where a rider stands) and the corners
- * of its front (`rim-west`, `rim-east`, `base-west`, `base-east`): below the rim, a rider only
- * shows inside them. The bench: `seat-<seat id>`, where a seated bean's feet point is.
- */
-export const PROP_ANCHORS: Readonly<Record<string, readonly string[]>> = {
-  tree: [],
-  cart: ['floor', 'rim-west', 'rim-east', 'base-west', 'base-east'],
-  bench: ['seat-west', 'seat-east'],
-};
-
-export interface PropArtSpec {
-  docs: Record<string, SvgDoc>;
-  /** Pivot of every part, by `prop:part`. */
-  pivots: Map<string, Point>;
-}
-
-export const propKey = (prop: string, partId: string) => `prop:${prop}:${partId}`;
-
-/** The cart's wheel radius as drawn (9 units): the wheels roll x / r without slipping. */
-export const CART_WHEEL_RADIUS_M = 0.09;
-
-/** Parse and check the prop art; throws with every problem found. */
-export function buildPropArtSpec(sources: Readonly<Record<string, string>>): PropArtSpec {
-  const problems: string[] = [];
-  const docs: Record<string, SvgDoc> = {};
-  const pivots = new Map<string, Point>();
-  for (const [prop, required] of Object.entries(PROP_PARTS)) {
-    const text = sources[prop];
-    if (text === undefined) {
-      problems.push(`${prop}: missing`);
-      continue;
-    }
-    try {
-      const doc = parseSvgParts(text);
-      docs[prop] = doc;
-      const ids = doc.parts.map((p) => p.id);
-      for (const id of required) if (!ids.includes(id)) problems.push(`${prop}: missing part "${id}"`);
-      for (const name of PROP_ANCHORS[prop] ?? []) if (!doc.anchors[name]) problems.push(`${prop}: missing anchor "${name}"`);
-      for (const [name, p] of Object.entries(doc.anchors)) {
-        if (!insideViewBox(p, doc.viewBox)) problems.push(`${prop}: anchor "${name}" is outside the viewBox`);
-      }
-      for (const part of doc.parts) pivots.set(propKey(prop, part.id), partPivot(part));
-    } catch (e) {
-      problems.push(`${prop}: ${(e as Error).message}`);
-    }
-  }
-  if (problems.length) throw new Error(`Prop art breaks the art contract:\n- ${problems.join('\n- ')}`);
-  return { docs, pivots };
-}
+export { CART_WHEEL_RADIUS_M, PROP_ANCHORS, PROP_PARTS, buildPropArtSpec, propKey, type PropArtSpec } from './prop-contract';
+export { PROP_SVGS } from './prop-sources';
 
 interface PropArt {
   spec: PropArtSpec;

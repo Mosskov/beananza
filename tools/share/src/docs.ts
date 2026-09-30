@@ -26,9 +26,14 @@ export interface Milestone {
   progress: 'done' | 'in-progress' | 'planned';
 }
 
-/** Split a markdown table row into trimmed cells. Cells in these docs never contain a pipe. */
+/** Split a markdown table row into trimmed cells. A pipe inside a cell is escaped (`\|`, GFM). */
 function cells(row: string): string[] {
-  return row.trim().replace(/^\|/, '').replace(/\|$/, '').split('|').map((c) => c.trim());
+  return row
+    .trim()
+    .replace(/^\|/, '')
+    .replace(/(?<!\\)\|$/, '')
+    .split(/(?<!\\)\|/)
+    .map((c) => c.trim().replaceAll('\\|', '|'));
 }
 
 export function decisionStatus(statusText: string): DecisionStatus {

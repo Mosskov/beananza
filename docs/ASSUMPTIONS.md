@@ -3,6 +3,139 @@
 Routine choices made while building, logged so they can be reviewed and reversed. None of them
 changes a decision in `docs/DECISIONS.md`. Newest milestone first.
 
+## Tools prep session (branch `tools/prep`), 2026-09-30
+
+No decision changes. From `prompts/tools-prep-session.md`.
+
+### Baseline
+- **main failed `pnpm check`** at `9e3d3ef`: the D26 row in DECISIONS.md has an escaped pipe
+  (`\|`) inside a cell, which `tools/share`'s table parser split into a sixth cell. The parser
+  now splits only on unescaped pipes (GFM) and unescapes them, with a test. Everything else in
+  the baseline `pnpm verify` passed (58 states, 0 differences against `docs/status/m1-s3`).
+- **pnpm on this machine** comes from corepack (`corepack enable --install-directory` into a
+  user folder), because no global pnpm was installed; nothing in the repo depends on it.
+
+### Golden sim states (`tools/shot/golden/`)
+- **`docs/status/` is no longer the baseline.** It keeps each session's images and write-ups as
+  history. `pnpm verify` compares against `tools/shot/golden/`; `--baseline <folder>` still
+  compares against an evidence folder.
+- **One file per shot**, `<script>/<shot>.json` and `<scene>_t<time>.json`, with exactly the
+  fields `script`, `shot`, `scene`, `layout`, `look` (always null) and `state` (timed shots:
+  `scene`, `t`, `layout`, `look`, `state`). Many small files make a PR diff name the shot that
+  changed. The state is stored as the game logs it, so the comparison stays exact (no rounding).
+- **Seeded from `docs/status/m1-s3`** with the documented renames applied (drawing-only fields
+  copied from main's run). `hub-yard-bench` and `hub-yard-carts` are newer than m1-s3, so their
+  6 states come from main's run at `9e3d3ef`. 64 files; 0 differences against main's scripts.
+- **The golden check also fails on a new shot without a file**, and on files no script takes
+  (a test and `verify`'s `golden` row). Evidence folders from older sessions have fewer
+  scripts, so `--baseline` does not check for extras.
+- **`--update-golden` writes only after a passing run**, and a file whose state is equal (in
+  any key order) keeps its bytes, so the diff shows only real changes. With `--scripts` it
+  touches only those scripts' files and leaves the timed shots alone. `--timed scene@t` adds a
+  timed shot (the only way to add one).
+- **Proof on a real change:** `HUB_WALK_SPEED` 2.4 → 2.5 (reverted) made
+  `verify --scripts hub-walk` fail on 3 of 4 shots, each line naming the file and fields
+  (`tools/shot/golden/hub-walk/walked-1s.json .bean.x …; .bean.vx: 2.4 ≠ 2.5`). Moving one
+  golden file away failed both the completeness row and the comparison.
+
+### CI (`.github/workflows/verify.yml`)
+- **ubuntu-latest, Node 24, pnpm through corepack** (the version in `package.json`). The pnpm
+  store is cached by the lockfile's hash, the Playwright browser by the Playwright version; the
+  browser's system libraries are installed every run (`playwright install-deps`, not cacheable).
+- **`pnpm check`, then `pnpm verify --no-check`**, so check runs once and its failure shows as
+  its own step.
+- **A contact sheet per script** (`pnpm shot:sheet`) goes into `artifacts/sheets/`, uploaded
+  with `artifacts/verify/` and `artifacts/shots/` as `verify-artifacts` (kept 14 days), even
+  when a step fails.
+- **No retry.** The known flake (the browser closing mid-run) is recorded if it shows up.
+
+### The art toolkit (`art:check`, `art:part`) and the clip sheet
+- **The contract code became importable from Node** without moving it: the `?raw` imports
+  moved to `rig/looks-sources.ts` and `art/prop-sources.ts`, the prop contract to
+  `art/prop-contract.ts`, and `@beananza/client` exports `./art/*` and `./rig/*` for tools/shot.
+  The builders throw `ArtContractError` with the problem list, which `art:check` prints.
+- **One checks module** (`client/src/art/checks.ts`) for the CLI and the tests. The new drawing
+  rules and their numbers: near parts at pivot x < 0 in front ¾ and > 0 in back ¾ (far parts
+  opposite); the near arm after the body and the far arm before it in the ¾ and side views;
+  `belly`, `eyes`, `eyes-sleep`, `mouth`, `cheeks` and every anchor inside the body outline
+  within 1.5 units (curves sampled at 12 points, ellipses at 24); the side belly's frontmost
+  point within 2 units of the body's front edge. Current art: 0 findings. The session 3 slips,
+  re-introduced: the side belly gives 1 finding (6.5 units short at y −24), back ¾ gives 4.
+- **Why the side belly rule is about the front edge,** not "inside the outline": the old belly
+  was inside the body; its fault was being inset from the front (it read as a spot on the hip).
+- **`art:part` draws in headless Chromium,** the engine the game rasterizes with, and each part
+  as its own SVG image placed in its view's frame, as the game rasterizes each part on its own.
+  No new dependency. Timing on this machine, `pnpm art:part` for a headwear piece in all 8
+  views: 2.7 s wall, of which 0.7 s is the tool's own work; the rest is starting Node, tsx and
+  pnpm. Getting there: the root scripts run `node --import tsx` (one process, not pnpm → pnpm →
+  tsx → node: 5.0 s before), and the command exits without waiting for Chromium to close
+  (1.3 s on Windows). The headless shell was slower to use here (2.8 s in the tool).
+- **The clip sheet is a game scene** (`?scene=clip`), shot by tools/shot, so the real `BeanRig`
+  and `samplePose` draw it; a second renderer of poses in Node would be a second version of
+  the rig. Columns: a looping cycle split evenly, a one-shot clip start to end; the blink
+  overlay is off (time 0). Part overrides per clip (push: the pushing arm; doze: closed eyes and
+  "z") are a small table in the scene that mirrors the hub's presentation rows. Shot at 2×
+  device pixels so 8 × 8 cells stay readable. `verify` shoots it live with its defaults (idle).
+
+### Skills, the reviewer, the PR template, hooks
+- **Six skills, not five:** the five the prompt names plus `session-start` (worktree, install,
+  baseline), because the fourth-session prompt's setup and baseline sections had to become a
+  skill name too. Written by hand in the skill-creator's format (frontmatter with a
+  trigger-rich description, checklists that say why); its eval loop was skipped, as the
+  reviewer walks each skill on a toy case instead.
+- **"Adding a scene" stays in README** as the one copy: no skill covers a new scene on its own,
+  and the CLAUDE.md line that repeated it is gone. `hub-interaction` points at it.
+- **The reviewer agent** has Read, Grep, Glob, Bash and PowerShell; no Edit or Write. Its
+  instructions forbid writing into the repo through the shell; the tool list cannot enforce
+  that.
+- **The guard is a Node script** (`.claude/hooks/guard.mjs`), so it runs the same on Windows,
+  in CI and in cloud containers, and returns a PreToolUse `deny` with a reason that says to ask
+  the user. It splits a command on `;`, `&&`, `||`, `|` and newlines and checks each part:
+  `pnpm … share:deploy|share:password|cf-deploy|cf-password`; `git … push` with `--force`,
+  `--force-with-lease`, `--force-if-includes`, a short flag cluster containing `f`, or a `+`
+  refspec; `git merge|rebase` when the current branch (in the payload's `cwd`) is main, or
+  after a `git checkout|switch main` earlier in the same command. Known limits: it reads the
+  branch of `cwd`, not of a `cd` or `-C` path inside the command, and a commit message that
+  quotes a blocked command is blocked too (the user can then run it).
+- **The allowlist** names each command (`pnpm art:part`, `pnpm art:part *`, …) for both Bash
+  and PowerShell, rather than the legacy `:*` prefix form, which reads ambiguously next to
+  script names with colons.
+- **No render-on-save hook,** as the prompt says: the skills call `art:part` when it matters.
+
+### Cloud sessions and lanes
+- **SessionStart hook** (`.claude/hooks/session-start.sh`): only when `CLAUDE_CODE_REMOTE` is
+  `true`; `pnpm install --frozen-lockfile` (enabling corepack if pnpm is missing); Playwright's
+  Chromium only if `chromium.executablePath()` does not exist (so a `PLAYWRIGHT_BROWSERS_PATH`
+  that already has it is used), then `playwright install-deps chromium` where the container
+  allows it. It calls Playwright through `pnpm exec`, not `pnpm shot:install`, to avoid a nested
+  pnpm. Tested here on Windows with `CLAUDE_CODE_REMOTE=true`: with the browser present it
+  skips it (5 s); with an empty `PLAYWRIGHT_BROWSERS_PATH` it installed Chromium and the
+  headless shell (2 min 25 s) and the next run skipped it. **Not tested in a real cloud
+  container.**
+- **Review round 1 fixes:** the guard also blocks `gh pr merge`, pushes to main by refspec,
+  `--delete` or a bare `git push` on main, `git fetch …:main`, `git branch -f|-D main`, `pull`,
+  `cherry-pick` and `am` on main, and direct `wrangler` deploys, secrets and remote D1
+  migrations (`--dry-run` passes); it follows `cd` and `git -C` to judge the right tree.
+  `art:check` reports a drawing that is not registered and a registered id with no drawing
+  (`registrationFindings`), and a test checks the loaded sources equal the files on disk.
+  `--update-golden` refuses `--no-check`. The skills gained the missing steps (looks gallery
+  row, D25 confirmation, effects not built yet, a new layout field, the clip log's path).
+  Not changed: the geometry sampler's limits (no `transform`, compact arc flags), the one-point
+  side-belly test, and CI running for both push and pull_request (two runs per PR push).
+- **Review round 2 fixes:** the guard now reads each simple command with its quoted text
+  blanked out (a commit message or `echo` that mentions `git push origin main` is not blocked),
+  splits chains outside quotes, looks inside subshells and `bash -c` / `powershell -Command`,
+  and blocks `HEAD` / `@` pushed from main, `push --mirror` and `--all`, `checkout -B main`,
+  `switch -C main`, `update-ref refs/heads/main`, `branch -d main`, `rebase <x> main`,
+  `reset` and `revert` on main, and share-site scripts run by npm, yarn, npx or bun as well as
+  pnpm. `checkout -b x main` no longer counts as switching to main. `art:check` names any SVG
+  under `art/` that the game cannot load (a new folder, an id with `_`) unless it is listed in
+  `REFERENCE_ART`. The reactions prompt's Step 0 names `session-start`, and the fourth
+  session's branch follows the lane pattern (`behaviour/m1-s4`).
+- **The lane file map** in CLAUDE.md assigns the drawing loaders, galleries and clip data to the
+  art lane and the sim, hub scene, scripts and golden files to the behaviour lane; the five
+  shared files get one-line additions only.
+
 ## A sharp picture at full screen, 2026-09-29
 
 Fixes the "Blurry game at full screen" topic in `docs/TOPICS.md`. No decision changes and no sim

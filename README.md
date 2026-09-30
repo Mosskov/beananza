@@ -43,6 +43,7 @@ Pick a scene with `?scene=<name>`:
 | `hub` (default) | http://localhost:5180/?scene=hub | The hub plaza in ¾ top-down view, with one tree to walk behind and in front of, and a rail with a 5 kg and a 20 kg cart (speed shown in m/s). Arrows or WASD move, Shift runs, Space jumps, tap or click walks to a spot. Walk into a cart's end to push it (Shift pushes harder); E hops in or out of the 5 kg cart, Space also gets out. Tap the bench, or press E near it, to walk over and sit next to Priya, a blue classmate, who says "Hi!" and waves (the bean dozes after 5 s); any movement, E or Space stands up. The bean, the tree, the carts and the bench are drawn art from `art/`; the plaza floor and the rail are placeholder shapes |
 | `bean` | http://localhost:5180/?scene=bean | Rig gallery for review: the 8 directions, then walk, run, jump, fall, land, breathing, a blink, sitting and dozing at fixed clip times (labelled; no sim) |
 | `looks` | http://localhost:5180/?scene=looks | Customization gallery for review: spots, the sprout, bear ears, the bow and glasses each on all 8 directions, then the 10 colours with mixed pieces (labelled; no sim) |
+| `clip` | http://localhost:5180/?scene=clip&clip=walk&views=all&phases=8 | Clip sheet for review: one clip at n phases (columns) in the chosen directions (rows), drawn by the rig player; `pnpm clip:sheet` shoots it (labelled; no sim) |
 
 `&paused=1` starts the scene's sim paused at t = 0 (tools/shot uses this to step to an exact time).
 `&look=<ids>` sets the bean's look (D25), any of: a colour (`orange` default, `blue`, `green`,
@@ -125,9 +126,10 @@ Also, in `packages/client/test/`:
 - `player.test.ts`: clip data and timings, the rig player, reduced motion, and choosing the clip
   from sim state.
 
-And in `tools/shot/test/`: script validation, `verify`'s helpers (the newest status folder,
-`--scripts`, the summary table), the sheet layout and crops, and the art sheet's art paths and
-zoom box.
+And in `tools/shot/test/`: script validation, `verify`'s helpers (`--scripts`, `--timed`, the
+summary table), the golden files (valid, one per script shot and timed shot, no extras; a
+changed number, a missing file and a new shot each fail), the sheet layout and crops, and the
+art sheet's art paths and zoom box.
 
 ## Verify everything: `pnpm verify`
 
@@ -142,10 +144,11 @@ It runs, in order:
 1. `pnpm check`, in the background while the scripts run;
 2. every script in `tools/shot/scripts/`, four at a time;
 3. the hub scripts in the three `check-looks` looks;
-4. every scene live, plus the timed shots found in the baseline (such as `drop_t1.000`). These
-   wait for `pnpm check` to finish, so their fps samples run on a quiet machine;
-5. `check-carts`, the looks comparison, and `compare-states` against the newest `docs/status/`
-   folder (`--baseline <folder>` picks another).
+4. every scene live, plus the timed shots in `tools/shot/golden/` (such as `drop_t1.000`).
+   These wait for `pnpm check` to finish, so their fps samples run on a quiet machine;
+5. `check-carts`, the looks comparison, and the golden check: `tools/shot/golden/` is complete
+   (one file per shot of every script, none left over), and every stepped sim state of this
+   run equals its golden file.
 
 It prints only the failures, then a summary table (step, result, seconds, one line of detail),
 and exits non-zero on any failure. Everything else goes to `artifacts/verify/verify.log`, with
@@ -153,6 +156,28 @@ and exits non-zero on any failure. Everything else goes to `artifacts/verify/ver
 
 With `--scripts a,b`, it skips the scenes and any check whose scripts did not run, and says so.
 Other options: `--jobs <n>` (default 4), `--port <n>`, `--reuse`.
+
+**Golden sim states** (`tools/shot/golden/`, `tools/shot/src/golden.ts`) are the parity
+baseline, in the repo: `<script>/<shot>.json` for every shot of every script, and
+`<scene>_t<time>.json` for the timed scene shots. Each holds only the sim state
+(`sceneState.state`) and where it came from (script, shot, scene, layout, look). No PNGs.
+- A difference names the file and the field: `DIFF tools/shot/golden/hub-walk/walked-1s.json
+  .bean.vx: 2.4 ≠ 2.5`.
+- `pnpm verify --update-golden` rewrites them from this run, only if every step passed, and
+  nothing else writes them. With `--scripts`, only those scripts' files. `--timed drop@2` adds a
+  timed shot. A sim change is then a diff in the pull request, reviewed there: say in the PR
+  why each changed file changed.
+- `--baseline <folder>` compares against an old evidence folder instead (such as
+  `docs/status/m1-s2`); the renames in `compare-states.ts` still map older fields.
+
+`docs/status/` keeps each session's images and write-ups as history; it is no longer the
+baseline.
+
+**CI** (`.github/workflows/verify.yml`) runs `pnpm install`, `pnpm shot:install`, `pnpm check`
+and `pnpm verify` on every push and pull request, on software GL (the fps rows are
+informational). The run's `verify-artifacts` artifact holds `artifacts/verify/`,
+`artifacts/shots/` and `artifacts/sheets/` (one contact sheet per script, and one of the
+scenes), so a reviewer can look at the frames without a clone.
 
 ## Look at many frames: `pnpm shot:sheet`
 
@@ -181,7 +206,8 @@ pnpm art:sheet --base main   # against another ref
 Shoots the `bean` and `looks` galleries and the hub (paused at t = 0, for the props) at 2×
 twice: once with the working tree's art, once with the art of `--base`. Both are drawn by the
 current code. The second Vite server answers every `?raw` import under `art/` with
-`git show <ref>:art/…`, so no second checkout is needed.
+`git show <ref>:art/…`, so no second checkout is needed. While drawing, use `pnpm art:check`
+and `pnpm art:part` first (below); this sheet is the final before-and-after review.
 
 Output in `artifacts/art/`:
 - `sheet.png`: every scene as before, after and changed pixels (magenta over a faded picture);
@@ -191,6 +217,26 @@ Output in `artifacts/art/`:
 The command also prints the changed art files and, per scene, how many pixels changed and
 where. With no change, every scene is pixel-identical and the sheet says "no change". Every art
 change is reviewed with this sheet (`docs/ART_PIPELINE.md`).
+
+## Draw and animate without the game: `art:check`, `art:part`, `clip:sheet`
+
+```sh
+pnpm art:check                                  # the art contract on all of art/ (or name files)
+pnpm art:part art/bean/headwear/bow.svg         # one file in all 8 directions, as the game draws it
+pnpm art:part art/bean/side.svg --look blue,spots --views side,S --zoom 3
+pnpm clip:sheet walk                            # a clip at 8 phases in all 8 directions
+pnpm clip:sheet sit --phases 4 --reduced-motion # the motion tracks dropped, the still values held
+```
+
+- **`art:check`** prints one line per contract finding and exits non-zero on any. It runs
+  `packages/client/src/art/checks.ts`, the same checks as the contract tests.
+- **`art:part`** draws one art file with the game's contract code (colour swaps, patterns
+  clipped to the body, headwear at the anchors, `-left` drawings, draw order) into
+  `artifacts/art/parts/`, and prints its anchors, pivots, parts and findings. About 2.7 s.
+- **`clip:sheet`** shoots the `clip` tool scene, drawn by the real rig player, into
+  `artifacts/clips/<clip>….png`, with each cell's pose in the `.json` beside it.
+
+Details in `docs/ART_PIPELINE.md` (sections 4 and 5).
 
 ## tools/shot
 
@@ -308,9 +354,9 @@ speed readout, and exits non-zero on any mismatch.
 and fails if any shot's sim state differs: cosmetics never touch the sim (D25). `pnpm shot --look <ids>` runs any scene or
 script in a look and writes to `<out>/look-<ids>/`.
 
-`pnpm shot:compare-states <old status folder> [<new shots folder>]` compares the sim state of
-every stepped shot log in an earlier session's evidence (for example `docs/status/m1-s2`) with a
-fresh run of the same scripts, after mapping the fields renamed or added since (listed in
+`pnpm shot:compare-states <old status folder or tools/shot/golden> [<new shots folder>]`
+compares the sim state of every stepped shot log in an earlier session's evidence (for example
+`docs/status/m1-s2`), or in the golden files, with a fresh run of the same scripts, after mapping the fields renamed or added since (listed in
 `tools/shot/src/compare-states.ts`). Live shots are skipped: their tick depends on wall-clock
 time. It exits non-zero on any difference.
 
@@ -396,18 +442,24 @@ docs/       design, decisions, implementation notes, assumptions, status
 art/, reference/   design references only (never ported as code)
 ```
 
-## Adding a hub interaction
+## How work is done: skills
 
-1. Create `packages/sim/src/interactions/<name>.ts`: its act type (`<Name>Act`), its rules per act
-   kind (`walks`, `usesPlanck`) and its `HubInteraction` module, with tests.
-2. Add the act type to `HubAct` in `packages/sim/src/scenarios/hub-world.ts`, and the module and
-   its rules to `packages/sim/src/interactions/index.ts`.
-3. Add its rows to `packages/client/src/scenes/presentation/<name>.ts` and spread them into
-   `hub-presentation.ts`. The compiler lists anything missing.
-4. A prop it uses names its drawing (`art`) in the layout; `usable: true` sends taps on it as `use`.
-5. Build it in its own test yard: one line in `HUB_LAYOUTS` (`hub-layouts.ts`), with scripts that
-   set `"layout"`. The plaza and its evidence stay untouched; putting the finished thing into the
-   plaza is its own step (D2).
+The repeated procedures are Claude Code skills in `.claude/skills/`, one copy each; a session
+prompt names the ones to use:
+- `session-start`: own branch and worktree, install, a passing baseline;
+- `hub-interaction`: a new hub interaction (sim module and tests, test yard, scripts,
+  presentation rows);
+- `draw-piece`: drawing or changing art (the contract, `art:check`, `art:part`, `art:sheet`);
+- `add-clip`: an animation clip (data, reduced motion, tests, `clip:sheet`);
+- `design-pass`: settling Open decisions with the user;
+- `pr-ready`: finishing: verify, the golden diff, docs, the PR, CI, the reviewer.
+
+The `reviewer` agent (`.claude/agents/reviewer.md`) reviews a PR without writing code. The PR
+template is `.github/pull_request_template.md`. `.claude/settings.json` allows the everyday
+read-only commands and blocks (through `.claude/hooks/guard.mjs`) `pnpm share:deploy`,
+`pnpm share:password`, force-pushes, and merging or rebasing on main. In a Claude Code on the
+web session, a SessionStart hook (`.claude/hooks/session-start.sh`) runs `pnpm install` and
+installs Playwright's Chromium if it is missing, so `pnpm verify` works in a fresh container.
 
 ## Adding a scene
 

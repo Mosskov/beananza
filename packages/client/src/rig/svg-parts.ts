@@ -4,6 +4,21 @@
  * groups, so a small parser is enough and runs the same in the browser and in tests.
  */
 
+/**
+ * Art that breaks the art contract, with every problem found (one line each). Thrown by the
+ * contract builders, so bad art fails loudly at boot and in the tests; `art:check` prints the
+ * problems as findings.
+ */
+export class ArtContractError extends Error {
+  constructor(
+    what: string,
+    readonly problems: readonly string[],
+  ) {
+    super(`${what} breaks the art contract:\n- ${problems.join('\n- ')}`);
+    this.name = 'ArtContractError';
+  }
+}
+
 export interface SvgPart {
   id: string;
   /** Attributes of the part's `<g>` (for example `data-after`, `visibility`). */

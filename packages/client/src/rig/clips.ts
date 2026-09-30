@@ -335,3 +335,8 @@ export const BLINK: Clip = {
   loop: true,
   tracks: [t('eyes', 'scaleY', keys([0, 1], [0.9, 1], [0.94, 0.1], [1, 1]))],
 };
+
+/** Seconds into the clip of phase k of n: a looping clip's cycle split evenly, a one-shot clip start to end. */
+export function phaseTime(duration: number, loop: boolean, k: number, n: number): number {
+  return loop ? (k * duration) / n : n === 1 ? 0 : (k * duration) / (n - 1);
+}

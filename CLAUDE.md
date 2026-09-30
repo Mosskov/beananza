@@ -76,28 +76,57 @@ art/
 ## Commands
 Details in `README.md`.
 - `pnpm install`, then once `pnpm shot:install` (Playwright Chromium)
-- `pnpm dev`: game at http://localhost:5180/?scene=<name> (`hub` is the default; also `bean`, `looks`, `drop`, `empty`; `&paused=1` starts paused; `&look=blue,spots,bow,glasses` sets the bean's look; `&layout=bench` opens a test yard instead of the plaza)
+- `pnpm dev`: game at http://localhost:5180/?scene=<name> (`hub` is the default; also `bean`, `looks`, `clip`, `drop`, `empty`; `&paused=1` starts paused; `&look=blue,spots,bow,glasses` sets the bean's look; `&layout=bench` opens a test yard instead of the plaza)
 - `pnpm check`: typecheck, lint, tests and build (`pnpm test`, `pnpm typecheck`, `pnpm lint`, `pnpm build`)
 - `pnpm verify`: the whole pass in about a minute: check, every scene and script, the looks, and
-  the log checks against the newest `docs/status/` folder. Between steps use
-  `pnpm verify --no-check --scripts <names>`.
+  the sim states against `tools/shot/golden/` (`pnpm verify --update-golden` rewrites them; the
+  diff is reviewed in the PR). Between steps use `pnpm verify --no-check --scripts <names>`.
+  CI runs it on every push (`.github/workflows/verify.yml`).
 - `pnpm shot --all` or `pnpm shot --scene drop --t 1.0`: PNG plus JSON log in `artifacts/shots/`.
   It starts its own server on a free port (`--reuse` for the one on 5180), and `--jobs 4` runs
   scripts in parallel.
   Checks on the logs: `pnpm shot:check-carts`, `pnpm shot:check-looks`, `pnpm shot:compare-states <old evidence folder>`.
   Look at the screenshot and the log before claiming a scene works or looks right.
 - `pnpm shot:sheet <pngs or folders> [--crop x,y,w,h]`: many frames in one labelled image.
-- `pnpm art:sheet`: before, after and difference of the art against HEAD. Every art change is
-  shown to the user with this sheet.
-- Concurrent sessions each work in their own `git worktree` at a short path, on their own branch.
-- Design passes (questions that need the user's answers) run in a separate chat before a build
-  session. The build prompt starts from what `docs/DECISIONS.md` records.
-- New scenes register in `packages/client/src/scenes/registry.ts` under their `?scene=` name.
-- Routine choices go in `docs/ASSUMPTIONS.md`; current state in `docs/STATUS.md`.
-- Concurrent sessions: each works in its own git worktree on its own branch
-  (`git worktree add -b <branch> E:/bz-<topic> main`, then `pnpm install`), never by switching
-  branches in a shared tree. `pnpm shot` starts its own server by default, so it tests its own
-  tree; don't pass `--reuse` there (the server on 5180 may be another worktree's).
-- New hub interactions follow "Adding a hub interaction" in `README.md`.
+- `pnpm art:check`, `pnpm art:part <file>`, `pnpm clip:sheet <clip>`: the art contract, one
+  piece in all views, one clip across its cycle, in seconds and without the game.
+- `pnpm art:sheet`: before, after and difference of the art against HEAD, for review.
+- Routine choices go in `docs/ASSUMPTIONS.md`; current state in the "Current state" section of
+  `docs/STATUS.md`.
+
+## How work runs
+- **Procedures are skills** (`.claude/skills/`): `session-start`, `hub-interaction`,
+  `draw-piece`, `add-clip`, `design-pass`, `pr-ready`. Follow the one for the work; a session
+  prompt is its scope plus the skills to use. README.md "How work is done: skills" lists them.
+- **The pull request is the unit of work.** CI (`.github/workflows/verify.yml`) runs check and
+  verify on every push; the `reviewer` agent reviews; **the user merges**. Never merge into
+  main, force-push, or run `pnpm share:deploy` / `pnpm share:password` without asking (a guard
+  hook in `.claude/settings.json` blocks them).
+- **Design passes** (questions that need the user's answers) run in a separate chat before a
+  build session (`design-pass`). The build prompt starts from what `docs/DECISIONS.md` records.
+
+## Lanes: at most two at a time
+Review capacity is the limit, not build capacity, so at most **two lanes** run at once: **one
+art** and **one behaviour**. Each is its own branch with its own PR: its own git worktree
+locally (never switch branches in a shared tree; `session-start` has the command), or a cloud
+session. CI must be green before review.
+
+What each lane owns (the other lane leaves these alone):
+- **Art lane:** `art/**` and `art/README.md`; the drawing loaders and cosmetics
+  (`packages/client/src/rig/looks*.ts`, `bean-art-sources.ts`, `colours.ts`, `clips.ts`,
+  `packages/client/src/art/prop-sources.ts`, `prop-contract.ts`, `checks.ts`); the galleries
+  and the clip sheet (`BeanGalleryScene.ts`, `LooksGalleryScene.ts`, `ClipSheetScene.ts`); the
+  look ids in `packages/shared/src/look.ts`.
+- **Behaviour lane:** `packages/sim/**`; the hub scene and its presentation
+  (`HubScene.ts`, `hub-*.ts`, `scenes/presentation/**`); `tools/shot/scripts/**` and
+  `tools/shot/golden/**`.
+- **Shared files, one-line additions only** (both lanes may add a line; nobody reorders or
+  rewrites them): the act union `HubAct` (`packages/sim/src/scenarios/hub-world.ts`), the
+  interactions index (`packages/sim/src/interactions/index.ts`), the presentation spread
+  (`packages/client/src/scenes/hub-presentation.ts`), the layouts table `HUB_LAYOUTS`
+  (`packages/sim/src/scenarios/hub-layouts.ts`), and the scene registry
+  (`packages/client/src/scenes/registry.ts`).
+- Docs: each lane writes its own heading in `docs/ASSUMPTIONS.md` and updates "Current state"
+  in `docs/STATUS.md` in its PR; the second PR to merge rebases those lines.
 
 @docs/DECISIONS.md

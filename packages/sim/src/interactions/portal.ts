@@ -1,4 +1,4 @@
-import { clampTarget, type HubState, type PortalSpec } from '../scenarios/hub-world';
+import { clampTarget, type HubBean, type HubState, type PortalSpec } from '../scenarios/hub-world';
 import { hopHeight, hopProgress, lerp, ticksFor } from './hop';
 import type { ActRules, HubInteraction, HubStep } from './types';
 
@@ -55,17 +55,16 @@ export function portalExit(portal: PortalSpec): { x: number; y: number } {
 const find = (state: HubState, id: string) => state.layout.portals.find((p) => p.id === id);
 
 /** Head for a portal's centre as a tap target; walking into the ring does the rest. */
-function headFor(state: HubState, portal: PortalSpec): void {
-  state.bean.target = clampTarget(state.layout.walkable, portal.x, portal.y);
-  state.bean.stuckSteps = 0;
+function headFor(state: HubState, bean: HubBean, portal: PortalSpec): void {
+  bean.target = clampTarget(state.layout.walkable, portal.x, portal.y);
+  bean.stuckSteps = 0;
 }
 
 export const portalInteraction: HubInteraction = {
   name: 'portal',
   acts: PORTAL_ACTS,
 
-  command({ state, rules }: HubStep, command) {
-    const bean = state.bean;
+  command({ state, bean, rules }: HubStep, command) {
     const act = bean.act;
     if (act.kind === 'gone') return true; // left the hub: nothing reaches the bean any more
     if (act.kind === 'entering' || act.kind === 'refused') return command.type !== 'move';
@@ -73,7 +72,7 @@ export const portalInteraction: HubInteraction = {
     if (command.type === 'use') {
       const portal = find(state, command.id);
       if (!portal) return false;
-      headFor(state, portal);
+      headFor(state, bean, portal);
       return true;
     }
     if (command.type === 'action') {
@@ -87,14 +86,13 @@ export const portalInteraction: HubInteraction = {
         }
       }
       if (!best) return false;
-      headFor(state, best);
+      headFor(state, bean, best);
       return true;
     }
     return false;
   },
 
-  place({ state }: HubStep) {
-    const bean = state.bean;
+  place({ state, bean }: HubStep) {
     const act = bean.act as PortalAct;
     const portal = find(state, act.portal);
     if (!portal) {
@@ -125,14 +123,13 @@ export const portalInteraction: HubInteraction = {
     }
   },
 
-  facing({ state }: HubStep) {
+  facing({ bean }: HubStep) {
     // Into the swirl facing it (north); bounced back out, facing the camera.
-    const kind = state.bean.act.kind;
+    const kind = bean.act.kind;
     return kind === 'refused' ? { x: 0, y: -1 } : { x: 0, y: 1 };
   },
 
-  settle({ state }: HubStep) {
-    const bean = state.bean;
+  settle({ state, bean }: HubStep) {
     if (bean.act.kind !== 'free' || !bean.grounded) return;
     for (const portal of state.layout.portals) {
       if (Math.hypot(bean.x - portal.x, bean.y - portal.y) >= PORTAL_RING_M) continue;

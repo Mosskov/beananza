@@ -1,4 +1,4 @@
-import type { HubActKind, HubCommand, HubState } from '../scenarios/hub-world';
+import type { HubActKind, HubBean, HubBeanCommand, HubState } from '../scenarios/hub-world';
 
 /** How the hub treats the bean in one act kind (D21). */
 export interface ActRules {
@@ -17,6 +17,8 @@ export type ActRuleTable = { readonly [K in HubActKind]: ActRules };
 /** One hub step, as the interaction modules see it. */
 export interface HubStep {
   state: HubState;
+  /** The bean this call is about: every module runs once per bean, in join order. */
+  bean: HubBean;
   /** Sim time at the start of the step (s). */
   time: number;
   /** How the hub treats each act kind, e.g. `rules[act.kind].walks`. */
@@ -45,7 +47,7 @@ export interface HubInteraction {
   /** The act kinds this module owns, and how the hub treats each. */
   readonly acts: Readonly<Partial<Record<HubActKind, ActRules>>>;
   /** Offered every command before the hub's own handling. Returns true when it handled it. */
-  command(step: HubStep, command: HubCommand): boolean;
+  command(step: HubStep, command: HubBeanCommand): boolean;
   /**
    * Once the desired ground velocity is known and before anything moves: start or stop acts
    * that follow from walking (pushing a cart).

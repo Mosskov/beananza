@@ -55,16 +55,16 @@ describe('hub movement: tuned numbers', () => {
     const sim = newHub({ start: { x: -3, y: -1 } });
     sim.enqueue(move(1, 0));
     run(sim, steps(1));
-    expect(sim.state.bean.x - -3).toBeCloseTo(2.4, 9);
-    expect(sim.state.bean.y).toBeCloseTo(-1, 12);
-    expect(sim.state.bean.vx).toBeCloseTo(2.4, 9);
+    expect(sim.state.beans[0]!.x - -3).toBeCloseTo(2.4, 9);
+    expect(sim.state.beans[0]!.y).toBeCloseTo(-1, 12);
+    expect(sim.state.beans[0]!.vx).toBeCloseTo(2.4, 9);
   });
 
   it('running for 1.0 s covers 4.2 m', () => {
     const sim = newHub({ start: { x: -3, y: -1 } });
     sim.enqueue(move(1, 0, true));
     run(sim, steps(1));
-    expect(sim.state.bean.x - -3).toBeCloseTo(4.2, 9);
+    expect(sim.state.beans[0]!.x - -3).toBeCloseTo(4.2, 9);
   });
 
   it('moving diagonally is no faster than moving straight', () => {
@@ -72,7 +72,7 @@ describe('hub movement: tuned numbers', () => {
       const sim = newHub({ start: { x: -3, y: -1.5 } });
       sim.enqueue(move(1, 1, running));
       run(sim, steps(0.5));
-      const { x, y, vx, vy } = sim.state.bean;
+      const { x, y, vx, vy } = sim.state.beans[0]!;
       const speed = running ? HUB_RUN_SPEED : HUB_WALK_SPEED;
       expect(Math.hypot(vx, vy)).toBeCloseTo(speed, 9);
       expect(Math.hypot(x - -3, y - -1.5)).toBeCloseTo(speed * 0.5, 9);
@@ -84,7 +84,7 @@ describe('hub movement: tuned numbers', () => {
     const sim = newHub({ start: { x: -3, y: -1 } });
     sim.enqueue(move(5, 0));
     run(sim, 1);
-    expect(sim.state.bean.vx).toBeCloseTo(HUB_WALK_SPEED, 12);
+    expect(sim.state.beans[0]!.vx).toBeCloseTo(HUB_WALK_SPEED, 12);
   });
 
   it('stops when the direction is released', () => {
@@ -93,10 +93,10 @@ describe('hub movement: tuned numbers', () => {
     run(sim, 10);
     sim.enqueue(move(0, 0));
     run(sim, 1);
-    const x = sim.state.bean.x;
+    const x = sim.state.beans[0]!.x;
     run(sim, 30);
-    expect(sim.state.bean.x).toBe(x);
-    expect(sim.state.bean.vx).toBe(0);
+    expect(sim.state.beans[0]!.x).toBe(x);
+    expect(sim.state.beans[0]!.vx).toBe(0);
   });
 
   it('keeps the last facing direction when idle', () => {
@@ -105,8 +105,8 @@ describe('hub movement: tuned numbers', () => {
     run(sim, 5);
     sim.enqueue(move(0, 0));
     run(sim, 5);
-    expect(sim.state.bean.facingX).toBeCloseTo(-Math.SQRT1_2, 12);
-    expect(sim.state.bean.facingY).toBeCloseTo(Math.SQRT1_2, 12);
+    expect(sim.state.beans[0]!.facingX).toBeCloseTo(-Math.SQRT1_2, 12);
+    expect(sim.state.beans[0]!.facingY).toBeCloseTo(Math.SQRT1_2, 12);
   });
 });
 
@@ -120,13 +120,13 @@ describe('hub jump', () => {
     let peak = 0;
     let airSteps = 0;
     sim.step();
-    while (!sim.state.bean.grounded) {
-      peak = Math.max(peak, sim.state.bean.z);
+    while (!sim.state.beans[0]!.grounded) {
+      peak = Math.max(peak, sim.state.beans[0]!.z);
       airSteps += 1;
       sim.step();
       expect(airSteps).toBeLessThan(100);
     }
-    const jump = sim.state.bean.lastJump!;
+    const jump = sim.state.beans[0]!.lastJump!;
     expect(airTime).toBeCloseTo(0.7914, 4);
     expect(jump.landedAt! - jump.startedAt).toBeCloseTo(airTime, 9);
     // Sampled at 60 Hz, the highest step is within ½·g·(dt/2)² of the true apex.
@@ -134,8 +134,8 @@ describe('hub jump', () => {
     expect(peak).toBeGreaterThan(HUB_JUMP_APEX_M - 0.5 * g * (FIXED_DT / 2) ** 2 - 1e-12);
     expect(jump.peakZ).toBeCloseTo(peak, 12);
     expect(Math.abs((airSteps + 1) * FIXED_DT - airTime)).toBeLessThanOrEqual(FIXED_DT);
-    expect(sim.state.bean.z).toBe(0);
-    expect(sim.state.bean.vz).toBe(0);
+    expect(sim.state.beans[0]!.z).toBe(0);
+    expect(sim.state.beans[0]!.vz).toBe(0);
   });
 
   it('follows z = v0·t − ½·g·t² exactly', () => {
@@ -143,18 +143,18 @@ describe('hub jump', () => {
     sim.enqueue({ type: 'jump' });
     run(sim, 24); // 0.4 s
     const t = 24 * FIXED_DT;
-    expect(sim.state.bean.z).toBeCloseTo(HUB_JUMP_SPEED * t - 0.5 * g * t * t, 12);
+    expect(sim.state.beans[0]!.z).toBeCloseTo(HUB_JUMP_SPEED * t - 0.5 * g * t * t, 12);
   });
 
   it('cannot jump again while in the air', () => {
     const sim = newHub({ start: { x: -3, y: -1 } });
     sim.enqueue({ type: 'jump' });
     run(sim, 10);
-    const vz = sim.state.bean.vz;
+    const vz = sim.state.beans[0]!.vz;
     sim.enqueue({ type: 'jump' });
     run(sim, 1);
-    expect(sim.state.bean.vz).toBeCloseTo(vz - g * FIXED_DT, 12);
-    expect(sim.state.bean.jumps).toBe(1);
+    expect(sim.state.beans[0]!.vz).toBeCloseTo(vz - g * FIXED_DT, 12);
+    expect(sim.state.beans[0]!.jumps).toBe(1);
   });
 
   it('has full air control', () => {
@@ -163,8 +163,8 @@ describe('hub jump', () => {
     run(sim, 6);
     sim.enqueue(move(1, 0));
     run(sim, 30);
-    expect(sim.state.bean.grounded).toBe(false);
-    expect(sim.state.bean.x - -3).toBeCloseTo(HUB_WALK_SPEED * 0.5, 9);
+    expect(sim.state.beans[0]!.grounded).toBe(false);
+    expect(sim.state.beans[0]!.x - -3).toBeCloseTo(HUB_WALK_SPEED * 0.5, 9);
   });
 });
 
@@ -185,14 +185,14 @@ describe('hub bounds and props', () => {
     sim.enqueue(move(dx, dy, true));
     for (let i = 0; i < steps(10); i++) {
       sim.step();
-      const { x, y } = sim.state.bean;
+      const { x, y } = sim.state.beans[0]!;
       expect(x).toBeGreaterThanOrEqual(walk.minX + r - SLOP);
       expect(x).toBeLessThanOrEqual(walk.maxX - r + SLOP);
       expect(y).toBeGreaterThanOrEqual(walk.minY + r - SLOP);
       expect(y).toBeLessThanOrEqual(walk.maxY - r + SLOP);
     }
     // It ends up pressed against the edge it ran into.
-    const { x, y } = sim.state.bean;
+    const { x, y } = sim.state.beans[0]!;
     if (dx < 0) expectResting(x - walk.minX, r);
     if (dx > 0) expectResting(walk.maxX - x, r);
     if (dy < 0) expectResting(y - walk.minY, r);
@@ -203,8 +203,8 @@ describe('hub bounds and props', () => {
     const sim = newHub({ start: { x: tree.x - 2, y: tree.y } });
     sim.enqueue(move(1, 0));
     run(sim, steps(3));
-    expect(sim.state.bean.x).toBeLessThanOrEqual(tree.x - tree.halfWidth - r + SLOP);
-    expectResting(tree.x - tree.halfWidth - sim.state.bean.x, r);
+    expect(sim.state.beans[0]!.x).toBeLessThanOrEqual(tree.x - tree.halfWidth - r + SLOP);
+    expectResting(tree.x - tree.halfWidth - sim.state.beans[0]!.x, r);
   });
 
   it('can stand just north and just south of the prop (behind and in front of it)', () => {
@@ -212,7 +212,7 @@ describe('hub bounds and props', () => {
       const sim = newHub({ start: { x: tree.x, y: tree.y + side * 1.5 } });
       sim.enqueue(move(0, -side));
       run(sim, steps(2));
-      const gap = side * (sim.state.bean.y - tree.y);
+      const gap = side * (sim.state.beans[0]!.y - tree.y);
       expectResting(gap - tree.halfDepth, r);
     }
   });
@@ -226,11 +226,11 @@ describe('hub tap-to-move', () => {
     sim.enqueue({ type: 'moveTo', x: -1, y: -2 });
     const distance = Math.hypot(2, -1);
     run(sim, steps(distance / HUB_WALK_SPEED) + 1);
-    expect(sim.state.bean.x).toBeCloseTo(-1, 9);
-    expect(sim.state.bean.y).toBeCloseTo(-2, 9);
-    expect(sim.state.bean.target).toBeNull();
+    expect(sim.state.beans[0]!.x).toBeCloseTo(-1, 9);
+    expect(sim.state.beans[0]!.y).toBeCloseTo(-2, 9);
+    expect(sim.state.beans[0]!.target).toBeNull();
     run(sim, 10);
-    expect(sim.state.bean.vx).toBe(0);
+    expect(sim.state.beans[0]!.vx).toBe(0);
   });
 
   it('takes distance / speed to get there, within one step', () => {
@@ -240,7 +240,7 @@ describe('hub tap-to-move', () => {
     do {
       sim.step();
       n += 1;
-    } while (sim.state.bean.target !== null && n < 1000);
+    } while (sim.state.beans[0]!.target !== null && n < 1000);
     expect(Math.abs(n * FIXED_DT - 4 / HUB_WALK_SPEED)).toBeLessThanOrEqual(FIXED_DT);
   });
 
@@ -249,14 +249,14 @@ describe('hub tap-to-move', () => {
     sim.enqueue(move(0, 0, true));
     sim.enqueue({ type: 'moveTo', x: 1, y: -1 });
     run(sim, 10);
-    expect(sim.state.bean.vx).toBeCloseTo(HUB_RUN_SPEED, 9);
+    expect(sim.state.beans[0]!.vx).toBeCloseTo(HUB_RUN_SPEED, 9);
   });
 
   it('clamps targets to the walkable area', () => {
     const sim = newHub({ start: { x: 0, y: -1 } });
     sim.enqueue({ type: 'moveTo', x: 50, y: -50 });
     sim.step();
-    expect(sim.state.bean.target).toEqual({ x: walk.maxX - r, y: walk.minY + r });
+    expect(sim.state.beans[0]!.target).toEqual({ x: walk.maxX - r, y: walk.minY + r });
   });
 
   it('cancels the target after being stuck for 0.35 s', () => {
@@ -267,13 +267,13 @@ describe('hub tap-to-move', () => {
     let cancelledAt: number | null = null;
     for (let i = 0; i < steps(5) && cancelledAt === null; i++) {
       sim.step();
-      if (stuckFrom === null && sim.state.bean.stuckSteps === 1) stuckFrom = sim.tick;
-      if (sim.state.bean.target === null) cancelledAt = sim.tick;
+      if (stuckFrom === null && sim.state.beans[0]!.stuckSteps === 1) stuckFrom = sim.tick;
+      if (sim.state.beans[0]!.target === null) cancelledAt = sim.tick;
     }
     expect(stuckFrom).not.toBeNull();
     expect(cancelledAt).not.toBeNull();
     expect(cancelledAt! - stuckFrom! + 1).toBe(HUB_STUCK_STEPS);
-    expect(sim.state.bean.x).toBeLessThan(tree.x - tree.halfWidth - r + SLOP);
+    expect(sim.state.beans[0]!.x).toBeLessThan(tree.x - tree.halfWidth - r + SLOP);
   });
 
   it('keeps the target while it slides along an obstacle', () => {
@@ -281,7 +281,7 @@ describe('hub tap-to-move', () => {
     const sim = newHub({ start: { x: tree.x - 2, y: tree.y + tree.halfDepth + r - 0.05 } });
     sim.enqueue({ type: 'moveTo', x: tree.x + 2, y: tree.y + tree.halfDepth + r - 0.05 });
     run(sim, steps(4));
-    expect(sim.state.bean.x).toBeGreaterThan(tree.x + tree.halfWidth);
+    expect(sim.state.beans[0]!.x).toBeGreaterThan(tree.x + tree.halfWidth);
   });
 
   it('arrives at a corner target without waiting out the stuck timer', () => {
@@ -292,9 +292,9 @@ describe('hub tap-to-move', () => {
     do {
       sim.step();
       n += 1;
-    } while (sim.state.bean.target !== null && n < 1000);
+    } while (sim.state.beans[0]!.target !== null && n < 1000);
     expect(n).toBeLessThanOrEqual(steps(ideal) + 2);
-    expect(Math.hypot(sim.state.bean.x - (walk.maxX - r), sim.state.bean.y - (walk.minY + r))).toBeLessThan(0.02);
+    expect(Math.hypot(sim.state.beans[0]!.x - (walk.maxX - r), sim.state.beans[0]!.y - (walk.minY + r))).toBeLessThan(0.02);
   });
 
   it('ignores commands with non-finite numbers', () => {
@@ -302,9 +302,9 @@ describe('hub tap-to-move', () => {
     sim.enqueue({ type: 'moveTo', x: Number.NaN, y: 0 });
     sim.enqueue(move(Number.POSITIVE_INFINITY, 0));
     run(sim, 5);
-    expect(sim.state.bean.target).toBeNull();
-    expect(sim.state.input).toEqual({ x: 0, y: 0, run: false });
-    expect(sim.state.bean.x).toBe(-3);
+    expect(sim.state.beans[0]!.target).toBeNull();
+    expect(sim.state.beans[0]!.input).toEqual({ x: 0, y: 0, run: false });
+    expect(sim.state.beans[0]!.x).toBe(-3);
   });
 
   it('a movement key cancels the target', () => {
@@ -313,9 +313,9 @@ describe('hub tap-to-move', () => {
     run(sim, 10);
     sim.enqueue(move(0, 1));
     run(sim, 1);
-    expect(sim.state.bean.target).toBeNull();
-    expect(sim.state.bean.vx).toBe(0);
-    expect(sim.state.bean.vy).toBeCloseTo(HUB_WALK_SPEED, 9);
+    expect(sim.state.beans[0]!.target).toBeNull();
+    expect(sim.state.beans[0]!.vx).toBe(0);
+    expect(sim.state.beans[0]!.vy).toBeCloseTo(HUB_WALK_SPEED, 9);
   });
 });
 
@@ -342,7 +342,7 @@ describe('hub determinism', () => {
     const b = playthrough(42, 10_000);
     expect(JSON.stringify(a)).toBe(JSON.stringify(b));
     expect(a.tick).toBe(10_000);
-    expect(a.bean.jumps).toBeGreaterThan(10);
+    expect(a.beans[0]!.jumps).toBeGreaterThan(10);
   });
 
   it('different inputs give a different state', () => {

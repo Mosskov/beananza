@@ -46,7 +46,7 @@ describe('hub layouts', () => {
     const sim = new Sim(createHubScenario({ layout }), 1);
     sim.enqueue({ type: 'move', x: 1, y: 0, run: false });
     for (let i = 0; i < 30; i++) sim.step();
-    expect(sim.state.bean.x).toBeGreaterThan(layout.start.x);
+    expect(sim.state.beans[0]!.x).toBeGreaterThan(layout.start.x);
   });
 
   it.each(HUB_LAYOUT_NAMES)('%s: every footprint and the rail lie inside the walkable area', (name) => {
@@ -89,22 +89,22 @@ describe('the sky island (D2)', () => {
     sim.enqueue({ type: 'move', x: dx, y: dy, run: true });
     for (let i = 0; i < 600; i++) {
       sim.step();
-      expect(containsPoint(centreArea, sim.state.bean, SLOP)).toBe(true);
+      expect(containsPoint(centreArea, sim.state.beans[0]!, SLOP)).toBe(true);
     }
     // Pressed against the edge: not inside the area shrunk by a further skin.
-    expect(containsPoint(insetConvex(centreArea, 0.02), sim.state.bean)).toBe(false);
+    expect(containsPoint(insetConvex(centreArea, 0.02), sim.state.beans[0]!)).toBe(false);
   });
 
   it('clamps a tap far outside onto the reachable hexagon', () => {
     const sim = newIsland();
     sim.enqueue({ type: 'moveTo', x: 0, y: 100 });
     sim.step();
-    const t = sim.state.bean.target!;
+    const t = sim.state.beans[0]!.target!;
     expect(t.x).toBe(0);
     expect(t.y).toBeCloseTo(6 * Math.sqrt(3) - HUB_BEAN_RADIUS_M, 12);
     // The bean walks there and arrives at the north edge.
-    for (let i = 0; i < 600 && sim.state.bean.target; i++) sim.step();
-    expect(sim.state.bean.target).toBeNull();
-    expect(sim.state.bean.y).toBeGreaterThan(t.y - 0.03);
+    for (let i = 0; i < 600 && sim.state.beans[0]!.target; i++) sim.step();
+    expect(sim.state.beans[0]!.target).toBeNull();
+    expect(sim.state.beans[0]!.y).toBeGreaterThan(t.y - 0.03);
   });
 });

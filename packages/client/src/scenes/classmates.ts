@@ -25,12 +25,16 @@ export const CLASSMATES: readonly Classmate[] = [{ name: 'Priya', bench: 'bench'
 export const GREETING_S = 2.4;
 
 /**
- * Seconds into the classmate's greeting at animation time `time`, or null: the bean sat down on
- * the same bench less than GREETING_S ago.
+ * Seconds into the classmate's greeting at animation time `time`, or null: a bean sat down on
+ * the same bench less than GREETING_S ago (the latest one, when several have).
  */
 export function greetingAt(state: HubState, classmate: Classmate, time: number): number | null {
-  const act = state.bean.act;
-  if (act.kind !== 'sitting' || act.bench !== classmate.bench || act.seat === classmate.seat) return null;
-  const t = time - act.since / SIM_HZ;
-  return t >= 0 && t < GREETING_S ? t : null;
+  let latest: number | null = null;
+  for (const bean of state.beans) {
+    const act = bean.act;
+    if (act.kind !== 'sitting' || act.bench !== classmate.bench || act.seat === classmate.seat) continue;
+    const t = time - act.since / SIM_HZ;
+    if (t >= 0 && t < GREETING_S && (latest === null || t < latest)) latest = t;
+  }
+  return latest;
 }

@@ -168,31 +168,52 @@ interface Span {
 
 const stopRestitution = (kind: Span['west']) => (kind === 'bumper' ? BUMPER_RESTITUTION : BEAN_STOP_RESTITUTION);
 
+/** Overlapping obstacles (beans side by side on the rail) merged, west to east. */
+function mergeObstacles(obstacles: readonly RailObstacle[]): RailObstacle[] {
+  const out: RailObstacle[] = [];
+  for (const o of [...obstacles].sort((a, b) => a.lo - b.lo)) {
+    const last = out[out.length - 1];
+    if (last && o.lo <= last.hi) last.hi = Math.max(last.hi, o.hi);
+    else out.push({ lo: o.lo, hi: o.hi });
+  }
+  return out;
+}
+
 /**
  * Advance the carts by `dt` from sim time `t0`, exactly. `carts` must be sorted west to east
- * (carts cannot pass each other, so the order never changes). An `obstacle` (the bean standing
- * on the rail) splits the rail in two: carts on each side stop against it. Returns the
- * collisions in time order.
+ * (carts cannot pass each other, so the order never changes). `pushes` are the beans pushing
+ * (M2: several beans may push, even the same cart). Each `obstacle` (a bean standing on the rail)
+ * splits the rail: carts on each side stop against it. Returns the collisions in time order.
  */
 export function stepRail(
   rail: Rail,
   carts: RailCart[],
-  push: RailPush | null,
+  pushes: RailPush | readonly RailPush[] | null,
   t0: number,
   dt: number,
-  obstacle: RailObstacle | null = null,
+  obstacles: RailObstacle | readonly RailObstacle[] | null = null,
 ): RailCollision[] {
-  if (!obstacle) return stepSpan({ minX: rail.minX, maxX: rail.maxX, west: 'bumper', east: 'bumper' }, carts, push, t0, dt);
-  const mid = (obstacle.lo + obstacle.hi) / 2;
-  const west = carts.filter((c) => c.x < mid);
-  const east = carts.filter((c) => c.x >= mid);
-  return [
-    ...stepSpan({ minX: rail.minX, maxX: Math.min(rail.maxX, obstacle.lo), west: 'bumper', east: 'bean' }, west, push, t0, dt),
-    ...stepSpan({ minX: Math.max(rail.minX, obstacle.hi), maxX: rail.maxX, west: 'bean', east: 'bumper' }, east, push, t0, dt),
-  ].sort((a, b) => a.time - b.time);
+  const push: readonly RailPush[] = pushes === null ? [] : 'cart' in pushes ? [pushes] : pushes;
+  const stops = mergeObstacles(obstacles === null ? [] : 'lo' in obstacles ? [obstacles] : obstacles);
+  if (stops.length === 0) return stepSpan({ minX: rail.minX, maxX: rail.maxX, west: 'bumper', east: 'bumper' }, carts, push, t0, dt);
+  // Spans between the stops; each cart goes to the span its centre is in (split at each stop's middle).
+  const out: RailCollision[] = [];
+  let minX = rail.minX;
+  let west: Span['west'] = 'bumper';
+  let from = -Infinity;
+  for (const o of [...stops, null]) {
+    const to = o ? (o.lo + o.hi) / 2 : Infinity;
+    const span: Span = { minX, maxX: o ? Math.min(rail.maxX, o.lo) : rail.maxX, west, east: o ? 'bean' : 'bumper' };
+    out.push(...stepSpan(span, carts.filter((c) => c.x >= from && c.x < to), push, t0, dt));
+    if (!o) break;
+    minX = Math.max(rail.minX, o.hi);
+    west = 'bean';
+    from = to;
+  }
+  return out.sort((a, b) => a.time - b.time);
 }
 
-function stepSpan(rail: Span, carts: RailCart[], push: RailPush | null, t0: number, dt: number): RailCollision[] {
+function stepSpan(rail: Span, carts: RailCart[], push: readonly RailPush[], t0: number, dt: number): RailCollision[] {
   const h = CART_HALF_LENGTH;
   const collisions: RailCollision[] = [];
   let elapsed = 0;
@@ -295,23 +316,28 @@ function stepSpan(rail: Span, carts: RailCart[], push: RailPush | null, t0: numb
   return collisions;
 }
 
-function pushFor(push: RailPush | null) {
-  if (!push) return null;
-  return {
-    dir: push.dir,
-    force: push.run ? CART_RUN_PUSH_FORCE : CART_PUSH_FORCE,
-    cap: push.run ? CART_RUN_PUSH_CAP : CART_PUSH_CAP,
-  };
+/**
+ * The pushes on a body of carts, combined: forces add along the rail (two beans pushing the same
+ * way push twice as hard; opposite pushes cancel). The speed cap is the highest cap among the
+ * pushes in the winning direction. One push gives exactly its own force and cap.
+ */
+function pushFor(pushes: readonly RailPush[], on: (cart: string) => boolean) {
+  let net = 0;
+  for (const p of pushes) if (on(p.cart)) net += p.dir * (p.run ? CART_RUN_PUSH_FORCE : CART_PUSH_FORCE);
+  if (net === 0) return null;
+  const dir: 1 | -1 = net > 0 ? 1 : -1;
+  let cap = 0;
+  for (const p of pushes) if (on(p.cart) && p.dir === dir) cap = Math.max(cap, p.run ? CART_RUN_PUSH_CAP : CART_PUSH_CAP);
+  return { dir, force: Math.abs(net), cap };
 }
 
 /**
  * Carts in contact that press on each other move as one body (for example the bean pushing one
  * cart into the other); a group resting against a bumper that pushes into it stays put.
  */
-function buildGroups(rail: Span, carts: RailCart[], push: RailPush | null): Group[] {
+function buildGroups(rail: Span, carts: RailCart[], push: readonly RailPush[]): Group[] {
   const h = CART_HALF_LENGTH;
-  const p = pushFor(push);
-  const alone = (c: RailCart) => regime(totalMass(c), c.v, push && push.cart === c.id ? p : null);
+  const alone = (c: RailCart) => regime(totalMass(c), c.v, pushFor(push, (id) => id === c.id));
   const groups: RailCart[][] = [];
   for (const c of carts) {
     const prev = groups[groups.length - 1];
@@ -325,8 +351,7 @@ function buildGroups(rail: Span, carts: RailCart[], push: RailPush | null): Grou
   return groups.map((gc) => {
     const mass = gc.reduce((s, c) => s + totalMass(c), 0);
     const v = gc.reduce((s, c) => s + totalMass(c) * c.v, 0) / mass;
-    const pushed = push !== null && gc.some((c) => c.id === push.cart);
-    let r = regime(mass, v, pushed ? p : null);
+    let r = regime(mass, v, pushFor(push, (id) => gc.some((c) => c.id === id)));
     const west = gc[0] as RailCart;
     const east = gc[gc.length - 1] as RailCart;
     const atWest = west.x - h - rail.minX <= EPS_X && v <= EPS_V && r.a < 0;

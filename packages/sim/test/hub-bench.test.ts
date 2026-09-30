@@ -29,11 +29,11 @@ type Kind = HubAct['kind'];
 
 function until(sim: Sim<HubState, HubCommand>, kind: Kind, max = 600): number {
   let n = 0;
-  while (sim.state.bean.act.kind !== kind && n < max) {
+  while (sim.state.beans[0]!.act.kind !== kind && n < max) {
     sim.step();
     n += 1;
   }
-  expect(sim.state.bean.act.kind).toBe(kind);
+  expect(sim.state.beans[0]!.act.kind).toBe(kind);
   return n;
 }
 
@@ -60,9 +60,9 @@ describe('the bench (D24)', () => {
     sim.enqueue(move(0, 1));
     sim.stepTo(2);
     const front = bench.y - bench.halfDepth;
-    expect(sim.state.bean.y).toBeLessThan(front - HUB_BEAN_RADIUS_M + 0.006);
-    expect(sim.state.bean.y).toBeGreaterThan(front - HUB_BEAN_RADIUS_M - 0.02);
-    expect(sim.state.bean.act.kind).toBe('free');
+    expect(sim.state.beans[0]!.y).toBeLessThan(front - HUB_BEAN_RADIUS_M + 0.006);
+    expect(sim.state.beans[0]!.y).toBeGreaterThan(front - HUB_BEAN_RADIUS_M - 0.02);
+    expect(sim.state.beans[0]!.act.kind).toBe('free');
   });
 
   it('E near a free seat walks to its stand spot, then hops on in 0.35 s (arc 0.26 m) and sits facing the camera', () => {
@@ -70,27 +70,27 @@ describe('the bench (D24)', () => {
     sim.enqueue({ type: 'action' });
     sim.step();
     // Nearest stand spot: both are 0.4 m along, so the first (west) wins the tie.
-    expect(sim.state.bean.act).toMatchObject({ kind: 'approaching', bench: 'bench', seat: 'west', via: [] });
-    expect(sim.state.bean.target).toEqual(standSpot(bench, west));
+    expect(sim.state.beans[0]!.act).toMatchObject({ kind: 'approaching', bench: 'bench', seat: 'west', via: [] });
+    expect(sim.state.beans[0]!.target).toEqual(standSpot(bench, west));
     until(sim, 'seating');
-    const act = sim.state.bean.act as Extract<HubAct, { kind: 'seating' }>;
+    const act = sim.state.beans[0]!.act as Extract<HubAct, { kind: 'seating' }>;
     expect(act.endTick - act.startTick).toBe(Math.round(SEAT_HOP_S * 60)); // 21 steps
     expect(Math.hypot(act.fromX - standSpot(bench, west).x, act.fromY - standSpot(bench, west).y)).toBeLessThan(0.021);
     const on = seatSpot(bench, west);
-    while (sim.state.bean.act.kind === 'seating') {
+    while (sim.state.beans[0]!.act.kind === 'seating') {
       sim.step();
       const p = Math.min(1, (sim.tick - act.startTick) / (act.endTick - act.startTick));
-      expect(sim.state.bean.z).toBeCloseTo(hopZ(p, 0, bench.seatHeight, SEAT_ARC_M), 12);
-      expect(sim.state.bean.x).toBeCloseTo(act.fromX + (on.x - act.fromX) * p, 12);
-      expect([sim.state.bean.facingX, sim.state.bean.facingY]).toEqual([0, -1]);
+      expect(sim.state.beans[0]!.z).toBeCloseTo(hopZ(p, 0, bench.seatHeight, SEAT_ARC_M), 12);
+      expect(sim.state.beans[0]!.x).toBeCloseTo(act.fromX + (on.x - act.fromX) * p, 12);
+      expect([sim.state.beans[0]!.facingX, sim.state.beans[0]!.facingY]).toEqual([0, -1]);
     }
-    expect(sim.state.bean.act).toEqual({ kind: 'sitting', bench: 'bench', seat: 'west', since: act.endTick });
+    expect(sim.state.beans[0]!.act).toEqual({ kind: 'sitting', bench: 'bench', seat: 'west', since: act.endTick });
     expect(sim.tick).toBe(act.endTick);
-    expect([sim.state.bean.x, sim.state.bean.y, sim.state.bean.z]).toEqual([on.x, on.y, bench.seatHeight]);
+    expect([sim.state.beans[0]!.x, sim.state.beans[0]!.y, sim.state.beans[0]!.z]).toEqual([on.x, on.y, bench.seatHeight]);
     // It stays seated while nothing is pressed.
     sim.stepTo(sim.tick / 60 + 10);
-    expect(sim.state.bean.act.kind).toBe('sitting');
-    expect([sim.state.bean.x, sim.state.bean.y, sim.state.bean.z]).toEqual([on.x, on.y, bench.seatHeight]);
+    expect(sim.state.beans[0]!.act.kind).toBe('sitting');
+    expect([sim.state.beans[0]!.x, sim.state.beans[0]!.y, sim.state.beans[0]!.z]).toEqual([on.x, on.y, bench.seatHeight]);
   });
 
   it('E farther than 1.3 m from every stand spot does nothing', () => {
@@ -98,8 +98,8 @@ describe('the bench (D24)', () => {
     const sim = newHub({ start: { x: spot.x + SIT_REACH_M + 0.05, y: spot.y } });
     sim.enqueue({ type: 'action' });
     sim.step();
-    expect(sim.state.bean.act.kind).toBe('free');
-    expect(sim.state.bean.target).toBeNull();
+    expect(sim.state.beans[0]!.act.kind).toBe('free');
+    expect(sim.state.beans[0]!.target).toBeNull();
   });
 
   it('Priya takes the east seat, so E and taps always lead to the west seat', () => {
@@ -111,7 +111,7 @@ describe('the bench (D24)', () => {
     const sim = newHub({ start: { x: spot.x, y: spot.y - 0.3 } });
     sim.enqueue({ type: 'action' });
     sim.step();
-    expect(sim.state.bean.act).toMatchObject({ kind: 'approaching', seat: 'west' });
+    expect(sim.state.beans[0]!.act).toMatchObject({ kind: 'approaching', seat: 'west' });
   });
 
   it('a tap on the bench from anywhere walks to the nearest free seat and sits', () => {
@@ -119,18 +119,18 @@ describe('the bench (D24)', () => {
     const sim = newHub({ layout: free, start: { x: 1, y: -1 } });
     sim.enqueue({ type: 'use', id: 'bench' });
     sim.step();
-    expect(sim.state.bean.act).toMatchObject({ kind: 'approaching', seat: 'east' });
+    expect(sim.state.beans[0]!.act).toMatchObject({ kind: 'approaching', seat: 'east' });
     until(sim, 'sitting');
-    expect(sim.state.bean.x).toBeCloseTo(seatSpot(bench, east).x, 12);
+    expect(sim.state.beans[0]!.x).toBeCloseTo(seatSpot(bench, east).x, 12);
     const withPriya = newHub({ start: { x: 1, y: -1 } });
     withPriya.enqueue({ type: 'use', id: 'bench' });
     withPriya.step();
-    expect(withPriya.state.bean.act).toMatchObject({ kind: 'approaching', seat: 'west' });
+    expect(withPriya.state.beans[0]!.act).toMatchObject({ kind: 'approaching', seat: 'west' });
     // Unknown ids are ignored.
     const other = newHub({ start: { x: 1, y: -1 } });
     other.enqueue({ type: 'use', id: 'fountain' });
     other.step();
-    expect(other.state.bean.act.kind).toBe('free');
+    expect(other.state.beans[0]!.act.kind).toBe('free');
   });
 
   it.each([
@@ -144,7 +144,7 @@ describe('the bench (D24)', () => {
     sim.enqueue({ type: 'use', id: 'bench' });
     sim.step();
     until(sim, 'sitting', 600);
-    expect(sim.state.bean.act).toMatchObject({ seat: 'west' });
+    expect(sim.state.beans[0]!.act).toMatchObject({ seat: 'west' });
   });
 
   it('a jump on the way to the seat drops the walk there', () => {
@@ -153,8 +153,8 @@ describe('the bench (D24)', () => {
     sim.step();
     sim.enqueue({ type: 'jump' });
     sim.step();
-    expect(sim.state.bean.act.kind).toBe('free');
-    expect(sim.state.bean.target).toBeNull();
+    expect(sim.state.beans[0]!.act.kind).toBe('free');
+    expect(sim.state.beans[0]!.target).toBeNull();
   });
 
   it('skips a taken seat, and does nothing when every seat is taken', () => {
@@ -165,12 +165,12 @@ describe('the bench (D24)', () => {
     const sim = newHub({ layout: withTaken(['west']), start: { x: -4, y: 0.2 } });
     sim.enqueue({ type: 'action' });
     sim.step();
-    expect(sim.state.bean.act).toMatchObject({ kind: 'approaching', seat: 'east' });
+    expect(sim.state.beans[0]!.act).toMatchObject({ kind: 'approaching', seat: 'east' });
     const full = newHub({ layout: withTaken(['west', 'east']), start: { x: -4, y: 0.2 } });
     full.enqueue({ type: 'action' });
     full.enqueue({ type: 'use', id: 'bench' });
     full.step();
-    expect(full.state.bean.act.kind).toBe('free');
+    expect(full.state.beans[0]!.act.kind).toBe('free');
   });
 
   it.each([
@@ -182,17 +182,17 @@ describe('the bench (D24)', () => {
     const sim = seated();
     sim.enqueue(command);
     sim.step();
-    const act = sim.state.bean.act as Extract<HubAct, { kind: 'standing' }>;
+    const act = sim.state.beans[0]!.act as Extract<HubAct, { kind: 'standing' }>;
     expect(act.kind).toBe('standing');
     expect(act.endTick - act.startTick).toBe(Math.round(STAND_HOP_S * 60)); // 18 steps
-    expect(sim.state.bean.z).toBeCloseTo(hopZ(1 / 18, bench.seatHeight, 0, STAND_ARC_M), 12);
+    expect(sim.state.beans[0]!.z).toBeCloseTo(hopZ(1 / 18, bench.seatHeight, 0, STAND_ARC_M), 12);
     until(sim, 'free');
     expect(sim.tick).toBe(act.endTick);
     const spot = standSpot(bench, west);
-    expect(sim.state.bean.z).toBe(0);
-    expect(sim.state.bean.x).toBeCloseTo(spot.x, 12);
-    expect(sim.state.bean.y).toBeCloseTo(spot.y, 12);
-    expect(sim.state.bean.jumps).toBe(0);
+    expect(sim.state.beans[0]!.z).toBe(0);
+    expect(sim.state.beans[0]!.x).toBeCloseTo(spot.x, 12);
+    expect(sim.state.beans[0]!.y).toBeCloseTo(spot.y, 12);
+    expect(sim.state.beans[0]!.jumps).toBe(0);
   });
 
   it('keeps walking after standing up: a held key moves on, a tap target is walked to', () => {
@@ -200,18 +200,18 @@ describe('the bench (D24)', () => {
     held.enqueue(move(1, 0));
     held.step();
     until(held, 'free');
-    const x0 = held.state.bean.x;
+    const x0 = held.state.beans[0]!.x;
     held.stepTo(held.tick / 60 + 0.5);
-    expect(held.state.bean.x).toBeCloseTo(x0 + 1.2, 6);
+    expect(held.state.beans[0]!.x).toBeCloseTo(x0 + 1.2, 6);
 
     const tapped = seated();
     tapped.enqueue({ type: 'moveTo', x: -2, y: -1 });
     tapped.step();
-    expect(tapped.state.bean.act).toMatchObject({ kind: 'standing', then: { x: -2, y: -1 } });
+    expect(tapped.state.beans[0]!.act).toMatchObject({ kind: 'standing', then: { x: -2, y: -1 } });
     until(tapped, 'free');
-    expect(tapped.state.bean.target).toEqual({ x: -2, y: -1 });
+    expect(tapped.state.beans[0]!.target).toEqual({ x: -2, y: -1 });
     tapped.stepTo(tapped.tick / 60 + 2);
-    expect([tapped.state.bean.x, tapped.state.bean.y]).toEqual([-2, -1]);
+    expect([tapped.state.beans[0]!.x, tapped.state.beans[0]!.y]).toEqual([-2, -1]);
   });
 
   it('ignores E, Space and taps while hopping on or off', () => {
@@ -235,15 +235,15 @@ describe('the bench (D24)', () => {
     held.step();
     held.enqueue(move(0, -1));
     held.step();
-    expect(held.state.bean.act.kind).toBe('free');
+    expect(held.state.beans[0]!.act.kind).toBe('free');
 
     const tap = newHub({ start: { x: -3.6, y: -1 } });
     tap.enqueue({ type: 'use', id: 'bench' });
     tap.step();
     tap.enqueue({ type: 'moveTo', x: 0, y: 0 });
     tap.step();
-    expect(tap.state.bean.act.kind).toBe('free');
-    expect(tap.state.bean.target).toEqual({ x: 0, y: 0 });
+    expect(tap.state.beans[0]!.act.kind).toBe('free');
+    expect(tap.state.beans[0]!.target).toEqual({ x: 0, y: 0 });
 
     // A box on the west stand spot: the bean cannot reach it, gives up and does not sit.
     const spot = standSpot(bench, west);
@@ -251,9 +251,9 @@ describe('the bench (D24)', () => {
     const stuck = newHub({ layout, start: { x: -4.4, y: -1 } });
     stuck.enqueue({ type: 'use', id: 'bench' });
     stuck.step();
-    expect(stuck.state.bean.act).toMatchObject({ kind: 'approaching', seat: 'west' });
+    expect(stuck.state.beans[0]!.act).toMatchObject({ kind: 'approaching', seat: 'west' });
     stuck.stepTo(5);
-    expect(stuck.state.bean.act.kind).toBe('free');
+    expect(stuck.state.beans[0]!.act.kind).toBe('free');
   });
 
   it('restores a mid-hop snapshot into a fresh scenario and carries on identically', () => {
@@ -270,7 +270,7 @@ describe('the bench (D24)', () => {
       s.stepTo(s.tick / 60 + 3);
     }
     expect(restored.state).toEqual(sim.state);
-    expect(sim.state.bean.act.kind).toBe('free');
+    expect(sim.state.beans[0]!.act.kind).toBe('free');
   });
 
   it('is deterministic over 10,000 steps of sitting, standing, taps and walking near the bench', () => {
@@ -289,7 +289,7 @@ describe('the bench (D24)', () => {
           else sim.enqueue(move(0, 0));
         }
         sim.step();
-        if (sim.state.bean.act.kind === 'sitting') sat += 1;
+        if (sim.state.beans[0]!.act.kind === 'sitting') sat += 1;
       }
       return { state: sim.snapshot(), sat };
     };

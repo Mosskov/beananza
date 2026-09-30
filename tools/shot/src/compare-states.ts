@@ -23,6 +23,7 @@ type Json = Record<string, unknown>;
  * - After M1 session 3: props and benches name their drawing (`art`); the bench is `usable`.
  * - Hub island (D2): `layout.walkable` is a convex polygon; a rectangle becomes its 4 corners.
  * - Hub island (D2): `layout.portals`, the region portals (empty in older logs).
+ * - Hub island (M2): `bean` and `input` became `beans[0]` (id `local`) with its own `input`.
  */
 const RENAMES: { since: string; apply: (state: Json, fresh: Json) => void }[] = [
   {
@@ -83,6 +84,16 @@ const RENAMES: { since: string; apply: (state: Json, fresh: Json) => void }[] = 
     apply(state) {
       const layout = state.layout as Json | undefined;
       if (layout && !('portals' in layout)) layout.portals = [];
+    },
+  },
+  {
+    // M2 (a whole class in one hub): the one bean is the local player's, and holds its own input.
+    since: 'hub island: state.bean and state.input became state.beans[0] (id "local")',
+    apply(state) {
+      if (!('bean' in state)) return;
+      state.beans = [{ ...(state.bean as Json), id: 'local', input: state.input }];
+      delete state.bean;
+      delete state.input;
     },
   },
 ];

@@ -1,4 +1,4 @@
-import { SIM_HZ, type HubAct, type HubActKind, type HubState } from '@beananza/sim';
+import { SIM_HZ, type HubAct, type HubActKind, type HubBean, type HubState } from '@beananza/sim';
 import type { ActClip } from '../../rig/player';
 
 /** Parts some act shows or hides, and how every other act draws them. */
@@ -48,7 +48,7 @@ export interface Presentation {
 }
 
 /** One row of the table: how an act of kind K looks at animation time `time`. */
-export type Row<K extends HubActKind> = (act: Extract<HubAct, { kind: K }>, state: HubState, time: number) => Presentation;
+export type Row<K extends HubActKind> = (act: Extract<HubAct, { kind: K }>, state: HubState, time: number, bean: HubBean) => Presentation;
 
 /** A block of rows, one per act kind in K (an interaction's acts). */
 export type Rows<K extends HubActKind> = { [P in K]: Row<P> };

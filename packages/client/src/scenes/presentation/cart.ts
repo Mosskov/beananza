@@ -14,11 +14,11 @@ export const CART_ROWS: Rows<CartActKind> = {
   },
   // A crouch, then a hop that is drawn in the cart (and masked by it) once it is past its top and
   // over the cart; before that the mask would cut the bean off in empty air beside the cart.
-  boarding: (act, state, time) => {
+  boarding: (act, state, time, bean) => {
     const crouching = time * SIM_HZ < act.hopTick;
     const p = hopAt(time, act.hopTick, act.endTick);
     const cart = state.rail?.carts.find((c) => c.id === act.cart);
-    const over = cart !== undefined && Math.abs(state.bean.x - cart.x) <= CART_HALF_LENGTH;
+    const over = cart !== undefined && Math.abs(bean.x - cart.x) <= CART_HALF_LENGTH;
     return {
       clip: crouching ? { clip: 'jump', t: 0, first: true } : hopClip(p),
       parts: {},

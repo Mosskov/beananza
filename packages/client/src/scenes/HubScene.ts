@@ -7,12 +7,14 @@ import {
   FIXED_DT,
   HUB_BEAN_RADIUS_M,
   HUB_LAYOUTS,
+  LOCAL_PLAYER,
   Sim,
   createHubScenario,
   polygonBounds,
   portalExit,
   seatSpot,
   standSpot,
+  type HubBean,
   type HubCommand,
   type HubInput,
   type HubState,
@@ -152,6 +154,13 @@ export class HubScene extends SimScene<HubState, HubCommand> {
     super({ key: 'hub' });
   }
 
+  /** The local player's bean: offline, the one bean in the hub. */
+  private get me(): HubBean {
+    const bean = this.sim.state.beans.find((b) => b.id === LOCAL_PLAYER);
+    if (!bean) throw new Error('The hub has no local bean.');
+    return bean;
+  }
+
   /** The plaza, or a test yard (`?layout=`). */
   private get layoutName(): string {
     return this.layout ?? DEFAULT_LAYOUT;
@@ -277,13 +286,13 @@ export class HubScene extends SimScene<HubState, HubCommand> {
   }
 
   protected override beforeStep(): void {
-    const b = this.sim.state.bean;
+    const b = this.me;
     this.prev = { x: b.x, y: b.y, z: b.z };
     for (const c of this.sim.state.rail?.carts ?? []) this.prevCarts.set(c.id, c.x);
   }
 
   protected drawState(alpha: number): void {
-    const b = this.sim.state.bean;
+    const b = this.me;
     const lerp = (a: number, c: number) => a + (c - a) * alpha;
     const x = lerp(this.prev.x, b.x);
     const y = lerp(this.prev.y, b.y);
@@ -307,7 +316,7 @@ export class HubScene extends SimScene<HubState, HubCommand> {
       const region = act.region;
       this.time.delayedCall(LEAVE_DELAY_MS, () => window.location.assign(regionUrl(window.location.href, region)));
     }
-    const look = presentAct(act, this.sim.state, time);
+    const look = presentAct(act, this.sim.state, time, b);
     this.drawClassmates(time);
     const inCart = look.placement.kind === 'cart' ? look.placement.cart : null;
     for (const c of this.sim.state.rail?.carts ?? []) {

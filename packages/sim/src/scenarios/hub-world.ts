@@ -211,7 +211,14 @@ export type HubAct = { kind: 'free' } | CartAct | BenchAct | PortalAct;
 
 export type HubActKind = HubAct['kind'];
 
+/** The one player of a single-player hub; commands without a `player` go to this bean. */
+export const LOCAL_PLAYER = 'local';
+
 export interface HubBean {
+  /** The player this bean belongs to (M2: the server's id for the connection; `local` offline). */
+  id: string;
+  /** Held movement input from this player. */
+  input: HubInput;
   /** Ground position (m): x east, y north. */
   x: number;
   y: number;
@@ -255,7 +262,7 @@ export interface HubRailState {
   carts: RailCart[];
   /** The last collisions, oldest first (at most 16). */
   collisions: RailCollision[];
-  /** The last times the bean got in or out, oldest first (at most 16). */
+  /** The last times a bean got in or out, oldest first (at most 16). */
   riders: RiderEvent[];
 }
 
@@ -273,12 +280,16 @@ export interface HubState extends SimStateBase {
    */
   readonly layout: PlazaLayout;
   gravity: number;
-  input: HubInput;
-  bean: HubBean;
+  /**
+   * Every bean in the hub, in the order they joined (M2: a whole class). Each step handles them
+   * in this order, so the step depends only on the state and the commands.
+   */
+  beans: HubBean[];
   rail: HubRailState | null;
 }
 
-export type HubCommand =
+/** What one player does; `player` picks the bean (default LOCAL_PLAYER). */
+export type HubBeanCommand = (
   /** Held direction and Run (from keys or a stick). (0, 0) means no direction held. */
   | { type: 'move'; x: number; y: number; run: boolean }
   /** Walk (or run, if Run is held) to a point on the ground. Clamped to the walkable area. */
@@ -288,13 +299,26 @@ export type HubCommand =
   /** E, the context action: get into the ridable cart or sit on the bench when near, or get out or up. */
   | { type: 'action' }
   /** A tap on a prop (by id), e.g. the bench: walk over and use it. */
-  | { type: 'use'; id: string };
+  | { type: 'use'; id: string }
+) & { player?: string };
+
+export type HubCommand =
+  | HubBeanCommand
+  /** A player arrives (M2): a new bean at `at` (clamped to the walkable area) or the layout's start. */
+  | { type: 'join'; player: string; at?: { x: number; y: number } }
+  /** A player leaves: its bean is gone (a cart it rode keeps its speed, as when hopping out). */
+  | { type: 'leave'; player: string };
 
 export interface HubOptions {
   layout?: PlazaLayout;
   /** Overrides the layout's start position (tests). */
   start?: { x: number; y: number };
   gravity?: number;
+  /**
+   * Start with the local player's bean (default true). The M2 server starts empty and adds a
+   * bean per player with `join`.
+   */
+  local?: boolean;
 }
 
 /** Clamp a tap target so the bean's centre can reach it: the closest point of the walkable area shrunk by its radius. */

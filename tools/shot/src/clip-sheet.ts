@@ -3,7 +3,7 @@
 // one labelled image, drawn by the game's own rig and rig player (the `clip` tool scene) in
 // headless Chromium. Writes artifacts/clips/<clip>[--<look>][-reduced-motion].png and .json;
 // the JSON log holds every cell's pose, so a claim about a track can be read off it.
-import { renameSync } from 'node:fs';
+import { renameSync, rmSync, writeFileSync } from 'node:fs';
 import { join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parseArgs } from 'node:util';
@@ -63,7 +63,10 @@ async function main(): Promise<number> {
     ok = log.ok;
     for (const line of describeShot(log)) if (!/^(ok|FAIL) /.test(line)) console.log(line);
     renameSync(join(OUT, 'clip.png'), join(OUT, `${name}.png`));
-    renameSync(join(OUT, 'clip.json'), join(OUT, `${name}.json`));
+    // The log names its screenshot; keep it pointing at the renamed file.
+    log.screenshot = relative(REPO, join(OUT, `${name}.png`)).replaceAll('\\', '/');
+    writeFileSync(join(OUT, `${name}.json`), `${JSON.stringify(log, null, 2)}\n`);
+    rmSync(join(OUT, 'clip.json'));
   } finally {
     await session.close();
   }

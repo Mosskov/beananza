@@ -42,7 +42,8 @@ been looked at: the clip sheet is how.
       view and its mirror.
 - [ ] `pnpm clip:sheet <clip> --reduced-motion`: the motion is gone and nothing is left in an
       odd pose. Read the held values off `artifacts/clips/<clip>-reduced-motion.json`
-      (`cells[].pose`) rather than guessing from pixels.
+      (`sceneState.cells[].pose`, per cell with its `direction` and `t`) rather than guessing
+      from pixels.
 - [ ] If the clip is worn with a cosmetic that moves with it, also `--look <pieces>`.
 - [ ] Add a row (or cells) for the clip to the `bean` gallery (`scenes/BeanGalleryScene.ts`) at
       two or three telling phases, so `art:sheet` and verify keep an eye on it.

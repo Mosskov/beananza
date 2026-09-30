@@ -1,6 +1,6 @@
 ---
 name: draw-piece
-description: Draw or change a piece of Beananza art as SVG text under art/ (a bean view, a -left drawing, a pattern, headwear, a face piece, a prop or an effect) and get it reviewed. Use this whenever a session creates or edits any file in art/bean/ or art/props/, adds a cosmetic, fixes a drawing slip, or is asked to "draw", "redraw", "add a hat/prop", or change how the bean looks, even for a one-line colour or coordinate change.
+description: Draw or change a piece of Beananza art as SVG text under art/ (a bean view, a -left drawing, a pattern, headwear, a face piece or a prop) and get it reviewed. Use this whenever a session creates or edits any file in art/bean/ or art/props/, adds a cosmetic, fixes a drawing slip, or is asked to "draw", "redraw", "add a hat/prop", or change how the bean looks, even for a one-line colour or coordinate change.
 ---
 
 # Draw a piece
@@ -10,6 +10,12 @@ in `art/README.md`; this is the order to work in. Every art change ends with an 
 shown to the user (D13), so plan for that from the start.
 
 ## 1. Before drawing
+- [ ] Is the piece confirmed? D25 confirmed specific cosmetics (spots; sprout, bear ears, bow;
+      glasses). A **new** cosmetic, prop or form is a design choice: check `docs/DECISIONS.md`
+      and the prompt, and ask the user if neither names it. Redrawing an existing piece is fine.
+- [ ] **Effects** (D26: `art/effects/`, effect slots at anchors) have no folder, loader or
+      contract yet. Building that is its own step with its own prompt
+      (`prompts/reactions-first-session.md`); this skill covers the parts that exist today.
 - [ ] Read `art/README.md` (parts, units, key colours, anchors, palette) and
       `docs/ART_PIPELINE.md` §2.
 - [ ] Render the nearest existing piece so you draw to the same scale and style:
@@ -52,6 +58,13 @@ shown to the user (D13), so plan for that from the start.
       - prop: import it in `packages/client/src/art/prop-sources.ts` and list its parts and
         anchors in `PROP_PARTS` / `PROP_ANCHORS` (`art/prop-contract.ts`);
       - bean view: `packages/client/src/rig/bean-art-sources.ts`.
+      `pnpm art:check` reports a file on disk that is not registered, and a registered id with
+      no file.
+- [ ] **Show a new cosmetic in the `looks` gallery** (`packages/client/src/scenes/LooksGalleryScene.ts`):
+      add a `directionRow(...)` for it, so `looks.png`, verify and `art:sheet` keep showing it.
+      The gallery's colour row picks pieces by index from `HEADWEAR_IDS` / `PATTERN_IDS`, so
+      adding an id also changes which piece some colours wear: expect that magenta in the
+      `art:sheet` and say so. A new prop goes where the scene that uses it draws it.
 
 ## 3. Check while drawing (seconds each, no game)
 - [ ] `pnpm art:check <file>`: fix every finding; the command exits non-zero until there are none.

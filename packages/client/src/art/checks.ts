@@ -9,7 +9,8 @@ import { buildCosmeticsSpec, COSMETIC_FOLDERS, type CosmeticKind, type CosmeticS
 import { ArtContractError, parseSvgParts, partPivot, type Point, type SvgDoc } from '../rig/svg-parts';
 import { MIRRORED_VIEWS, VIEWS, type BeanView } from '../rig/views';
 import { outsideBy, rightEdgeAt, shapeOutlines } from './geometry';
-import { buildPropArtSpec } from './prop-contract';
+import { FACE_IDS, HEADWEAR_IDS, PATTERN_IDS } from '@beananza/shared';
+import { buildPropArtSpec, PROP_PARTS } from './prop-contract';
 
 export interface ArtFinding {
   /** Repo path of the file the finding is about. */
@@ -221,10 +222,47 @@ const contract = <T>(build: () => T): { value: T | null; problems: readonly stri
   }
 };
 
+/** The ids the game offers per cosmetic kind (`packages/shared/src/look.ts`), without the "none" ids. */
+const COSMETIC_IDS: Readonly<Record<CosmeticKind, readonly string[]>> = {
+  pattern: PATTERN_IDS.filter((id) => id !== 'plain'),
+  headwear: HEADWEAR_IDS.filter((id) => id !== 'none'),
+  face: FACE_IDS.filter((id) => id !== 'round'),
+};
+const ID_LIST: Readonly<Record<CosmeticKind, string>> = { pattern: 'PATTERN_IDS', headwear: 'HEADWEAR_IDS', face: 'FACE_IDS' };
+
+/**
+ * Files on disk the game would not load, and ids the game offers with no file: a drawing is
+ * only in the game once it is registered (the `draw-piece` skill, step 2).
+ */
+export function registrationFindings(files: ArtFiles): ArtFinding[] {
+  const out: ArtFinding[] = [];
+  const onDisk = { pattern: new Set<string>(), headwear: new Set<string>(), face: new Set<string>(), prop: new Set<string>() };
+  for (const path of Object.keys(files)) {
+    const k = artFileKind(path);
+    if (k.kind === 'cosmetic') {
+      onDisk[k.cosmetic].add(k.id);
+      if (!COSMETIC_IDS[k.cosmetic].includes(k.id)) {
+        out.push({ file: path, message: `${k.cosmetic} ${k.id}: not registered, so the game never loads it: add "${k.id}" to ${ID_LIST[k.cosmetic]} (packages/shared/src/look.ts) and import it in packages/client/src/rig/looks-sources.ts` });
+      }
+    } else if (k.kind === 'prop') {
+      onDisk.prop.add(k.id);
+      if (!(k.id in PROP_PARTS)) {
+        out.push({ file: path, message: `${k.id}: not registered, so the game never loads it: list its parts and anchors in PROP_PARTS and PROP_ANCHORS (packages/client/src/art/prop-contract.ts) and import it in packages/client/src/art/prop-sources.ts` });
+      }
+    }
+  }
+  for (const kind of Object.keys(COSMETIC_IDS) as CosmeticKind[]) {
+    for (const id of COSMETIC_IDS[kind]) {
+      if (!onDisk[kind].has(id)) out.push({ file: `art/bean/${COSMETIC_FOLDERS[kind]}/${id}.svg`, message: `${kind} ${id}: in ${ID_LIST[kind]} but there is no drawing` });
+    }
+  }
+  return out;
+}
+
 /** Every finding for the loaded art in `files` (all of art/, as the game loads it). */
 export function checkArt(files: ArtFiles): ArtFinding[] {
   const { bean, cosmetics, props } = sortArt(files);
-  const findings: ArtFinding[] = [];
+  const findings: ArtFinding[] = [...registrationFindings(files)];
   const add = (kind: 'bean' | 'cosmetic' | 'prop', lines: readonly string[]) => {
     for (const line of lines) findings.push({ file: fileOf(line, kind), message: line });
   };

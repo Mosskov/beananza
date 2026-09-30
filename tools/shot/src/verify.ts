@@ -119,6 +119,7 @@ async function main(): Promise<number> {
   const hub = scripts.filter((s) => s.outName.startsWith('hub'));
   const updateGolden = values['update-golden'];
   if (updateGolden && values.baseline) throw new Error('--update-golden writes tools/shot/golden/; it does not take --baseline');
+  if (updateGolden && values['no-check']) throw new Error('--update-golden writes golden states only from a fully passing run, so it runs pnpm check too; drop --no-check');
   if (values.timed && !updateGolden) throw new Error('--timed adds timed shots to the golden files, so it needs --update-golden');
   // Against an old evidence folder (--baseline), or the golden files.
   const baseline = values.baseline ? resolve(REPO, values.baseline) : null;

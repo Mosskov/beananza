@@ -34,6 +34,12 @@ its golden states stay untouched until the finished thing moves in (D2).
 ## 3. Its own test yard and scripts
 - [ ] Add one line to `HUB_LAYOUTS` in `packages/sim/src/scenarios/hub-layouts.ts`:
       `<name>: yard({ … })`, with the plaza's ground, start and camera and only this thing.
+      `yard()` takes `props`, `benches`, `rail` and `start`. A usable prop needs nothing more.
+      If the interaction needs new layout data, that is a new `PlazaLayout` field in
+      `hub-world.ts` (a shared file: add the field only, optional so the plaza is unchanged),
+      plus the key in `yard()`'s `Pick<…>` and its default in the object `yard()` returns. If
+      the plaza's logged layout gains the field, every plaza golden file changes: update
+      golden in its own commit and say why in the PR.
 - [ ] A prop it uses names its drawing (`art`) in the layout; `usable: true` sends taps on it as
       `use`. New art follows the `draw-piece` skill.
 - [ ] Write scripts `tools/shot/scripts/hub-<name>*.json` with `"layout": "<name>"`, covering

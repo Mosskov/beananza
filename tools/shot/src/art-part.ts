@@ -91,7 +91,8 @@ export function lookFor(kind: ArtFileKind, lookArg: string | undefined): { look:
   return { look, unknown };
 }
 
-const lookName = (look: BeanLook) => [look.colour, look.pattern, look.headwear, look.face].filter((id) => !['plain', 'none', 'round'].includes(id)).join('-');
+/** The look's non-default ids, minus the file's own piece (`bow--yellow.png`, not `bow--yellow-bow.png`). */
+const lookName = (look: BeanLook, own = '') => [look.colour, look.pattern, look.headwear, look.face].filter((id) => !['orange', 'plain', 'none', 'round', own].includes(id)).join('-');
 
 async function main(): Promise<number> {
   const started = Date.now();
@@ -129,8 +130,13 @@ Writes <out>/<file name>[--<look>].png and prints the anchors, pivots and contra
   let cells: Cell[];
   let look: BeanLook | null = null;
   if (kind.kind === 'prop') {
-    const spec = buildPropArtSpec(props);
-    cells = [plainCell(spec.docs[kind.id] as SvgDoc, `${kind.id} (as drawn, every part)`)];
+    let drawn: SvgDoc | undefined;
+    try {
+      drawn = buildPropArtSpec(props).docs[kind.id];
+    } catch {
+      // Broken or unregistered: still drawn as it is; the findings say why.
+    }
+    cells = [plainCell(drawn ?? doc, `${kind.id} (as drawn, every part)${drawn ? '' : ': the contract fails (findings below)'}`)];
   } else {
     const picked = lookFor(kind, values.look);
     look = picked.look;
@@ -153,7 +159,8 @@ Writes <out>/<file name>[--<look>].png and prints the anchors, pivots and contra
     }
   }
 
-  const name = basename(file, '.svg') + (look && lookName(look) !== lookName(DEFAULT_LOOK) ? `--${lookName(look)}` : '');
+  const own = kind.kind === 'cosmetic' ? kind.id : '';
+  const name = basename(file, '.svg') + (look && lookName(look, own) ? `--${lookName(look, own)}` : '');
   const outDir = resolve(REPO, values.out);
   mkdirSync(outDir, { recursive: true });
   const png = join(outDir, `${name}.png`);

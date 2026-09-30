@@ -112,6 +112,16 @@ No decision changes. From `prompts/tools-prep-session.md`.
   skips it (5 s); with an empty `PLAYWRIGHT_BROWSERS_PATH` it installed Chromium and the
   headless shell (2 min 25 s) and the next run skipped it. **Not tested in a real cloud
   container.**
+- **Review round 1 fixes:** the guard also blocks `gh pr merge`, pushes to main by refspec,
+  `--delete` or a bare `git push` on main, `git fetch …:main`, `git branch -f|-D main`, `pull`,
+  `cherry-pick` and `am` on main, and direct `wrangler` deploys, secrets and remote D1
+  migrations (`--dry-run` passes); it follows `cd` and `git -C` to judge the right tree.
+  `art:check` reports a drawing that is not registered and a registered id with no drawing
+  (`registrationFindings`), and a test checks the loaded sources equal the files on disk.
+  `--update-golden` refuses `--no-check`. The skills gained the missing steps (looks gallery
+  row, D25 confirmation, effects not built yet, a new layout field, the clip log's path).
+  Not changed: the geometry sampler's limits (no `transform`, compact arc flags), the one-point
+  side-belly test, and CI running for both push and pull_request (two runs per PR push).
 - **The lane file map** in CLAUDE.md assigns the drawing loaders, galleries and clip data to the
   art lane and the sim, hub scene, scripts and golden files to the behaviour lane; the five
   shared files get one-line additions only.

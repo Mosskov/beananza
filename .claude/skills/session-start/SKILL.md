@@ -18,6 +18,8 @@ never mistaken for your change.
 - [ ] `pnpm install` in the worktree. If `pnpm` is missing on Windows, run it through corepack
       (`corepack pnpm install`, or `corepack enable --install-directory <a folder on PATH>`).
 - [ ] Once per machine: `pnpm shot:install` (Playwright's Chromium).
+- [ ] `pnpm shot` and `verify` start their own server, so each tree tests itself; never pass
+      `--reuse` (the server on 5180 may be another worktree's).
 
 ## 2. Baseline (before changing anything)
 - [ ] `pnpm verify`. It must end with `verify: all passed`: `pnpm check`, zero console errors

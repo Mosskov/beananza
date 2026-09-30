@@ -76,7 +76,7 @@ art/
 ## Commands
 Details in `README.md`.
 - `pnpm install`, then once `pnpm shot:install` (Playwright Chromium)
-- `pnpm dev`: game at http://localhost:5180/?scene=<name> (`hub` is the default; also `bean`, `looks`, `drop`, `empty`; `&paused=1` starts paused; `&look=blue,spots,bow,glasses` sets the bean's look; `&layout=bench` opens a test yard instead of the plaza)
+- `pnpm dev`: game at http://localhost:5180/?scene=<name> (`hub` is the default; also `bean`, `looks`, `clip`, `drop`, `empty`; `&paused=1` starts paused; `&look=blue,spots,bow,glasses` sets the bean's look; `&layout=bench` opens a test yard instead of the plaza)
 - `pnpm check`: typecheck, lint, tests and build (`pnpm test`, `pnpm typecheck`, `pnpm lint`, `pnpm build`)
 - `pnpm verify`: the whole pass in about a minute: check, every scene and script, the looks, and
   the sim states against `tools/shot/golden/` (`pnpm verify --update-golden` rewrites them; the
@@ -107,10 +107,9 @@ Details in `README.md`.
 
 ## Lanes: at most two at a time
 Review capacity is the limit, not build capacity, so at most **two lanes** run at once: **one
-art** and **one behaviour**. Each is its own branch with its own PR: a git worktree at a short
-path locally (`git worktree add -b <lane>/<topic> C:/bz-<topic> main`, then `pnpm install`;
-never switch branches in a shared tree), or a cloud session. CI must be green before review.
-`pnpm shot` starts its own server, so each tree tests itself; don't pass `--reuse`.
+art** and **one behaviour**. Each is its own branch with its own PR: its own git worktree
+locally (never switch branches in a shared tree; `session-start` has the command), or a cloud
+session. CI must be green before review.
 
 What each lane owns (the other lane leaves these alone):
 - **Art lane:** `art/**` and `art/README.md`; the drawing loaders and cosmetics

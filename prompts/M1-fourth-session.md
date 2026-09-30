@@ -38,15 +38,8 @@ Nothing in docs/ is approved unless DECISIONS.md says so.
 # Step 0: set up and check the baseline (before changing anything)
 - **Check D9:** if D9 is still Open in `docs/DECISIONS.md` (the design pass has not run), stop
   and say so. Don't guess the answers.
-- **Worktree:** work on your own branch in your own worktree, never by switching branches in the
-  shared tree:
-  `git worktree add -b m1-s4 E:/bz-s4 main`, then `pnpm install` there. Other sessions may be
-  working on main.
-- **Baseline:** run `pnpm verify`. It must pass: `pnpm check`, zero console errors in every
-  scene and script, `check-carts`, the looks, and 0 differences against `docs/status/m1-s3`.
-- Look at `artifacts/shots/hub.png`, `artifacts/shots/looks.png` and
-  `artifacts/shots/hub-bench/greeted.png`.
-- If anything fails, report it as a failure and fix it first, in its own commit.
+- **Skill `session-start`,** as the behaviour lane: branch `m1-s4`, worktree `C:/bz-s4`. After
+  the baseline, also look at `artifacts/shots/hub-bench/greeted.png`.
 
 # Scope for this session
 Build what D9 records. Anything D9 leaves Open that a slice needs: stop and ask.

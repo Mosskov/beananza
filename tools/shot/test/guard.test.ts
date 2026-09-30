@@ -17,7 +17,7 @@ function run(command: string, cwd: string, tool = 'Bash'): string | null {
   return decision.hookSpecificOutput.permissionDecisionReason;
 }
 
-describe('the guard hook', () => {
+describe('the guard hook', { timeout: 30_000 }, () => {
   let onMain = '';
   let onBranch = '';
   beforeAll(() => {
@@ -52,6 +52,27 @@ describe('the guard hook', () => {
     expect(run('git checkout main && git merge tools/prep', onBranch)).toMatch(/on main/);
   });
 
+  it('blocks the other ways onto main and onto the share site (review round 1)', () => {
+    const cases: [string, string, RegExp][] = [
+      ['gh pr merge 3 --squash', onBranch, /merges a pull request/],
+      ['git push origin tools/prep:main', onBranch, /pushes to main/],
+      ['git push origin HEAD:refs/heads/main', onBranch, /pushes to main/],
+      ['git push origin main', onBranch, /pushes to main/],
+      ['git push --delete origin main', onBranch, /pushes to main/],
+      ['git push', onMain, /pushes to main/],
+      ['git fetch . tools/prep:main', onBranch, /local main/],
+      [`git -C "${onMain}" merge x`, onBranch, /while on main/],
+      [`cd "${onMain}" && git merge tools/prep`, onBranch, /while on main/],
+      ['git pull', onMain, /pull while on main/],
+      ['git branch -f main HEAD', onBranch, /main branch/],
+      ['npx wrangler deploy', onBranch, /Cloudflare/],
+      ['wrangler secret put SITE_PASSWORD', onBranch, /Cloudflare/],
+      ['wrangler d1 migrations apply beananza-comments --remote', onBranch, /Cloudflare/],
+      ['pnpm share:migrate', onBranch, /share site/],
+    ];
+    for (const [c, cwd, why] of cases) expect(run(c, cwd), c).toMatch(why);
+  });
+
   it('lets the everyday commands through', () => {
     for (const c of [
       'git status',
@@ -64,6 +85,14 @@ describe('the guard hook', () => {
       'pnpm art:part art/bean/side.svg',
       'pnpm share:dry-run',
       'git commit -m "tools: the guard hook"',
+      'git push',
+      'git push --no-verify -u origin tools/prep',
+      'git fetch origin main',
+      'git -c user.name=t commit -m "fix: git merge on main is blocked"',
+      'wrangler deploy --dry-run',
+      `git -C "${onMain}" status`,
+      `cd "${onMain}" && git log -1`,
+      'gh pr view 3',
     ]) {
       expect(run(c, onBranch), c).toBeNull();
     }

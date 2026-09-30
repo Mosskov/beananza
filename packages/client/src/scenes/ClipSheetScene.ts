@@ -21,7 +21,8 @@ const CLIP_PARTS: Partial<Record<ClipName, Record<string, boolean>>> = {
 };
 
 const LABEL_W = 96;
-const HEADER_H = 26;
+/** The title on one line, the phase headers under it. */
+const HEADER_H = 40;
 
 /**
  * Review scene for one animation clip (no sim): the clip at n phases (columns) in each chosen
@@ -52,9 +53,9 @@ export class ClipSheetScene extends Phaser.Scene implements TestableScene {
     const scale = Math.min(cellW / 150, (cellH - 14) / 175, 1);
     const ink = cssColor(PALETTE.inkSecondary);
     const title = `${clip}${this.reducedMotion ? ' (prefers-reduced-motion)' : ''}`;
-    this.add.text(8, 6, title, { fontFamily: FONT, fontSize: '14px', color: cssColor(this.reducedMotion ? PALETTE.labelAccent : PALETTE.ink) });
+    this.add.text(8, 4, title, { fontFamily: FONT, fontSize: '14px', color: cssColor(this.reducedMotion ? PALETTE.labelAccent : PALETTE.ink) });
     for (let k = 0; k < phases; k++) {
-      this.add.text(LABEL_W + cellW * (k + 0.5), 8, `${k}/${phases}`, { fontFamily: FONT, fontSize: '12px', color: ink }).setOrigin(0.5, 0);
+      this.add.text(LABEL_W + cellW * (k + 0.5), HEADER_H - 18, `${k}/${phases}`, { fontFamily: FONT, fontSize: '12px', color: ink }).setOrigin(0.5, 0);
     }
     dirs.forEach((dir, r) => {
       const family = familyOf(dir.choice.view);

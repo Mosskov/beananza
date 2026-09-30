@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { artFileKind, checkArt, type ArtFiles } from '../src/art/checks';
+import { PROP_SVGS } from '../src/art/prop-sources';
+import { BEAN_SVGS } from '../src/rig/bean-art-sources';
+import { COSMETIC_SVGS } from '../src/rig/looks-sources';
 
 /** All of art/ as `pnpm art:check` reads it, keyed by repo path. */
 const ART: ArtFiles = Object.fromEntries(
@@ -63,6 +66,29 @@ describe('the art contract checks (pnpm art:check)', () => {
     expect(messages(edit('art/bean/front.svg', /(<g id="eyes"[^>]*>[\s\S]*?<circle cx=")(-?[\d.]+)/, '$1-17'))).toEqual([expect.stringMatching(/front: eye highlight 1 is left of its pupil/)]);
     const tail = messages(edit('art/bean/front.svg', '<g id="scarf-tail" data-pivot="20 -42"><path d="M20 -42 L26 -20 L36 -22 L30 -44 Z"', '<g id="scarf-tail" data-pivot="-20 -42"><path d="M-20 -42 L-26 -20 L-36 -22 L-30 -44 Z"'));
     expect(tail).toEqual(["art/bean/front.svg | front: the scarf tail's knot is on screen left (x -20); on the bean's left it is screen right"]);
+  });
+
+  it('reports a drawing the game would not load (not registered), and a registered id with no drawing', () => {
+    const sprout = ART['art/bean/headwear/sprout.svg'] as string;
+    expect(messages({ ...ART, 'art/bean/headwear/cap.svg': sprout })).toEqual([expect.stringMatching(/^art\/bean\/headwear\/cap\.svg \| headwear cap: not registered.*HEADWEAR_IDS/)]);
+    expect(messages({ ...ART, 'art/props/sign.svg': ART['art/props/tree.svg'] as string })).toEqual([expect.stringMatching(/^art\/props\/sign\.svg \| sign: not registered.*PROP_PARTS/)]);
+    const noBow = { ...ART };
+    delete (noBow as Record<string, string>)['art/bean/headwear/bow.svg'];
+    expect(messages(noBow)).toContain('art/bean/headwear/bow.svg | headwear bow: in HEADWEAR_IDS but there is no drawing');
+  });
+
+  it('loads exactly the registered files: the sources match what is on disk', () => {
+    const cosmetics = Object.entries(COSMETIC_SVGS).flatMap(([kind, byId]) => Object.keys(byId).map((id) => `${kind} ${id}`));
+    const onDisk = Object.keys(ART).flatMap((p) => {
+      const k = artFileKind(p);
+      return k.kind === 'cosmetic' ? [`${k.cosmetic} ${k.id}`] : [];
+    });
+    expect(cosmetics.sort()).toEqual(onDisk.sort());
+    expect(Object.keys(PROP_SVGS).sort()).toEqual(Object.keys(ART).flatMap((p) => (artFileKind(p).kind === 'prop' ? [p.replace(/^art\/props\/|\.svg$/g, '')] : [])).sort());
+    expect(Object.keys(BEAN_SVGS).sort()).toEqual(Object.keys(ART).flatMap((p) => {
+      const k = artFileKind(p);
+      return k.kind === 'bean' ? [k.name] : [];
+    }).sort());
   });
 
   it('reports contract problems against the file they are in', () => {

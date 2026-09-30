@@ -1,4 +1,5 @@
 import { COLOUR_IDS, DEFAULT_LOOK, type BeanLook, type ColourId } from '@beananza/shared';
+import { AnimViewerScene } from './AnimViewerScene';
 import { BeanGalleryScene } from './BeanGalleryScene';
 import { ClipSheetScene } from './ClipSheetScene';
 import { PRIYA_COLOUR } from './classmates';
@@ -23,6 +24,7 @@ export const SCENES: Readonly<Record<string, SceneClass>> = {
   looks: LooksGalleryScene,
   clip: ClipSheetScene,
   reactions: ReactionsGalleryScene,
+  anim: AnimViewerScene,
 };
 
 /** Plain localhost:5180 opens the hub (D20). */
